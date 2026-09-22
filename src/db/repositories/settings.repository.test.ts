@@ -13,10 +13,14 @@ async function createRepository(): Promise<{ db: NodeDatabase; settings: Setting
 }
 
 describe('SettingsRepository', () => {
-  test('keeps the pause game hidden until the parent turns it on', async () => {
+  test('starts with four cards, an 8 s repeat pause and the pause game hidden', async () => {
     const { settings } = await createRepository()
 
-    expect(await settings.load()).toEqual(DEFAULT_SETTINGS)
+    expect(await settings.load()).toEqual({
+      pauseGameEnabled: false,
+      cardsPerScreen: 4,
+      debounceSeconds: 8,
+    })
     expect(DEFAULT_SETTINGS.pauseGameEnabled).toBe(false)
   })
 
@@ -42,5 +46,18 @@ describe('SettingsRepository', () => {
     await db.execAsync("UPDATE settings SET value = '1' WHERE key = 'pauseGameEnabled'")
 
     expect((await settings.load()).pauseGameEnabled).toBe(false)
+  })
+
+  test('keeps only values from the offered options', async () => {
+    const { db, settings } = await createRepository()
+
+    await settings.save('cardsPerScreen', 6)
+
+    await db.execAsync("INSERT INTO settings (key, value) VALUES ('debounceSeconds', '5')")
+
+    expect(await settings.load()).toMatchObject({
+      cardsPerScreen: 6,
+      debounceSeconds: 8,
+    })
   })
 })

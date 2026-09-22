@@ -39,6 +39,13 @@ export const uz = {
     moveUp: 'Yuqoriga',
     moveDown: 'Pastga',
   },
+  settings: {
+    requestsSection: "So'rovlar",
+    cardsPerScreen: 'Ekrandagi kartalar',
+    debounce: 'Qayta bosish pauzasi',
+    seconds: (count: number): string => `${count} soniya`,
+    debounceHint: 'Bola bir kartani qayta bossa, karta shuncha vaqt jim turadi.',
+  },
   cardEditor: {
     newTitle: 'Yangi karta',
     editTitle: 'Karta',
