@@ -50,6 +50,8 @@ export function RequestsView(): ReactElement {
         {
           paddingTop: insets.top + PARENT_GATE_HEIGHT,
           paddingBottom: settings.pauseGameEnabled ? 0 : insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
         },
       ]}
     >

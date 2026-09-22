@@ -32,6 +32,8 @@ export function SessionCountdown(): ReactElement | null {
         styles.track,
         {
           top: insets.top + spacing.xs,
+          left: insets.left + spacing.lg,
+          right: insets.right + spacing.lg,
         },
       ]}
     >
@@ -50,8 +52,6 @@ export function SessionCountdown(): ReactElement | null {
 const styles = StyleSheet.create({
   track: {
     position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
     height: BAR_HEIGHT,
     overflow: 'hidden',
     borderRadius: BAR_HEIGHT / 2,

@@ -153,4 +153,4 @@ Step 5 is deliberate. What he actually does with the request board will change t
 - Does a full-screen enlarged card help or does he try to dismiss it?
 - Is 8 s debounce frustrating or fine?
 - Does greyed-out hint text in the pause help, or does he read it as a cue to recite on a loop?
-- iPhone vs iPad: a bigger, shared screen on a table is better for co-play if an iPad is available.
+- iPhone vs iPad: a bigger, shared screen on a table is better for co-play if an iPad is available. The app runs on both in any orientation (the grid turns sideways in landscape); which one works better is still to observe.
