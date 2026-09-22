@@ -60,6 +60,7 @@ export type EventType =
   | 'pause_parent_credit'
   | 'game_round_end'
   | 'parent_gate_open'
+  | 'tab_switch'
 
 /** Timestamps across all tables are Unix epoch milliseconds from Date.now(). */
 export interface EventRow {
