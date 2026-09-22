@@ -6,14 +6,34 @@ What and why: [docs/SPEC.md](docs/SPEC.md). Working rules: [CLAUDE.md](CLAUDE.md
 ## Develop
 
 Expo SDK 57, Expo Router, TypeScript. Development happens on Windows + WSL2 without a simulator: the app runs in **Expo Go** on
-a physical iPhone or iPad.
+a physical iPhone or iPad that reaches Metro over the local network.
+
+One-time setup, so the phone can reach Metro inside WSL:
+
+1. `C:\Users\<you>\.wslconfig` switches WSL to mirrored networking:
+
+   ```ini
+   [wsl2]
+   networkingMode=mirrored
+   ```
+
+2. In PowerShell as Administrator, open port 8081 of WSL to the local network and restart WSL:
+
+   ```powershell
+   New-NetFirewallHyperVRule -Name ExpoMetro -DisplayName "Expo Metro (WSL)" -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts 8081
+   wsl --shutdown
+   ```
+
+3. The iPhone is on the same Wi-Fi as the PC. When iOS asks, allow Expo Go to access the local network.
 
 ```bash
 npm install
-npm run tunnel   # expo start --tunnel; scan the QR code with the iPhone camera
+npm start   # scan the QR code (exp://<PC address>:8081) with the iPhone camera
 ```
 
-The first `npm run tunnel` may offer to install `@expo/ngrok`: accept it.
+If the QR code shows another address than the PC's Wi-Fi one, start with
+`REACT_NATIVE_PACKAGER_HOSTNAME=<PC address> npm start`. Away from that Wi-Fi, `npm run tunnel` goes through Expo's shared ngrok
+account, which sometimes hits its session limit (`ERR_NGROK_108`); the first run offers to install `@expo/ngrok`.
 
 | Command             | What it does                                                                        |
 | ------------------- | ----------------------------------------------------------------------------------- |

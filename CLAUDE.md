@@ -32,7 +32,7 @@ These override "good UX" instincts from typical kids' apps. If a feature conflic
 ## Stack
 
 - Expo (latest stable SDK, managed workflow), TypeScript strict, Expo Router.
-- **Dev machine is Windows + WSL2, no Mac.** Develop against **Expo Go** on a physical iPhone/iPad (`npx expo start --tunnel` from WSL2). Use only modules that ship in Expo Go; if a task seems to need a custom native module, stop and ask. Standalone builds come later via **EAS Build** (cloud) + TestFlight; never assume Xcode or an iOS simulator is available.
+- **Dev machine is Windows + WSL2, no Mac.** Develop against **Expo Go** on a physical iPhone/iPad over LAN (`npx expo start` from WSL2 with mirrored networking, setup in README; `--tunnel` only as a fallback). Use only modules that ship in Expo Go; if a task seems to need a custom native module, stop and ask. Standalone builds come later via **EAS Build** (cloud) + TestFlight; never assume Xcode or an iOS simulator is available.
 - Audio: `expo-audio` (`useAudioPlayer`, `useAudioRecorder`, metering via recorder state). **Do not use `expo-av`**: it was removed in SDK 55.
 - Storage: `expo-sqlite` for cards, sessions, event log. Media files in the app document directory via `expo-file-system`; DB stores relative paths only.
 - Camera / picker: `expo-image-picker`.
