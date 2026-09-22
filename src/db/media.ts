@@ -3,7 +3,8 @@ import { Directory, File, Paths } from 'expo-file-system'
 /** Media lives in the document directory; the database keeps paths relative to it, since the absolute one can change. */
 const MEDIA_ROOT = 'media'
 
-export type MediaFolder = 'cards'
+/** Card photos and voices; app phrases such as the parent's "Xayr!". */
+export type MediaFolder = 'cards' | 'phrases'
 
 /** Copies a picked photo or a fresh recording out of its temporary location; returns the path to store. */
 export async function storeMedia(sourceUri: string, folder: MediaFolder): Promise<string> {

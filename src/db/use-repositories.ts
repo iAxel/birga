@@ -3,12 +3,14 @@ import { useMemo } from 'react'
 import { BoardsRepository } from '@/db/repositories/boards.repository'
 import { CardsRepository } from '@/db/repositories/cards.repository'
 import { EventsRepository } from '@/db/repositories/events.repository'
+import { SessionsRepository } from '@/db/repositories/sessions.repository'
 import { SettingsRepository } from '@/db/repositories/settings.repository'
 
 export interface Repositories {
   boards: BoardsRepository
   cards: CardsRepository
   events: EventsRepository
+  sessions: SessionsRepository
   settings: SettingsRepository
 }
 
@@ -16,13 +18,15 @@ export interface Repositories {
 export function useRepositories(): Repositories {
   const db = useSQLiteContext()
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const events = new EventsRepository(db)
+
+    return {
       boards: new BoardsRepository(db),
       cards: new CardsRepository(db),
-      events: new EventsRepository(db),
+      events,
+      sessions: new SessionsRepository(db, events),
       settings: new SettingsRepository(db),
-    }),
-    [db],
-  )
+    }
+  }, [db])
 }

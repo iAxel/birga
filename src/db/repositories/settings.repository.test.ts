@@ -13,13 +13,16 @@ async function createRepository(): Promise<{ db: NodeDatabase; settings: Setting
 }
 
 describe('SettingsRepository', () => {
-  test('starts with four cards, an 8 s repeat pause and the pause game hidden', async () => {
+  test('starts with four cards, an 8 s repeat pause, 10 min sessions, a 30 min break and the pause game hidden', async () => {
     const { settings } = await createRepository()
 
     expect(await settings.load()).toEqual({
       pauseGameEnabled: false,
       cardsPerScreen: 4,
       debounceSeconds: 8,
+      sessionMinutes: 10,
+      minBreakMinutes: 30,
+      goodbyeAudioPath: null,
     })
     expect(DEFAULT_SETTINGS.pauseGameEnabled).toBe(false)
   })
@@ -59,5 +62,17 @@ describe('SettingsRepository', () => {
       cardsPerScreen: 6,
       debounceSeconds: 8,
     })
+  })
+
+  test('stores the goodbye recording and clears it again', async () => {
+    const { settings } = await createRepository()
+
+    await settings.save('goodbyeAudioPath', 'media/phrases/xayr.m4a')
+
+    expect((await settings.load()).goodbyeAudioPath).toBe('media/phrases/xayr.m4a')
+
+    await settings.save('goodbyeAudioPath', null)
+
+    expect((await settings.load()).goodbyeAudioPath).toBeNull()
   })
 })

@@ -9,17 +9,33 @@ export const DEBOUNCE_SECONDS_OPTIONS = [4, 8, 12, 16] as const
 
 export type DebounceSeconds = (typeof DEBOUNCE_SECONDS_OPTIONS)[number]
 
+export const SESSION_MINUTES_OPTIONS = [5, 10, 15] as const
+
+export type SessionMinutes = (typeof SESSION_MINUTES_OPTIONS)[number]
+
+/** 0 switches the break off. */
+export const MIN_BREAK_MINUTES_OPTIONS = [0, 15, 30, 60] as const
+
+export type MinBreakMinutes = (typeof MIN_BREAK_MINUTES_OPTIONS)[number]
+
 /** What the parent can adjust (SPEC §5). A key missing from the table means its default. */
 export interface Settings {
   pauseGameEnabled: boolean
   cardsPerScreen: CardsPerScreen
   debounceSeconds: DebounceSeconds
+  sessionMinutes: SessionMinutes
+  minBreakMinutes: MinBreakMinutes
+  /** The parent's recorded "Xayr!" for the end of a session, relative to the document directory; optional. */
+  goodbyeAudioPath: string | null
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   pauseGameEnabled: false,
   cardsPerScreen: 4,
   debounceSeconds: 8,
+  sessionMinutes: 10,
+  minBreakMinutes: 30,
+  goodbyeAudioPath: null,
 }
 
 /** Settings stored as JSON values under the name of their Settings field. */
@@ -43,6 +59,13 @@ export class SettingsRepository {
         DEBOUNCE_SECONDS_OPTIONS,
         DEFAULT_SETTINGS.debounceSeconds,
       ),
+      sessionMinutes: this.#_readOneOf(stored.get('sessionMinutes'), SESSION_MINUTES_OPTIONS, DEFAULT_SETTINGS.sessionMinutes),
+      minBreakMinutes: this.#_readOneOf(
+        stored.get('minBreakMinutes'),
+        MIN_BREAK_MINUTES_OPTIONS,
+        DEFAULT_SETTINGS.minBreakMinutes,
+      ),
+      goodbyeAudioPath: this.#_readString(stored.get('goodbyeAudioPath')),
     }
   }
 
@@ -59,6 +82,16 @@ export class SettingsRepository {
 
     if (typeof value !== 'boolean') {
       return fallback
+    }
+
+    return value
+  }
+
+  #_readString(raw: string | undefined): string | null {
+    const value = this.#_parse(raw)
+
+    if (typeof value !== 'string') {
+      return null
     }
 
     return value
