@@ -11,6 +11,7 @@ import type { ReactElement } from 'react'
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
 import { strings } from '@/i18n'
+import { Panel, SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { color, radius, space, typography } from '@/ui/theme'
 
@@ -21,7 +22,7 @@ const PICKER_OPTIONS: ImagePickerOptions = {
   quality: 0.8,
 }
 
-const PHOTO_SIZE = 200
+const PHOTO_SIZE = 168
 
 interface PhotoFieldProps {
   image: MediaDraft | null
@@ -69,35 +70,56 @@ export function PhotoField({ image, onChange }: PhotoFieldProps): ReactElement {
   }
 
   return (
-    <View style={styles.field}>
-      <Text style={typography.body}>{strings.cardEditor.photo}</Text>
+    <Panel>
+      <SectionLabel
+        note={<Text style={typography.hint}>{strings.cardEditor.photoNote}</Text>}
+        title={strings.cardEditor.photo}
+      />
       {image ? (
-        <Image contentFit="cover" source={{ uri: mediaDraftUri(image) }} style={styles.photo} />
+        <Image
+          contentFit="cover"
+          source={{
+            uri: mediaDraftUri(image),
+          }}
+          style={styles.photo}
+        />
       ) : (
         <View style={[styles.photo, styles.noPhoto]}>
-          <SymbolView name="photo" size={48} tintColor={color.hint} />
+          <SymbolView name="photo" size={40} tintColor={color.hint} />
         </View>
       )}
-      <ParentButton onPress={takePhoto} title={strings.cardEditor.takePhoto} />
-      <ParentButton onPress={pickPhoto} title={strings.cardEditor.pickPhoto} />
-      {image && <ParentButton onPress={() => onChange(null)} title={strings.cardEditor.removePhoto} />}
-    </View>
+      <View style={styles.actions}>
+        <ParentButton icon="camera" onPress={takePhoto} title={strings.cardEditor.takePhoto} />
+        <ParentButton icon="photo" onPress={pickPhoto} title={strings.cardEditor.pickPhoto} />
+        {image && (
+          <ParentButton
+            accessibilityLabel={strings.cardEditor.removePhoto}
+            icon="xmark"
+            onPress={() => onChange(null)}
+            title=""
+          />
+        )}
+      </View>
+    </Panel>
   )
 }
 
 const styles = StyleSheet.create({
-  field: {
-    gap: space.sm,
-  },
   photo: {
     width: PHOTO_SIZE,
     height: PHOTO_SIZE,
     alignSelf: 'center',
-    borderRadius: radius.button,
+    borderRadius: radius.photo,
+    backgroundColor: color.photoBg,
   },
   noPhoto: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: color.card,
+  },
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: space.sm,
   },
 })

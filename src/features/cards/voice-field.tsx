@@ -1,27 +1,46 @@
+import { useAudioPlayerStatus } from 'expo-audio'
 import { SymbolView } from 'expo-symbols'
-import type { ReactElement } from 'react'
+import { type ReactElement, useEffect } from 'react'
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useVoicePlayer } from '@/audio/use-voice-player'
 import { MAX_RECORDING_MS, useVoiceRecorder } from '@/audio/use-voice-recorder'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
 import { strings } from '@/i18n'
+import { Panel, SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
-import { color, radius, space, touch, typography } from '@/ui/theme'
+import { color, radius, space, typography } from '@/ui/theme'
+
+const RECORD_BUTTON_HEIGHT = 48
+
+const TRACK_HEIGHT = 4
 
 interface VoiceFieldProps {
   audio: MediaDraft | null
   onRecorded: (uri: string) => void
 }
 
-/** The parent's voice: hold and speak (4 s at most), release to stop, listen back, hold again to re-record. */
+/**
+ * The parent's voice (DESIGN §3, OVOZ): hold and speak (4 s at most), release to stop, listen back, hold again to
+ * re-record. The recording is loaded into the preview player as soon as it exists, which also tells its length.
+ */
 export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement {
   const player = useVoicePlayer()
+  const playerStatus = useAudioPlayerStatus(player)
   const recorder = useVoiceRecorder(onRecorded)
   const progress = useSharedValue(0)
+  const audioUri = audio ? mediaDraftUri(audio) : null
   const progressStyle = useAnimatedStyle(() => ({
     width: `${progress.get() * 100}%`,
   }))
+
+  useEffect(() => {
+    if (audioUri) {
+      player.replace({
+        uri: audioUri,
+      })
+    }
+  }, [player, audioUri])
 
   function startRecording(): void {
     if (player.playing) {
@@ -48,62 +67,114 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
   }
 
   function play(): void {
-    if (!audio) {
+    if (!audioUri) {
       return
     }
 
     player.replace({
-      uri: mediaDraftUri(audio),
+      uri: audioUri,
     })
     player.play()
   }
 
   if (recorder.access === 'denied') {
     return (
-      <View style={styles.field}>
-        <Text style={typography.body}>{strings.cardEditor.voice}</Text>
+      <Panel>
+        <SectionLabel title={strings.cardEditor.voice} />
         <Text style={typography.row}>{strings.cardEditor.microphoneDenied}</Text>
         <ParentButton onPress={() => Linking.openSettings()} title={strings.common.openSettings} />
-      </View>
+      </Panel>
     )
   }
 
   return (
-    <View style={styles.field}>
-      <Text style={typography.body}>{strings.cardEditor.voice}</Text>
-      <Pressable
-        accessibilityLabel={strings.cardEditor.holdToRecord}
-        accessibilityRole="button"
-        disabled={recorder.access !== 'granted'}
-        onPressIn={startRecording}
-        onPressOut={stopRecording}
-        style={[styles.record, recorder.isRecording && styles.recording]}
-      >
-        <SymbolView name="mic.fill" size={28} tintColor={recorder.isRecording ? color.card : color.accent} />
-        <Text style={[typography.row, recorder.isRecording && styles.recordingText]}>
-          {recorder.isRecording ? strings.cardEditor.recording : strings.cardEditor.holdToRecord}
-        </Text>
-      </Pressable>
+    <Panel>
+      <SectionLabel
+        note={<VoiceStatus audio={audio} durationSeconds={playerStatus.duration} isRecording={recorder.isRecording} />}
+        title={strings.cardEditor.voice}
+      />
       <View style={styles.track}>
         <Animated.View style={[styles.progress, progressStyle]} />
       </View>
-      {audio && <ParentButton onPress={play} title={strings.cardEditor.play} />}
-    </View>
+      <View style={styles.actions}>
+        {audio && <ParentButton icon="play.fill" onPress={play} style={styles.action} title={strings.cardEditor.play} />}
+        <Pressable
+          accessibilityLabel={strings.cardEditor.holdToRecord}
+          accessibilityRole="button"
+          disabled={recorder.access !== 'granted'}
+          onPressIn={startRecording}
+          onPressOut={stopRecording}
+          style={[styles.record, styles.action, recorder.isRecording && styles.recording]}
+        >
+          <SymbolView name="mic" size={18} tintColor={recorder.isRecording ? color.card : color.ink} />
+          <Text style={[typography.button, recorder.isRecording && styles.recordingText]}>
+            {recordLabel(recorder.isRecording, audio !== null)}
+          </Text>
+        </Pressable>
+      </View>
+      <Text style={typography.hint}>{strings.cardEditor.voiceHint}</Text>
+    </Panel>
   )
 }
 
+interface VoiceStatusProps {
+  audio: MediaDraft | null
+  durationSeconds: number
+  isRecording: boolean
+}
+
+/** "1.2 s yozildi" once the recording is loaded; accent while there is a recording, muted without one. */
+function VoiceStatus({ audio, durationSeconds, isRecording }: VoiceStatusProps): ReactElement {
+  if (isRecording) {
+    return <Text style={[typography.body, styles.ready]}>{strings.cardEditor.recording}</Text>
+  }
+
+  if (!audio) {
+    return <Text style={typography.body}>{strings.cardEditor.voiceMissing}</Text>
+  }
+
+  return (
+    <Text style={[typography.body, styles.ready]}>
+      {durationSeconds > 0 ? strings.cardEditor.voiceLength(durationSeconds.toFixed(1)) : strings.cardEditor.voiceReady}
+    </Text>
+  )
+}
+
+function recordLabel(isRecording: boolean, hasAudio: boolean): string {
+  if (isRecording) {
+    return strings.cardEditor.recording
+  }
+
+  return hasAudio ? strings.cardEditor.reRecord : strings.cardEditor.holdToRecord
+}
+
 const styles = StyleSheet.create({
-  field: {
+  track: {
+    height: TRACK_HEIGHT,
+    overflow: 'hidden',
+    borderRadius: TRACK_HEIGHT / 2,
+    backgroundColor: color.panelAlt,
+  },
+  progress: {
+    height: TRACK_HEIGHT,
+    backgroundColor: color.accent,
+  },
+  actions: {
+    flexDirection: 'row',
     gap: space.sm,
   },
+  action: {
+    flex: 1,
+  },
   record: {
-    minHeight: touch.parent * 2,
+    minHeight: RECORD_BUTTON_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: space.sm,
-    borderRadius: radius.button,
-    backgroundColor: color.accentBg,
+    paddingHorizontal: space.md,
+    borderRadius: radius.buttonSm,
+    backgroundColor: color.panelAlt,
   },
   recording: {
     backgroundColor: color.accent,
@@ -111,14 +182,7 @@ const styles = StyleSheet.create({
   recordingText: {
     color: color.card,
   },
-  track: {
-    height: 4,
-    overflow: 'hidden',
-    borderRadius: 2,
-    backgroundColor: color.card,
-  },
-  progress: {
-    height: 4,
-    backgroundColor: color.accent,
+  ready: {
+    color: color.accent,
   },
 })

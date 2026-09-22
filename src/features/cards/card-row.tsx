@@ -4,15 +4,19 @@ import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { type Card, mediaUri } from '@/db'
 import { strings } from '@/i18n'
-import { color, radius, space, touch, typography } from '@/ui/theme'
+import { fontForText } from '@/ui/fonts'
+import { color, font, radius, space, touch, typography } from '@/ui/theme'
 
 const THUMBNAIL_SIZE = 48
 
+const ROW_HEIGHT = 72
+
 interface CardRowProps {
   card: Card
-  position: number
   canMoveUp: boolean
   canMoveDown: boolean
+  /** Line under the row; the last row of a panel has none. */
+  hasSeparator: boolean
   onOpen: () => void
   onMove: (offset: -1 | 1) => void
 }
@@ -24,20 +28,35 @@ interface ArrowButtonProps {
   onPress: () => void
 }
 
-/** A card in the board list: its place, photo and word. The arrows change the place the child finds it on the board. */
-export function CardRow({ card, position, canMoveUp, canMoveDown, onOpen, onMove }: CardRowProps): ReactElement {
+/**
+ * A card in the board list: its photo, or its word on a small tile, and the word. The arrows change the place the child
+ * finds it on the board.
+ */
+export function CardRow({ card, canMoveUp, canMoveDown, hasSeparator, onOpen, onMove }: CardRowProps): ReactElement {
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, hasSeparator && styles.separator]}>
       <Pressable accessibilityRole="button" onPress={onOpen} style={styles.open}>
-        <Text style={[typography.body, styles.position]}>{position}</Text>
         {card.imagePath ? (
-          <Image contentFit="cover" source={{ uri: mediaUri(card.imagePath) }} style={styles.thumbnail} />
+          <Image
+            contentFit="cover"
+            source={{
+              uri: mediaUri(card.imagePath),
+            }}
+            style={styles.thumbnail}
+          />
         ) : (
-          <View style={[styles.thumbnail, styles.noPhoto]} />
+          <View style={[styles.thumbnail, styles.wordTile]}>
+            <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.tileWord, fontForText(card.text, font.extraBold)]}>
+              {card.text}
+            </Text>
+          </View>
         )}
-        <Text numberOfLines={1} style={[typography.row, styles.word]}>
-          {card.text}
-        </Text>
+        <View style={styles.texts}>
+          <Text numberOfLines={1} style={[typography.row, styles.word, fontForText(card.text, font.bold)]}>
+            {card.text}
+          </Text>
+          {!card.imagePath && <Text style={typography.body}>{strings.cards.noPhoto}</Text>}
+        </View>
       </Pressable>
       <ArrowButton disabled={!canMoveUp} icon="chevron.up" label={strings.cards.moveUp} onPress={() => onMove(-1)} />
       <ArrowButton disabled={!canMoveDown} icon="chevron.down" label={strings.cards.moveDown} onPress={() => onMove(1)} />
@@ -50,52 +69,67 @@ function ArrowButton({ icon, label, disabled, onPress }: ArrowButtonProps): Reac
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
+      accessibilityState={{
+        disabled,
+      }}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.arrow, disabled && styles.arrowDisabled]}
+      style={styles.arrow}
     >
-      <SymbolView name={icon} size={18} tintColor={color.ink} />
+      <SymbolView name={icon} size={18} tintColor={disabled ? color.hint : color.muted} weight="semibold" />
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
   row: {
+    minHeight: ROW_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.button,
-    backgroundColor: color.card,
+    paddingRight: space.sm,
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: color.cardLine,
   },
   open: {
     flex: 1,
-    minHeight: touch.parent,
+    minHeight: ROW_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.sm,
-    padding: space.sm,
-  },
-  position: {
-    width: space.lg,
-    textAlign: 'center',
+    gap: space.md,
+    paddingVertical: space.sm + space.xs,
+    paddingLeft: space.md,
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: radius.buttonSm,
+    borderRadius: radius.buttonSm - 2,
+    backgroundColor: color.photoBg,
   },
-  noPhoto: {
-    backgroundColor: color.ground,
+  wordTile: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: space.xs,
+    borderWidth: 1.5,
+    borderColor: color.cardLine,
+    backgroundColor: color.card,
+  },
+  tileWord: {
+    color: color.ink,
+    fontSize: 15,
+  },
+  texts: {
+    flex: 1,
+    gap: 2,
   },
   word: {
-    flex: 1,
+    fontSize: 20,
   },
   arrow: {
     width: touch.parent,
     height: touch.parent,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  arrowDisabled: {
-    opacity: 0.25,
   },
 })

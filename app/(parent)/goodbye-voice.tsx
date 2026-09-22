@@ -70,14 +70,14 @@ export default function GoodbyeVoiceScreen(): ReactElement {
         title={strings.cardEditor.save}
         variant="primary"
       />
-      {settings.goodbyeAudioPath && <ParentButton onPress={remove} title={strings.goodbyeVoice.remove} />}
+      {settings.goodbyeAudioPath && <ParentButton onPress={remove} title={strings.goodbyeVoice.remove} variant="danger" />}
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   content: {
-    gap: space.lg,
-    padding: space.md,
+    gap: space.parentPad,
+    padding: space.parentPad,
   },
 })

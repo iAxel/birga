@@ -1,27 +1,43 @@
 import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
+import type { ActiveBoard } from '@/features/cards/use-active-board'
 import { remainingMs } from '@/features/session/session-clock'
 import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
+import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
-import { space, typography } from '@/ui/theme'
+import { color, space, typography } from '@/ui/theme'
 
 const REFRESH_MS = 15_000
 
 const MINUTE_MS = 60_000
 
-/**
- * Session state and actions in parent mode: go back to the paused session or end it, or start a new one once the break
- * after the last full session is over. Returning to child mode without a session shows the calm goodbye screen.
- */
-export function SessionControls(): ReactElement {
-  const router = useRouter()
-  const session = useSession()
-  const now = useNow(REFRESH_MS)
+const PROGRESS_HEIGHT = 6
 
-  function leaveParentMode(): void {
+interface SessionControlsProps {
+  /** The board the child will see, summed up under the start button; undefined while loading. */
+  activeBoard: ActiveBoard | null | undefined
+}
+
+/** Leaves parent mode for child mode, resuming the paused session if there is one. */
+export function useBackToChildMode(): (returnedAt: number) => void {
+  const session = useSession()
+  const leaveParentMode = useLeaveParentMode()
+
+  return (returnedAt) => {
+    session.resume(returnedAt)
+
+    leaveParentMode()
+  }
+}
+
+function useLeaveParentMode(): () => void {
+  const router = useRouter()
+
+  return () => {
     if (router.canGoBack()) {
       router.back()
 
@@ -30,12 +46,18 @@ export function SessionControls(): ReactElement {
 
     router.replace('/')
   }
+}
 
-  function backToChildMode(returnedAt: number): void {
-    session.resume(returnedAt)
-
-    leaveParentMode()
-  }
+/**
+ * The session panel of parent home: go back to the paused session or end it, or start a new one once the break after
+ * the last full session is over. Returning to child mode without a session shows the calm start screen.
+ */
+export function SessionControls({ activeBoard }: SessionControlsProps): ReactElement {
+  const session = useSession()
+  const settings = useSettings()
+  const backToChildMode = useBackToChildMode()
+  const leaveParentMode = useLeaveParentMode()
+  const now = useNow(REFRESH_MS)
 
   async function startSession(startedAt: number): Promise<void> {
     await session.start(startedAt)
@@ -58,37 +80,86 @@ export function SessionControls(): ReactElement {
   }
 
   if (session.active) {
-    const minutesLeft = Math.ceil(remainingMs(session.active.clock, now) / MINUTE_MS)
+    const left = remainingMs(session.active.clock, now)
+    const playedShare = 1 - left / session.active.clock.limitMs
 
     return (
-      <View style={styles.block}>
-        <Text style={typography.body}>{strings.session.pausedLeft(minutesLeft)}</Text>
-        <ParentButton onPress={() => backToChildMode(Date.now())} title={strings.parent.backToChild} variant="primary" />
-        <ParentButton onPress={confirmEnd} title={strings.session.end} />
-      </View>
+      <Panel>
+        <View style={styles.status}>
+          <Text style={styles.statusText}>{strings.session.paused}</Text>
+          <Text style={styles.statusText}>{strings.session.minutesLeft(Math.ceil(left / MINUTE_MS))}</Text>
+        </View>
+        <View style={styles.track}>
+          <View
+            style={[
+              styles.progress,
+              {
+                width: `${playedShare * 100}%`,
+              },
+            ]}
+          />
+        </View>
+        <View style={styles.actions}>
+          <ParentButton
+            onPress={() => backToChildMode(Date.now())}
+            style={styles.action}
+            title={strings.session.resume}
+            variant="primary"
+          />
+          <ParentButton onPress={confirmEnd} style={styles.action} title={strings.session.end} />
+        </View>
+      </Panel>
     )
   }
 
   const breakLeft = session.breakLeftMs(now)
-  const status = breakLeft > 0 ? strings.session.breakLeft(Math.ceil(breakLeft / MINUTE_MS)) : strings.session.none
 
   return (
-    <View style={styles.block}>
-      <Text style={typography.body}>{status}</Text>
+    <Panel>
+      <View style={styles.status}>
+        <Text style={styles.statusText}>{strings.session.none}</Text>
+        {breakLeft > 0 && <Text style={styles.statusText}>{strings.session.breakLeft(Math.ceil(breakLeft / MINUTE_MS))}</Text>}
+      </View>
       <ParentButton
         disabled={breakLeft > 0}
         onPress={() => startSession(Date.now())}
-        title={strings.session.start}
+        title={strings.session.start(settings.sessionMinutes)}
         variant="primary"
       />
-      <ParentButton onPress={() => backToChildMode(Date.now())} title={strings.parent.backToChild} />
-    </View>
+      {activeBoard !== undefined && (
+        <Text style={typography.body}>
+          {activeBoard ? strings.session.board(activeBoard.board.title, activeBoard.cardCount) : strings.session.noBoard}
+        </Text>
+      )}
+    </Panel>
   )
 }
 
 const styles = StyleSheet.create({
-  block: {
+  status: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: space.sm,
-    marginBottom: space.lg,
+  },
+  statusText: {
+    ...typography.row,
+    color: color.muted,
+  },
+  track: {
+    height: PROGRESS_HEIGHT,
+    overflow: 'hidden',
+    borderRadius: PROGRESS_HEIGHT / 2,
+    backgroundColor: color.panelAlt,
+  },
+  progress: {
+    height: PROGRESS_HEIGHT,
+    backgroundColor: color.accent,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: space.sm,
+  },
+  action: {
+    flex: 1,
   },
 })

@@ -1,14 +1,19 @@
 import { useRouter } from 'expo-router'
 import { type ReactElement, useEffect, useState } from 'react'
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native'
 import { type Board, type Card, useRepositories } from '@/db'
 import { BoardField } from '@/features/cards/board-field'
 import { type CardDraft, draftFromCard, emptyDraft, isDraftComplete, saveCard } from '@/features/cards/card-draft'
 import { PhotoField } from '@/features/cards/photo-field'
 import { VoiceField } from '@/features/cards/voice-field'
 import { strings } from '@/i18n'
+import { fontForText } from '@/ui/fonts'
+import { SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
-import { color, radius, space, touch, typography } from '@/ui/theme'
+import { ParentScreen } from '@/ui/parent-screen'
+import { color, font, radius, space, typography } from '@/ui/theme'
+
+const WORD_HEIGHT = 56
 
 interface CardEditorProps {
   cardId: number | null
@@ -96,12 +101,22 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
   }
 
   const isComplete = isDraftComplete(draft)
+  const boardTitle = boards.find((board) => board.id === draft.boardId)?.title
 
   return (
-    <ScrollView automaticallyAdjustKeyboardInsets contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ParentScreen
+      accessory={
+        boardTitle !== undefined && (
+          <Text numberOfLines={1} style={styles.boardLabel}>
+            {strings.cardEditor.boardLabel(boardTitle)}
+          </Text>
+        )
+      }
+      title={original ? strings.cardEditor.editTitle : strings.cardEditor.newTitle}
+    >
       <PhotoField image={draft.image} onChange={(image) => update({ image })} />
       <View style={styles.field}>
-        <Text style={typography.body}>{strings.cardEditor.word}</Text>
+        <SectionLabel title={strings.cardEditor.word} />
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -110,9 +125,10 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
           placeholderTextColor={color.hint}
           returnKeyType="done"
           spellCheck={false}
-          style={styles.word}
+          style={[styles.word, fontForText(draft.text, font.bold)]}
           value={draft.text}
         />
+        <Text style={typography.body}>{strings.cardEditor.wordHint}</Text>
       </View>
       <VoiceField
         audio={draft.audio}
@@ -126,28 +142,37 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
         }
       />
       <BoardField boardId={draft.boardId} boards={boards} onChange={(id) => update({ boardId: id })} />
-      <ParentButton disabled={!isComplete || isSaving} onPress={save} title={strings.cardEditor.save} variant="primary" />
-      {!isComplete && <Text style={typography.body}>{strings.cardEditor.incomplete}</Text>}
-      {original && <ParentButton onPress={confirmArchive} title={strings.cardEditor.archive} />}
-    </ScrollView>
+      <View style={styles.field}>
+        <ParentButton disabled={!isComplete || isSaving} onPress={save} title={strings.cardEditor.save} variant="primary" />
+        {!isComplete && <Text style={[typography.body, styles.centered]}>{strings.cardEditor.incomplete}</Text>}
+        {original && <ParentButton onPress={confirmArchive} title={strings.cardEditor.archive} variant="danger" />}
+      </View>
+    </ParentScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: space.lg,
-    padding: space.md,
-  },
   field: {
     gap: space.sm,
   },
+  boardLabel: {
+    ...typography.row,
+    flexShrink: 1,
+    maxWidth: '45%',
+    color: color.muted,
+    fontFamily: font.medium,
+  },
   word: {
-    minHeight: touch.parent,
-    paddingHorizontal: space.md,
+    height: WORD_HEIGHT,
+    paddingHorizontal: space.parentPad,
+    borderWidth: 1,
+    borderColor: color.cardLine,
     borderRadius: radius.button,
     backgroundColor: color.card,
     color: color.ink,
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 26,
+  },
+  centered: {
+    textAlign: 'center',
   },
 })

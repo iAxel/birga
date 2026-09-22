@@ -2,19 +2,28 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import type { ReactElement } from 'react'
 import { strings } from '@/i18n'
-import { color } from '@/ui/theme'
+import { color, font } from '@/ui/theme'
 
-/** Parent mode: a regular iOS navigation stack with headers; the status bar is back. */
+/**
+ * Parent mode: an iOS navigation stack with swipe-back; the status bar is back. The designed screens draw their own
+ * header (ParentScreen); the settings screens keep the native one.
+ */
 export default function ParentLayout(): ReactElement {
   return (
     <>
       <StatusBar hidden={false} style="dark" />
       <Stack
         screenOptions={{
+          headerShown: false,
           headerStyle: {
             backgroundColor: color.ground,
           },
-          headerTintColor: color.ink,
+          headerTintColor: color.accent,
+          headerTitleStyle: {
+            color: color.ink,
+            fontFamily: font.bold,
+          },
+          headerBackButtonDisplayMode: 'minimal',
           headerShadowVisible: false,
           contentStyle: {
             backgroundColor: color.ground,
@@ -22,57 +31,17 @@ export default function ParentLayout(): ReactElement {
         }}
       >
         <Stack.Screen
-          name="parent"
-          options={{
-            title: strings.parent.title,
-          }}
-        />
-        <Stack.Screen
-          name="cards/index"
-          options={{
-            title: strings.parent.cards,
-          }}
-        />
-        <Stack.Screen
-          name="cards/[boardId]"
-          options={{
-            title: '',
-          }}
-        />
-        <Stack.Screen
-          name="card/new"
-          options={{
-            title: strings.cardEditor.newTitle,
-          }}
-        />
-        <Stack.Screen
-          name="card/[cardId]"
-          options={{
-            title: strings.cardEditor.editTitle,
-          }}
-        />
-        <Stack.Screen
-          name="sequences"
-          options={{
-            title: strings.parent.sequences,
-          }}
-        />
-        <Stack.Screen
           name="settings"
           options={{
+            headerShown: true,
             title: strings.parent.settings,
           }}
         />
         <Stack.Screen
           name="goodbye-voice"
           options={{
+            headerShown: true,
             title: strings.goodbyeVoice.title,
-          }}
-        />
-        <Stack.Screen
-          name="log"
-          options={{
-            title: strings.parent.log,
           }}
         />
       </Stack>

@@ -1,32 +1,70 @@
+import { type SFSymbol, SymbolView } from 'expo-symbols'
 import type { ReactElement } from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, type StyleProp, StyleSheet, Text, type ViewStyle } from 'react-native'
 import { color, radius, space, touch, typography } from '@/ui/theme'
+
+const PRIMARY_HEIGHT = 56
+
+const SECONDARY_HEIGHT = 48
+
+const ICON_SIZE = 18
+
+type ParentButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger'
+
+const TEXT_COLORS: Record<ParentButtonVariant, string> = {
+  primary: color.card,
+  secondary: color.ink,
+  outline: color.ink,
+  danger: color.danger,
+}
 
 interface ParentButtonProps {
   title: string
   onPress: () => void
-  variant?: 'primary' | 'plain'
+  /** Primary: the main action of a screen, accent. Secondary: soft fill. Outline: thin line. Danger: text only. */
+  variant?: ParentButtonVariant
+  icon?: SFSymbol
   disabled?: boolean
+  accessibilityLabel?: string
+  style?: StyleProp<ViewStyle>
 }
 
-/** Parent-mode button: full width, at least 44 pt high, one accent colour for the main action of a screen. */
-export function ParentButton({ title, onPress, variant = 'plain', disabled = false }: ParentButtonProps): ReactElement {
+/** Parent-mode button (DESIGN §2): stretches to its container unless given a width; at least 44 pt high. */
+export function ParentButton({
+  title,
+  onPress,
+  variant = 'outline',
+  icon,
+  disabled = false,
+  accessibilityLabel,
+  style,
+}: ParentButtonProps): ReactElement {
+  const textColor = TEXT_COLORS[variant]
+
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{
         disabled,
       }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        variant === 'primary' && styles.primary,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
-      ]}
+      style={({ pressed }) => [styles.button, styles[variant], pressed && styles.pressed, disabled && styles.disabled, style]}
     >
-      <Text style={[typography.row, variant === 'primary' && styles.primaryText]}>{title}</Text>
+      {icon && <SymbolView name={icon} size={ICON_SIZE} tintColor={textColor} />}
+      {title.length > 0 && (
+        <Text
+          style={[
+            variant === 'primary' ? typography.buttonPrimary : typography.button,
+            {
+              color: textColor,
+            },
+          ]}
+        >
+          {title}
+        </Text>
+      )}
     </Pressable>
   )
 }
@@ -34,20 +72,30 @@ export function ParentButton({ title, onPress, variant = 'plain', disabled = fal
 const styles = StyleSheet.create({
   button: {
     minHeight: touch.parent,
+    minWidth: touch.parent,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: space.sm,
     paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    borderRadius: radius.button,
-    backgroundColor: color.card,
   },
   primary: {
-    backgroundColor: color.accentBg,
+    minHeight: PRIMARY_HEIGHT,
+    borderRadius: radius.button,
+    backgroundColor: color.accent,
   },
-  primaryText: {
-    color: color.accent,
-    fontWeight: '600',
+  secondary: {
+    minHeight: SECONDARY_HEIGHT,
+    borderRadius: radius.buttonSm,
+    backgroundColor: color.panelAlt,
   },
+  outline: {
+    minHeight: SECONDARY_HEIGHT,
+    borderWidth: 1.5,
+    borderColor: color.hint,
+    borderRadius: radius.buttonSm,
+  },
+  danger: {},
   pressed: {
     opacity: 0.6,
   },

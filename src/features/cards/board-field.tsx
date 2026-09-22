@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { Board } from '@/db'
 import { strings } from '@/i18n'
+import { Panel, SectionLabel } from '@/ui/panel'
 import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface BoardFieldProps {
@@ -17,8 +18,8 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
   }
 
   return (
-    <View style={styles.field}>
-      <Text style={typography.body}>{strings.cardEditor.board}</Text>
+    <Panel>
+      <SectionLabel title={strings.cardEditor.board} />
       <View style={styles.options}>
         {boards.map((board) => {
           const isSelected = board.id === boardId
@@ -33,19 +34,16 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
               onPress={() => onChange(board.id)}
               style={[styles.option, isSelected && styles.optionSelected]}
             >
-              <Text style={[typography.row, isSelected && styles.optionSelectedText]}>{board.title}</Text>
+              <Text style={[typography.button, isSelected && styles.optionSelectedText]}>{board.title}</Text>
             </Pressable>
           )
         })}
       </View>
-    </View>
+    </Panel>
   )
 }
 
 const styles = StyleSheet.create({
-  field: {
-    gap: space.sm,
-  },
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -55,14 +53,15 @@ const styles = StyleSheet.create({
     minHeight: touch.parent,
     justifyContent: 'center',
     paddingHorizontal: space.md,
-    borderRadius: radius.button,
-    backgroundColor: color.card,
+    borderWidth: 1.5,
+    borderColor: color.hint,
+    borderRadius: radius.buttonSm,
   },
   optionSelected: {
+    borderColor: color.accentBg,
     backgroundColor: color.accentBg,
   },
   optionSelectedText: {
     color: color.accent,
-    fontWeight: '600',
   },
 })
