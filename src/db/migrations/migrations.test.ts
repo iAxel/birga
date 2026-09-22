@@ -2,15 +2,8 @@ import { describe, expect, test } from '@jest/globals'
 import { migrate } from '@/db/migrate'
 import { migrations } from '@/db/migrations'
 import { initial } from '@/db/migrations/0001-initial'
+import { migratedDatabase } from '@/db/testing/migrated-database'
 import { NodeDatabase } from '@/db/testing/node-database'
-
-async function migratedDatabase(): Promise<NodeDatabase> {
-  const db = new NodeDatabase()
-
-  await migrate(db, migrations)
-
-  return db
-}
 
 describe('schema', () => {
   test('has every table from the spec', async () => {

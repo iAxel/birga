@@ -1,13 +1,10 @@
 import { describe, expect, test } from '@jest/globals'
-import { migrate } from '@/db/migrate'
-import { migrations } from '@/db/migrations'
 import { DEFAULT_SETTINGS, SettingsRepository } from '@/db/repositories/settings.repository'
-import { NodeDatabase } from '@/db/testing/node-database'
+import { migratedDatabase } from '@/db/testing/migrated-database'
+import type { NodeDatabase } from '@/db/testing/node-database'
 
 async function createRepository(): Promise<{ db: NodeDatabase; settings: SettingsRepository }> {
-  const db = new NodeDatabase()
-
-  await migrate(db, migrations)
+  const db = await migratedDatabase()
 
   return {
     db,
