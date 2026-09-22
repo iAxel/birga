@@ -22,15 +22,20 @@ The Pause game tab is behind a setting, off by default until the game exists. Wh
 
 ### Parent mode
 
-Entered by holding a small dim element in the top-right corner for 3 seconds. Contains: cards management, pause-game sequences, session settings, log view/export.
+Entered by holding a small dim element in the top-right corner for 3 seconds. While it is held, a thin ring around it fills clockwise over the 3 s; letting go resets it. No other feedback. Contains: cards management, pause-game sequences, session settings, log view/export.
 
 Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the child cannot leave the app.
+
+**Onboarding** is shown on first launch only: a short why, then three steps. Step 1, add 2 cards, is active with a counter and a button; steps 2 (turn on Guided Access) and 3 (how to run the first session) are text. "Boshlash" stays disabled until 2 cards exist. Once completed it is never shown again.
+
+The parent home screen shows one parent tip at a time from a static list ("Bugungi maslahat").
 
 ---
 
 ## 2. Requests screen
 
 - Grid of **2, 4 or 6 cards** (parent setting, default 4). Cards fill the screen. A board may hold more cards: the child sees the first ones in their order, and the board screen in parent mode marks where the visible ones end.
+- On an iPhone the grid is **2 cards stacked**. 4 or 6 cards per screen are not supported on a phone in v0.1: the phone shows 2, and Settings says so.
 - Card = real photo (optional: core words usually have none) + written word underneath (large, high contrast) + parent voice recording (required).
 - On tap:
   1. card scales up to center, others dim;
@@ -38,7 +43,8 @@ Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the
   3. card stays enlarged ~3 s, longer if the recording is longer (time for the parent to react and hand the item over), then returns. Until it has returned, every card is inert.
 - **Debounce:** after a tap, the same card is inert for 8 s (setting). This prevents tap-loop stimming on the sound. Every ignored tap of the child is logged as `request_tap_debounced` with payload `{reason}`: `repeat` (same card within the debounce) or `busy` (a request is still on screen).
 - A small "attempt" button is visible only to the parent's side of the screen (bottom corner, low contrast): parent taps it when the child tried to say the word. Logs `request_verbal_attempt` with the last tapped card.
-- **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean. Parent taps do not start the per-card debounce (the child may repeat the modelled card right away), and parent taps the board ignores are not logged.
+  - _Proposed by the design handoff, not adopted:_ holding the attempt button records the attempt (up to 4 s) to `media/attempts/`, logged as `attempt_recorded {card_id | sequence_id + item_position, audio_path, duration_ms}`, parent-initiated only and never played back to the child. It persists microphone audio of the child, which CLAUDE.md forbids ("Never persist microphone audio from the child. Metering values only."). It stays out until that rule is changed explicitly; the same applies to the Log's attempt recordings and to attempt files in the export.
+- **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean. Parent taps do not start the per-card debounce (the child may repeat the modelled card right away), and parent taps the board ignores are not logged. While modeling is on, the hand icon turns accent and a thin accent bar spans the bottom edge.
 - Card order is fixed (parent-defined). Do not shuffle: position consistency is how AAC motor planning works.
 
 **Starter content guidance (shown in the card editor empty state):** mix things he wants (suv, specific toys, swing) with **core words** that work everywhere: `yana` (more), `ber` (give), `yo'q` (no), `bo'ldi` (done/stop), `yordam` (help). Core words keep a fixed position on every board.
@@ -51,13 +57,13 @@ Card sets: parent can create several **boards** (e.g. "Ovqat", "O'yin") and pick
 
 Built on the child's love of sequences. The app says a familiar sequence in the parent's voice and **stops before the next item**, waiting for the child to fill in.
 
-- A **sequence** = ordered list of items; each item = text + voice recording + optional image. Examples: `bir, ikki, uch, to'rt, besh`; later phrases with a gap: `Men … xohlayman`.
+- A **sequence** = ordered list of items; each item = text + voice recording + optional **symbol** (one character, e.g. a digit, shown above the text) + optional image (shown above the symbol at 160 pt). Examples: `bir, ikki, uch, to'rt, besh`; later phrases with a gap: `Men … xohlayman`.
 - Flow per round:
   1. App plays items 1..k (k chosen so that the pause falls at a different place each round, never before item 2).
   2. Character switches to "waiting" pose. Next item's **written text is shown** greyed out as a hint. Mic opens.
   3. **Pause window: 5 s** (setting).
-     - Vocalization detected → `pause_filled`: reward animation (~1.5 s), app plays the item in parent's voice as confirmation, continues.
-     - Nothing → `pause_timeout`: app simply says the item itself, neutral tone, continues. No negative feedback of any kind.
+     - Vocalization detected → `pause_filled`: reward animation (~1.5 s: the hint turns ink over a soft glow, a few sparks rise and fade), app plays the item in parent's voice as confirmation, continues. Glow and sparks are settings, both on by default.
+     - Nothing → `pause_timeout`: the hint turns ink without glow or sparks while the app simply says the item itself, neutral tone, continues. No negative feedback of any kind.
   4. Sequence finishes → short end animation → next round or stop.
 - **Max 5 rounds per game**, then the game tab becomes inert until the next session (anti-loop).
 - Parent "attempt" button works here too (`pause_parent_credit`), for when detection missed a quiet attempt.
@@ -76,7 +82,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 - The parent starts a session from parent mode; the app itself opens on the calm Goodbye screen, so the child never starts one alone. Length: **10 min** default (setting: 5/10/15).
 - Parent mode pauses the running session. The parent returns to it, or ends it there (`parent_exit`).
-- Last minute: subtle visual countdown (a bar shrinking), no sound.
+- Last minute: subtle visual countdown, a 3 pt bar at the top edge shrinking right to left, no sound.
 - At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional, recorded in Settings), then a static calm screen. Nothing on it is tappable except the parent gate. Until the character exists, a waving hand symbol stands in for it.
 - New session only via parent mode. Optional setting: minimum break between sessions (default 30 min, 0 = off). It blocks starting a new session until it has passed, counted from the last session that ended by the timer.
 - A session the app died in is closed at the next launch as `app_killed`, at its last logged event.
@@ -90,15 +96,16 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 - Take photo / pick from library → crop square. Optional.
 - Type the word (any script, stored as typed).
 - Record voice: hold-to-record, max 4 s, playback preview, re-record. Required: a card cannot be saved without it. Trim leading/trailing silence if feasible; otherwise skip in v0.1.
+- Or import a ready audio file via `expo-document-picker` (m4a, wav, mp3); a file longer than 4 s is rejected with a hint.
 - Assign to board, set position.
 
 ### Sequence editor
 
-- Add items in order: text + recording (+ optional image).
+- Add items in order: text + recording (+ optional symbol, + optional image).
 
 ### Settings
 
-Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break, Pause game tab on/off.
+Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break, Pause game tab on/off, child's name (the subtitle on the start screen: "<name> bilan birga o'ynaymiz"), reward glow on/off, reward sparks on/off.
 
 ### Log
 
@@ -113,7 +120,7 @@ Cards per screen, debounce seconds, pause window seconds, detection margin dB, s
 boards(id, title, position, is_active, created_at)
 cards(id, board_id, text, image_path, audio_path, position, is_archived, created_at)
 sequences(id, title, is_active, created_at)
-sequence_items(id, sequence_id, position, text, audio_path, image_path)
+sequence_items(id, sequence_id, position, text, symbol, audio_path, image_path)
 sessions(id, started_at, ended_at, end_reason)            -- timer | parent_exit | app_killed
 events(id, session_id, ts, type, card_id, sequence_id, item_position, payload_json)
 settings(key, value)
