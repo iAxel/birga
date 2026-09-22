@@ -2,12 +2,15 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { type ReactElement, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { configureAudioSession } from '@/audio/audio-session'
 import { DatabaseProvider } from '@/db'
 import { SettingsProvider } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { colors, radii, spacing, touch, typography } from '@/ui/theme'
 
 SplashScreen.preventAutoHideAsync()
+
+configureAudioSession()
 
 /** No screen renders until the database is migrated and the settings are loaded; the splash screen covers that time. */
 export default function RootLayout(): ReactElement {
