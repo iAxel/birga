@@ -2,6 +2,7 @@ import { type Href, Link, useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
 import { strings } from '@/i18n'
+import { ParentButton } from '@/ui/parent-button'
 import { colors, radii, spacing, touch, typography } from '@/ui/theme'
 
 interface Section {
@@ -52,9 +53,7 @@ export default function ParentHomeScreen(): ReactElement {
         </Link>
       ))}
       <Text style={[typography.caption, styles.hint]}>{strings.parent.guidedAccessHint}</Text>
-      <Pressable onPress={backToChildMode} style={styles.exit}>
-        <Text style={[typography.body, styles.exitText]}>{strings.parent.backToChild}</Text>
-      </Pressable>
+      <ParentButton onPress={backToChildMode} title={strings.parent.backToChild} variant="primary" />
     </ScrollView>
   )
 }
@@ -73,18 +72,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   hint: {
-    marginTop: spacing.lg,
-  },
-  exit: {
-    minHeight: touch.parent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    borderRadius: radii.md,
-    backgroundColor: colors.accentSoft,
-  },
-  exitText: {
-    color: colors.accent,
-    fontWeight: '600',
+    marginVertical: spacing.lg,
   },
 })

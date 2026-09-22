@@ -28,9 +28,27 @@ export default function ParentLayout(): ReactElement {
           }}
         />
         <Stack.Screen
-          name="cards"
+          name="cards/index"
           options={{
             title: strings.parent.cards,
+          }}
+        />
+        <Stack.Screen
+          name="cards/[boardId]"
+          options={{
+            title: '',
+          }}
+        />
+        <Stack.Screen
+          name="card/new"
+          options={{
+            title: strings.cardEditor.newTitle,
+          }}
+        />
+        <Stack.Screen
+          name="card/[cardId]"
+          options={{
+            title: strings.cardEditor.editTitle,
           }}
         />
         <Stack.Screen
