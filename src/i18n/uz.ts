@@ -28,8 +28,23 @@ export const uz = {
     close: 'Yopish',
     logComingSoon: "Tez orada: kunlik xulosa, kartalar bo'yicha bosishlar va eksport.",
     sequencesComingSoon: "Tez orada: pauza o'yini uchun ketma-ketliklar.",
-    guidedAccessHint:
-      "Bola ilovadan chiqib ketmasligi uchun Guided Access'ni yoqing: Settings → Accessibility → Guided Access. Keyin ilova ochiq turganda yon tugmani uch marta bosing.",
+  },
+  onboarding: {
+    title: 'Boshlaymiz',
+    why: "Birga — ota-ona bilan birga o'ynash uchun. Bola ekranni yolg'iz ishlatmaydi.",
+    firstBoard: 'Uy',
+    cardsStep: (goal: number): string => `${goal} ta karta qo'shing`,
+    cardsCount: (count: number, goal: number): string => `${count} / ${goal}`,
+    cardsText:
+      "Bola hozir xohlaydigan narsalar: suv, sevimli o'yinchoq. Uning o'z buyumini suratga oling. Ovozni bola eng yaxshi biladigan odam yozsin.",
+    guidedAccessStep: 'Guided Access yoqing',
+    guidedAccessText:
+      'Settings → Accessibility → Guided Access. Sessiya oldidan yon tugmani 3 marta bosing: bola ilovadan chiqib keta olmaydi.',
+    sessionStep: 'Birinchi sessiya',
+    sessionText: (minutes: number): string =>
+      `${minutes} daqiqa, yonida o'tiring. Kartani bosdi — darhol so'ragan narsasini bering. Hech narsa talab qilmang, kuting.`,
+    start: 'Boshlash',
+    startHint: (goal: number): string => `${goal} ta karta qo'shilgach faollashadi`,
   },
   boards: {
     title: 'Doskalar',

@@ -29,6 +29,8 @@ export interface Settings {
   goodbyeAudioPath: string | null
   /** The child's name as the parent typed it, for the start screen; empty until set. */
   childName: string
+  /** The first-launch onboarding was completed; it is never shown again. */
+  onboardingDone: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   minBreakMinutes: 30,
   goodbyeAudioPath: null,
   childName: '',
+  onboardingDone: false,
 }
 
 /** Settings stored as JSON values under the name of their Settings field. */
@@ -70,6 +73,7 @@ export class SettingsRepository {
       ),
       goodbyeAudioPath: this.#_readString(stored.get('goodbyeAudioPath')),
       childName: this.#_readString(stored.get('childName')) ?? DEFAULT_SETTINGS.childName,
+      onboardingDone: this.#_readBoolean(stored.get('onboardingDone'), DEFAULT_SETTINGS.onboardingDone),
     }
   }
 

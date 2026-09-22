@@ -50,7 +50,13 @@ export function ParentButton({
       }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, styles[variant], pressed && styles.pressed, disabled && styles.disabled, style]}
+      style={({ pressed }) => [
+        styles.button,
+        styles[variant],
+        pressed && styles.pressed,
+        disabled && (variant === 'primary' ? styles.primaryDisabled : styles.disabled),
+        style,
+      ]}
     >
       {icon && <SymbolView name={icon} size={ICON_SIZE} tintColor={textColor} />}
       {title.length > 0 && (
@@ -94,6 +100,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: color.hint,
     borderRadius: radius.buttonSm,
+  },
+  /** A disabled main action turns neutral instead of fading, so it does not read as a pale accent. */
+  primaryDisabled: {
+    backgroundColor: color.hint,
   },
   danger: {},
   pressed: {
