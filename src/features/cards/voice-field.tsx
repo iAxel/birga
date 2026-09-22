@@ -1,8 +1,8 @@
-import { useAudioPlayer } from 'expo-audio'
 import { SymbolView } from 'expo-symbols'
 import type { ReactElement } from 'react'
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { useVoicePlayer } from '@/audio/use-voice-player'
 import { MAX_RECORDING_MS, useVoiceRecorder } from '@/audio/use-voice-recorder'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
 import { strings } from '@/i18n'
@@ -16,7 +16,7 @@ interface VoiceFieldProps {
 
 /** The parent's voice: hold and speak (4 s at most), release to stop, listen back, hold again to re-record. */
 export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement {
-  const player = useAudioPlayer(null)
+  const player = useVoicePlayer()
   const recorder = useVoiceRecorder(onRecorded)
   const progress = useSharedValue(0)
   const progressStyle = useAnimatedStyle(() => ({
@@ -24,7 +24,9 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
   }))
 
   function startRecording(): void {
-    player.pause()
+    if (player.playing) {
+      player.pause()
+    }
 
     if (!recorder.start()) {
       return

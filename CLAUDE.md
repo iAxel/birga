@@ -71,6 +71,7 @@ docs/SPEC.md
 - Audio session must allow recording and play in silent mode. Configure once at app start.
 - Vocalization threshold is relative to an ambient noise baseline measured at session start, not an absolute dB value.
 - Never persist microphone audio from the child. Metering values only.
+- Play audio through `useVoicePlayer` (`src/audio`). A plain `useAudioPlayer` deactivates the audio session on pause and at the end of playback, and iOS then stops any recording running at that moment.
 
 ## Out of scope for v0.1
 
