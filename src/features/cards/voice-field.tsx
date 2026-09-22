@@ -20,7 +20,7 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
   const recorder = useVoiceRecorder(onRecorded)
   const progress = useSharedValue(0)
   const progressStyle = useAnimatedStyle(() => ({
-    width: `${progress.value * 100}%`,
+    width: `${progress.get() * 100}%`,
   }))
 
   function startRecording(): void {
@@ -32,15 +32,17 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
       return
     }
 
-    progress.value = withTiming(1, {
-      duration: MAX_RECORDING_MS,
-      easing: Easing.linear,
-    })
+    progress.set(
+      withTiming(1, {
+        duration: MAX_RECORDING_MS,
+        easing: Easing.linear,
+      }),
+    )
   }
 
   async function stopRecording(): Promise<void> {
     cancelAnimation(progress)
-    progress.value = 0
+    progress.set(0)
 
     await recorder.stop()
   }
