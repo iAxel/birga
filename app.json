@@ -34,7 +34,22 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak.",
+          "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kartalar uchun galereyadan surat tanlash uchun kerak.",
+          "cameraPermission": "Kartalar uchun narsalarni suratga olish uchun kerak.",
+          "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
