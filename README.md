@@ -26,14 +26,19 @@ One-time setup, so the phone can reach Metro inside WSL:
 
 3. The iPhone is on the same Wi-Fi as the PC. When iOS asks, allow Expo Go to access the local network.
 
+4. Expo CLI and Expo Go are signed in to the same Expo account: `npx expo login` on the PC, the account icon in Expo Go on the
+   phone. Expo Go opens only manifests the CLI has signed, and the CLI signs only for a linked EAS project
+   (`extra.eas.projectId` in `app.json`, created by `npx eas-cli init`).
+
 ```bash
 npm install
 npm start   # scan the QR code (exp://<PC address>:8081) with the iPhone camera
 ```
 
 If the QR code shows another address than the PC's Wi-Fi one, start with
-`REACT_NATIVE_PACKAGER_HOSTNAME=<PC address> npm start`. Away from that Wi-Fi, `npm run tunnel` goes through Expo's shared ngrok
-account, which sometimes hits its session limit (`ERR_NGROK_108`); the first run offers to install `@expo/ngrok`.
+`REACT_NATIVE_PACKAGER_HOSTNAME=<PC address> npm start`. Away from that Wi-Fi, `npm run tunnel` serves the app through Expo's
+own tunnel for the signed-in account (`EXPO_UNSTABLE_TUNNEL_V2`, experimental). Plain `expo start --tunnel` uses a shared ngrok
+account that often hits its session limit (`ERR_NGROK_108`).
 
 | Command             | What it does                                                                        |
 | ------------------- | ----------------------------------------------------------------------------------- |
