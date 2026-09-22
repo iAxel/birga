@@ -35,6 +35,13 @@ describe('BoardsRepository', () => {
     await boards.activate(play)
 
     expect((await boards.list()).map((board) => board.isActive)).toEqual([false, true])
+    expect((await boards.getActive())?.id).toBe(play)
+  })
+
+  test('has no active board before the first one is created', async () => {
+    const boards = new BoardsRepository(await migratedDatabase())
+
+    expect(await boards.getActive()).toBeNull()
   })
 
   test('renames a board', async () => {

@@ -31,6 +31,17 @@ export class BoardsRepository {
     return this.#_toBoard(row)
   }
 
+  /** The board the child sees, if the parent has created one. */
+  async getActive(): Promise<Board | null> {
+    const row = await this.#_db.getFirstAsync<BoardRow>('SELECT * FROM boards WHERE is_active = 1')
+
+    if (!row) {
+      return null
+    }
+
+    return this.#_toBoard(row)
+  }
+
   /** Adds a board at the end of the list. While no board is active, the new one becomes active. */
   async create(title: string): Promise<number> {
     const result = await this.#_db.runAsync(
