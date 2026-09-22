@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "birga",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F5F1EA",
+    "backgroundColor": "#F4EFE6",
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -36,9 +36,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5F1EA",
+          "backgroundColor": "#F4EFE6",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 240
         }
       ],
       "expo-sqlite",

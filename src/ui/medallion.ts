@@ -15,6 +15,9 @@ const RINGS = [1, 0.57, 0.12]
 
 const DOTTED_RING = 0.845
 
+/** A dash this short with round caps draws a dot. */
+const DOT_DASH = 0.1
+
 const PETAL = {
   center: 0.32,
   along: 0.22,
@@ -22,8 +25,8 @@ const PETAL = {
 }
 
 const LEAF = {
-  from: 0.585,
-  to: 0.815,
+  from: 0.595,
+  to: 0.795,
   halfWidth: 0.055,
 }
 
@@ -50,9 +53,7 @@ export function medallionSvg({ stroke, strokeWidth }: MedallionLook): string {
     shapes.push(`<circle cx="${CENTER}" cy="${CENTER}" r="${format(ring * OUTER)}"/>`)
   }
 
-  shapes.push(
-    `<circle cx="${CENTER}" cy="${CENTER}" r="${format(DOTTED_RING * OUTER)}" stroke-dasharray="0.1 ${format(strokeWidth * 6)}" stroke-linecap="round" stroke-width="${format(strokeWidth * 1.4)}"/>`,
-  )
+  shapes.push(dottedRing(strokeWidth))
 
   for (let index = 0; index < 8; index++) {
     shapes.push(petal(index * 45))
@@ -72,6 +73,16 @@ export function medallionSvg({ stroke, strokeWidth }: MedallionLook): string {
     '</g>',
     '</svg>',
   ].join('')
+}
+
+/** A ring of round dots about six strokes apart, spaced so that they meet evenly all the way round. */
+function dottedRing(strokeWidth: number): string {
+  const radius = DOTTED_RING * OUTER
+  const circumference = 2 * Math.PI * radius
+  const dots = Math.round(circumference / (strokeWidth * 6))
+  const gap = circumference / dots - DOT_DASH
+
+  return `<circle cx="${CENTER}" cy="${CENTER}" r="${format(radius)}" stroke-dasharray="${DOT_DASH} ${gap.toFixed(3)}" stroke-linecap="round" stroke-width="${format(strokeWidth * 1.4)}"/>`
 }
 
 /**
