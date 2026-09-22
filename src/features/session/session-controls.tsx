@@ -6,7 +6,7 @@ import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { spacing, typography } from '@/ui/theme'
+import { space, typography } from '@/ui/theme'
 
 const REFRESH_MS = 15_000
 
@@ -62,7 +62,7 @@ export function SessionControls(): ReactElement {
 
     return (
       <View style={styles.block}>
-        <Text style={typography.caption}>{strings.session.pausedLeft(minutesLeft)}</Text>
+        <Text style={typography.body}>{strings.session.pausedLeft(minutesLeft)}</Text>
         <ParentButton onPress={() => backToChildMode(Date.now())} title={strings.parent.backToChild} variant="primary" />
         <ParentButton onPress={confirmEnd} title={strings.session.end} />
       </View>
@@ -74,7 +74,7 @@ export function SessionControls(): ReactElement {
 
   return (
     <View style={styles.block}>
-      <Text style={typography.caption}>{status}</Text>
+      <Text style={typography.body}>{status}</Text>
       <ParentButton
         disabled={breakLeft > 0}
         onPress={() => startSession(Date.now())}
@@ -88,7 +88,7 @@ export function SessionControls(): ReactElement {
 
 const styles = StyleSheet.create({
   block: {
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: space.sm,
+    marginBottom: space.lg,
   },
 })

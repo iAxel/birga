@@ -2,7 +2,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import type { ReactElement } from 'react'
 import { strings } from '@/i18n'
-import { colors } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 /** Parent mode: a regular iOS navigation stack with headers; the status bar is back. */
 export default function ParentLayout(): ReactElement {
@@ -12,12 +12,12 @@ export default function ParentLayout(): ReactElement {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: color.ground,
           },
-          headerTintColor: colors.text,
+          headerTintColor: color.ink,
           headerShadowVisible: false,
           contentStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: color.ground,
           },
         }}
       >

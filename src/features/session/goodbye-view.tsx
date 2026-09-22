@@ -15,7 +15,7 @@ import { mediaUri } from '@/db'
 import { useSession } from '@/features/session/session-provider'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { colors, spacing, typography } from '@/ui/theme'
+import { color, space, typography } from '@/ui/theme'
 
 const HAND_SIZE = 120
 
@@ -91,9 +91,9 @@ export function GoodbyeView(): ReactElement {
   return (
     <View style={styles.root}>
       <Animated.View style={[styles.hand, handStyle]}>
-        <SymbolView name="hand.wave.fill" size={HAND_SIZE} tintColor={colors.accent} />
+        <SymbolView name="hand.wave.fill" size={HAND_SIZE} tintColor={color.accent} />
       </Animated.View>
-      {session.lastEndedSessionId !== null && <Text style={typography.cardWord}>{strings.child.goodbye}</Text>}
+      {session.lastEndedSessionId !== null && <Text style={typography.title}>{strings.child.goodbye}</Text>}
     </View>
   )
 }
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xl,
-    backgroundColor: colors.background,
+    gap: space.xl,
+    backgroundColor: color.ground,
   },
   hand: {
     transformOrigin: '50% 85%',

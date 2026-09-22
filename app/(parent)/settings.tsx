@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native'
 import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS, MIN_BREAK_MINUTES_OPTIONS, SESSION_MINUTES_OPTIONS } from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { colors, spacing } from '@/ui/theme'
+import { color, space } from '@/ui/theme'
 
 /**
  * Parent settings (SPEC §5): how many cards the child sees, how long a card stays silent after the child played it, how
@@ -20,7 +20,7 @@ export default function SettingsScreen(): ReactElement {
     <Host colorScheme="light" style={styles.host}>
       <FieldGroup>
         <FieldGroup.Section title={strings.settings.requestsSection}>
-          <Row alignment="center" spacing={spacing.md}>
+          <Row alignment="center" spacing={space.md}>
             <Text>{strings.settings.cardsPerScreen}</Text>
             <Spacer flexible />
             <Picker onValueChange={(value) => saveSetting('cardsPerScreen', value)} selectedValue={settings.cardsPerScreen}>
@@ -29,7 +29,7 @@ export default function SettingsScreen(): ReactElement {
               ))}
             </Picker>
           </Row>
-          <Row alignment="center" spacing={spacing.md}>
+          <Row alignment="center" spacing={space.md}>
             <Text>{strings.settings.debounce}</Text>
             <Spacer flexible />
             <Picker onValueChange={(value) => saveSetting('debounceSeconds', value)} selectedValue={settings.debounceSeconds}>
@@ -42,7 +42,7 @@ export default function SettingsScreen(): ReactElement {
             <Text
               textStyle={{
                 fontSize: 13,
-                color: colors.textMuted,
+                color: color.muted,
               }}
             >
               {strings.settings.debounceHint}
@@ -50,7 +50,7 @@ export default function SettingsScreen(): ReactElement {
           </FieldGroup.SectionFooter>
         </FieldGroup.Section>
         <FieldGroup.Section title={strings.settings.sessionSection}>
-          <Row alignment="center" spacing={spacing.md}>
+          <Row alignment="center" spacing={space.md}>
             <Text>{strings.settings.sessionLength}</Text>
             <Spacer flexible />
             <Picker onValueChange={(value) => saveSetting('sessionMinutes', value)} selectedValue={settings.sessionMinutes}>
@@ -59,7 +59,7 @@ export default function SettingsScreen(): ReactElement {
               ))}
             </Picker>
           </Row>
-          <Row alignment="center" spacing={spacing.md}>
+          <Row alignment="center" spacing={space.md}>
             <Text>{strings.settings.minBreak}</Text>
             <Spacer flexible />
             <Picker onValueChange={(value) => saveSetting('minBreakMinutes', value)} selectedValue={settings.minBreakMinutes}>

@@ -4,7 +4,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text } from 'react-native'
 import { type Board, useRepositories } from '@/db'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 /** The boards, with the one the child sees marked. With no boards yet, creating one is the only thing to do. */
 export default function BoardsScreen(): ReactElement | null {
@@ -43,7 +43,7 @@ export default function BoardsScreen(): ReactElement | null {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      {boards.length === 0 && <Text style={typography.caption}>{strings.boards.empty}</Text>}
+      {boards.length === 0 && <Text style={typography.body}>{strings.boards.empty}</Text>}
       {boards.map((board) => (
         <Link
           asChild
@@ -56,8 +56,8 @@ export default function BoardsScreen(): ReactElement | null {
           key={board.id}
         >
           <Pressable style={styles.row}>
-            <Text style={typography.body}>{board.title}</Text>
-            {board.isActive && <Text style={[typography.caption, styles.active]}>{strings.boards.active}</Text>}
+            <Text style={typography.row}>{board.title}</Text>
+            {board.isActive && <Text style={[typography.body, styles.active]}>{strings.boards.active}</Text>}
           </Pressable>
         </Link>
       ))}
@@ -68,21 +68,21 @@ export default function BoardsScreen(): ReactElement | null {
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: space.sm,
+    padding: space.md,
   },
   row: {
     minHeight: touch.parent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
   },
   active: {
-    color: colors.accent,
+    color: color.accent,
     fontWeight: '600',
   },
 })

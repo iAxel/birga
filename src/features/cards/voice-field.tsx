@@ -7,7 +7,7 @@ import { MAX_RECORDING_MS, useVoiceRecorder } from '@/audio/use-voice-recorder'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface VoiceFieldProps {
   audio: MediaDraft | null
@@ -61,8 +61,8 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
   if (recorder.access === 'denied') {
     return (
       <View style={styles.field}>
-        <Text style={typography.caption}>{strings.cardEditor.voice}</Text>
-        <Text style={typography.body}>{strings.cardEditor.microphoneDenied}</Text>
+        <Text style={typography.body}>{strings.cardEditor.voice}</Text>
+        <Text style={typography.row}>{strings.cardEditor.microphoneDenied}</Text>
         <ParentButton onPress={() => Linking.openSettings()} title={strings.common.openSettings} />
       </View>
     )
@@ -70,7 +70,7 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
 
   return (
     <View style={styles.field}>
-      <Text style={typography.caption}>{strings.cardEditor.voice}</Text>
+      <Text style={typography.body}>{strings.cardEditor.voice}</Text>
       <Pressable
         accessibilityLabel={strings.cardEditor.holdToRecord}
         accessibilityRole="button"
@@ -79,8 +79,8 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
         onPressOut={stopRecording}
         style={[styles.record, recorder.isRecording && styles.recording]}
       >
-        <SymbolView name="mic.fill" size={28} tintColor={recorder.isRecording ? colors.surface : colors.accent} />
-        <Text style={[typography.body, recorder.isRecording && styles.recordingText]}>
+        <SymbolView name="mic.fill" size={28} tintColor={recorder.isRecording ? color.card : color.accent} />
+        <Text style={[typography.row, recorder.isRecording && styles.recordingText]}>
           {recorder.isRecording ? strings.cardEditor.recording : strings.cardEditor.holdToRecord}
         </Text>
       </Pressable>
@@ -94,31 +94,31 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
 
 const styles = StyleSheet.create({
   field: {
-    gap: spacing.sm,
+    gap: space.sm,
   },
   record: {
     minHeight: touch.parent * 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    borderRadius: radii.md,
-    backgroundColor: colors.accentSoft,
+    gap: space.sm,
+    borderRadius: radius.button,
+    backgroundColor: color.accentBg,
   },
   recording: {
-    backgroundColor: colors.accent,
+    backgroundColor: color.accent,
   },
   recordingText: {
-    color: colors.surface,
+    color: color.card,
   },
   track: {
     height: 4,
     overflow: 'hidden',
     borderRadius: 2,
-    backgroundColor: colors.surface,
+    backgroundColor: color.card,
   },
   progress: {
     height: 4,
-    backgroundColor: colors.accent,
+    backgroundColor: color.accent,
   },
 })

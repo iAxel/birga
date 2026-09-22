@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native'
 import { ParentGate } from '@/features/session/parent-gate'
 import { SessionCountdown } from '@/features/session/session-countdown'
 import { useSession } from '@/features/session/session-provider'
-import { colors } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 /**
  * Child mode: no headers, no gestures, no status bar; the countdown and the parent gate sit above every child screen.
@@ -23,7 +23,7 @@ export default function ChildLayout(): ReactElement {
           gestureEnabled: false,
           animation: 'fade',
           contentStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: color.ground,
           },
         }}
       >
@@ -43,6 +43,6 @@ export default function ChildLayout(): ReactElement {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: color.ground,
   },
 })

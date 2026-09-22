@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { type Card, mediaUri } from '@/db'
 import { strings } from '@/i18n'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 const THUMBNAIL_SIZE = 48
 
@@ -29,13 +29,13 @@ export function CardRow({ card, position, canMoveUp, canMoveDown, onOpen, onMove
   return (
     <View style={styles.row}>
       <Pressable accessibilityRole="button" onPress={onOpen} style={styles.open}>
-        <Text style={[typography.caption, styles.position]}>{position}</Text>
+        <Text style={[typography.body, styles.position]}>{position}</Text>
         {card.imagePath ? (
           <Image contentFit="cover" source={{ uri: mediaUri(card.imagePath) }} style={styles.thumbnail} />
         ) : (
           <View style={[styles.thumbnail, styles.noPhoto]} />
         )}
-        <Text numberOfLines={1} style={[typography.body, styles.word]}>
+        <Text numberOfLines={1} style={[typography.row, styles.word]}>
           {card.text}
         </Text>
       </Pressable>
@@ -54,7 +54,7 @@ function ArrowButton({ icon, label, disabled, onPress }: ArrowButtonProps): Reac
       onPress={onPress}
       style={[styles.arrow, disabled && styles.arrowDisabled]}
     >
-      <SymbolView name={icon} size={18} tintColor={colors.text} />
+      <SymbolView name={icon} size={18} tintColor={color.ink} />
     </Pressable>
   )
 }
@@ -63,28 +63,28 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
   },
   open: {
     flex: 1,
     minHeight: touch.parent,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.sm,
+    gap: space.sm,
+    padding: space.sm,
   },
   position: {
-    width: spacing.lg,
+    width: space.lg,
     textAlign: 'center',
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: radii.sm,
+    borderRadius: radius.buttonSm,
   },
   noPhoto: {
-    backgroundColor: colors.background,
+    backgroundColor: color.ground,
   },
   word: {
     flex: 1,

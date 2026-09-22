@@ -7,7 +7,7 @@ import { VoiceField } from '@/features/cards/voice-field'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { spacing, typography } from '@/ui/theme'
+import { space, typography } from '@/ui/theme'
 
 /** The parent's "Xayr!" that the child hears at the end of a session (SPEC §4); recording it is optional. */
 export default function GoodbyeVoiceScreen(): ReactElement {
@@ -50,7 +50,7 @@ export default function GoodbyeVoiceScreen(): ReactElement {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={typography.caption}>{strings.goodbyeVoice.hint}</Text>
+      <Text style={typography.body}>{strings.goodbyeVoice.hint}</Text>
       <VoiceField
         audio={audio}
         onRecorded={(uri) =>
@@ -77,7 +77,7 @@ export default function GoodbyeVoiceScreen(): ReactElement {
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.lg,
-    padding: spacing.md,
+    gap: space.lg,
+    padding: space.md,
   },
 })

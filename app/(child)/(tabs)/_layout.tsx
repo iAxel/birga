@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { useEventLog } from '@/features/session/use-event-log'
 import { useSettings } from '@/features/settings/settings-provider'
 import { ChildTabBar } from '@/ui/child-tab-bar'
-import { colors } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 /** Requests, first and open by default, and Pause game, only while the pauseGameEnabled setting is on. Switches are logged. */
 export default function ChildTabsLayout(): ReactElement {
@@ -15,7 +15,7 @@ export default function ChildTabsLayout(): ReactElement {
       screenOptions={{
         headerShown: false,
         sceneStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: color.ground,
         },
       }}
       tabBar={(props) => (

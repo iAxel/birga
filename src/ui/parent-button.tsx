@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, Text } from 'react-native'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface ParentButtonProps {
   title: string
@@ -26,7 +26,7 @@ export function ParentButton({ title, onPress, variant = 'plain', disabled = fal
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[typography.body, variant === 'primary' && styles.primaryText]}>{title}</Text>
+      <Text style={[typography.row, variant === 'primary' && styles.primaryText]}>{title}</Text>
     </Pressable>
   )
 }
@@ -36,16 +36,16 @@ const styles = StyleSheet.create({
     minHeight: touch.parent,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
   },
   primary: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: color.accentBg,
   },
   primaryText: {
-    color: colors.accent,
+    color: color.accent,
     fontWeight: '600',
   },
   pressed: {

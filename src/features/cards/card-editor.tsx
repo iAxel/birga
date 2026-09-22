@@ -8,7 +8,7 @@ import { PhotoField } from '@/features/cards/photo-field'
 import { VoiceField } from '@/features/cards/voice-field'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface CardEditorProps {
   cardId: number | null
@@ -101,13 +101,13 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
     <ScrollView automaticallyAdjustKeyboardInsets contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <PhotoField image={draft.image} onChange={(image) => update({ image })} />
       <View style={styles.field}>
-        <Text style={typography.caption}>{strings.cardEditor.word}</Text>
+        <Text style={typography.body}>{strings.cardEditor.word}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={(text) => update({ text })}
           placeholder={strings.cardEditor.wordPlaceholder}
-          placeholderTextColor={colors.textHint}
+          placeholderTextColor={color.hint}
           returnKeyType="done"
           spellCheck={false}
           style={styles.word}
@@ -127,7 +127,7 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
       />
       <BoardField boardId={draft.boardId} boards={boards} onChange={(id) => update({ boardId: id })} />
       <ParentButton disabled={!isComplete || isSaving} onPress={save} title={strings.cardEditor.save} variant="primary" />
-      {!isComplete && <Text style={typography.caption}>{strings.cardEditor.incomplete}</Text>}
+      {!isComplete && <Text style={typography.body}>{strings.cardEditor.incomplete}</Text>}
       {original && <ParentButton onPress={confirmArchive} title={strings.cardEditor.archive} />}
     </ScrollView>
   )
@@ -135,18 +135,18 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.lg,
-    padding: spacing.md,
+    gap: space.lg,
+    padding: space.md,
   },
   field: {
-    gap: spacing.sm,
+    gap: space.sm,
   },
   word: {
     minHeight: touch.parent,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    paddingHorizontal: space.md,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
+    color: color.ink,
     fontSize: 28,
     fontWeight: '600',
   },

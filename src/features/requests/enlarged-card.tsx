@@ -4,7 +4,7 @@ import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reani
 import type { Card } from '@/db'
 import { enlargement, type Rect, type Size } from '@/features/requests/board-layout'
 import { RequestCard } from '@/features/requests/request-card'
-import { colors } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 /** Share of the board the enlarged card may take. */
 const ENLARGE_FILL = 0.9
@@ -76,7 +76,7 @@ export function EnlargedCard({ card, slot, area, progress, reduceMotion, onPress
 
 const styles = StyleSheet.create({
   backdrop: {
-    backgroundColor: colors.dim,
+    backgroundColor: color.shadow,
     pointerEvents: 'none',
   },
   card: {

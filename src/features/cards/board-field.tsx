@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { Board } from '@/db'
 import { strings } from '@/i18n'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface BoardFieldProps {
   boards: Board[]
@@ -18,7 +18,7 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
 
   return (
     <View style={styles.field}>
-      <Text style={typography.caption}>{strings.cardEditor.board}</Text>
+      <Text style={typography.body}>{strings.cardEditor.board}</Text>
       <View style={styles.options}>
         {boards.map((board) => {
           const isSelected = board.id === boardId
@@ -33,7 +33,7 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
               onPress={() => onChange(board.id)}
               style={[styles.option, isSelected && styles.optionSelected]}
             >
-              <Text style={[typography.body, isSelected && styles.optionSelectedText]}>{board.title}</Text>
+              <Text style={[typography.row, isSelected && styles.optionSelectedText]}>{board.title}</Text>
             </Pressable>
           )
         })}
@@ -44,25 +44,25 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
 
 const styles = StyleSheet.create({
   field: {
-    gap: spacing.sm,
+    gap: space.sm,
   },
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: space.sm,
   },
   option: {
     minHeight: touch.parent,
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    paddingHorizontal: space.md,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
   },
   optionSelected: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: color.accentBg,
   },
   optionSelectedText: {
-    color: colors.accent,
+    color: color.accent,
     fontWeight: '600',
   },
 })

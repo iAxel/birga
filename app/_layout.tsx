@@ -7,19 +7,29 @@ import { DatabaseProvider } from '@/db'
 import { SessionProvider } from '@/features/session/session-provider'
 import { SettingsProvider } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { colors, radii, spacing, touch, typography } from '@/ui/theme'
+import { useAppFonts } from '@/ui/fonts'
+import { color, radius, space, touch, typography } from '@/ui/theme'
 
 SplashScreen.preventAutoHideAsync()
 
 configureAudioSession()
 
-/** No screen renders until the database is migrated and settings and sessions are ready; the splash screen covers that. */
+interface RootStackProps {
+  areFontsReady: boolean
+}
+
+/**
+ * No screen renders until the database is migrated, settings and sessions are ready and the fonts are loaded; the splash
+ * screen covers that. The fonts load while the database opens.
+ */
 export default function RootLayout(): ReactElement {
+  const areFontsReady = useAppFonts()
+
   return (
     <DatabaseProvider>
       <SettingsProvider>
         <SessionProvider>
-          <RootStack />
+          <RootStack areFontsReady={areFontsReady} />
         </SessionProvider>
       </SettingsProvider>
     </DatabaseProvider>
@@ -34,19 +44,25 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps): ReactElement {
 
   return (
     <View style={styles.error}>
-      <Text style={typography.caption}>{strings.error.message}</Text>
+      <Text style={typography.body}>{strings.error.message}</Text>
       <Pressable onPress={retry} style={styles.reload}>
-        <Text style={typography.body}>{strings.error.reload}</Text>
+        <Text style={typography.row}>{strings.error.reload}</Text>
       </Pressable>
     </View>
   )
 }
 
 /** Child and parent modes. No swipe-back between them: leaving parent mode goes through its own button. */
-function RootStack(): ReactElement {
+function RootStack({ areFontsReady }: RootStackProps): ReactElement | null {
   useEffect(() => {
-    SplashScreen.hide()
-  }, [])
+    if (areFontsReady) {
+      SplashScreen.hide()
+    }
+  }, [areFontsReady])
+
+  if (!areFontsReady) {
+    return null
+  }
 
   return (
     <Stack
@@ -55,7 +71,7 @@ function RootStack(): ReactElement {
         gestureEnabled: false,
         animation: 'fade',
         contentStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: color.ground,
         },
       }}
     />
@@ -67,14 +83,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.background,
+    gap: space.md,
+    backgroundColor: color.ground,
   },
   reload: {
     minHeight: touch.parent,
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.button,
+    backgroundColor: color.card,
   },
 })

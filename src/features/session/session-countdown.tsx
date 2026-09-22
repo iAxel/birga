@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { countdownShare, remainingMs } from '@/features/session/session-clock'
 import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
-import { colors, spacing } from '@/ui/theme'
+import { color, space } from '@/ui/theme'
 
 const TICK_MS = 1000
 
@@ -31,9 +31,9 @@ export function SessionCountdown(): ReactElement | null {
       style={[
         styles.track,
         {
-          top: insets.top + spacing.xs,
-          left: insets.left + spacing.lg,
-          right: insets.right + spacing.lg,
+          top: insets.top + space.xs,
+          left: insets.left + space.lg,
+          right: insets.right + space.lg,
         },
       ]}
     >
@@ -60,6 +60,6 @@ const styles = StyleSheet.create({
   bar: {
     height: BAR_HEIGHT,
     borderRadius: BAR_HEIGHT / 2,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: color.accentBg,
   },
 })

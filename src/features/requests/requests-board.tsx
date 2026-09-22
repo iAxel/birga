@@ -10,7 +10,7 @@ import { EnlargedCard } from '@/features/requests/enlarged-card'
 import { RequestCard } from '@/features/requests/request-card'
 import { decideTap, ENLARGED_MS } from '@/features/requests/request-gate'
 import { useEventLog } from '@/features/session/use-event-log'
-import { spacing } from '@/ui/theme'
+import { space } from '@/ui/theme'
 
 const MOVE_MS = 300
 
@@ -129,7 +129,7 @@ export function RequestsBoard({ cards, cardsPerScreen, debounceMs, isModeling, o
     )
   }
 
-  const slots = area ? layoutGrid(area, gridShape(cardsPerScreen, area), spacing.md) : []
+  const slots = area ? layoutGrid(area, gridShape(cardsPerScreen, area), space.md) : []
 
   return (
     <View

@@ -12,7 +12,7 @@ import { Alert, Linking, StyleSheet, Text, View } from 'react-native'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { colors, radii, spacing, typography } from '@/ui/theme'
+import { color, radius, space, typography } from '@/ui/theme'
 
 const PICKER_OPTIONS: ImagePickerOptions = {
   mediaTypes: ['images'],
@@ -70,12 +70,12 @@ export function PhotoField({ image, onChange }: PhotoFieldProps): ReactElement {
 
   return (
     <View style={styles.field}>
-      <Text style={typography.caption}>{strings.cardEditor.photo}</Text>
+      <Text style={typography.body}>{strings.cardEditor.photo}</Text>
       {image ? (
         <Image contentFit="cover" source={{ uri: mediaDraftUri(image) }} style={styles.photo} />
       ) : (
         <View style={[styles.photo, styles.noPhoto]}>
-          <SymbolView name="photo" size={48} tintColor={colors.textHint} />
+          <SymbolView name="photo" size={48} tintColor={color.hint} />
         </View>
       )}
       <ParentButton onPress={takePhoto} title={strings.cardEditor.takePhoto} />
@@ -87,17 +87,17 @@ export function PhotoField({ image, onChange }: PhotoFieldProps): ReactElement {
 
 const styles = StyleSheet.create({
   field: {
-    gap: spacing.sm,
+    gap: space.sm,
   },
   photo: {
     width: PHOTO_SIZE,
     height: PHOTO_SIZE,
     alignSelf: 'center',
-    borderRadius: radii.md,
+    borderRadius: radius.button,
   },
   noPhoto: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: color.card,
   },
 })

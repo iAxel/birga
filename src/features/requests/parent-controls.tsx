@@ -2,7 +2,7 @@ import { type SFSymbol, SymbolView } from 'expo-symbols'
 import { type ReactElement, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { strings } from '@/i18n'
-import { colors, spacing, touch } from '@/ui/theme'
+import { color, space, touch } from '@/ui/theme'
 
 /** How long the attempt button stays lit, so the parent sees the tap counted. */
 const ATTEMPT_NOTED_MS = 800
@@ -64,7 +64,7 @@ function CornerButton({ icon, label, isOn, onPress }: CornerButtonProps): ReactE
       onPress={onPress}
       style={[styles.button, isOn && styles.buttonOn]}
     >
-      <SymbolView name={icon} size={ICON_SIZE} tintColor={isOn ? colors.accent : colors.textHint} />
+      <SymbolView name={icon} size={ICON_SIZE} tintColor={isOn ? color.accent : color.hint} />
     </Pressable>
   )
 }
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: space.sm,
   },
   button: {
     width: touch.parent,
@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
     borderRadius: touch.parent / 2,
   },
   buttonOn: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: color.accentBg,
   },
 })

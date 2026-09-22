@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { type Card, mediaUri } from '@/db'
 import type { Size } from '@/features/requests/board-layout'
-import { colors, radii, spacing } from '@/ui/theme'
+import { color, radius, space } from '@/ui/theme'
 
 const MIN_WORD_SIZE = 24
 
@@ -52,23 +52,23 @@ export function RequestCard({ card, size }: RequestCardProps): ReactElement {
 const styles = StyleSheet.create({
   card: {
     overflow: 'hidden',
-    borderRadius: radii.lg,
-    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    backgroundColor: color.card,
   },
   photo: {
     flex: 1,
   },
   caption: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical: space.sm,
   },
   wordOnly: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: space.sm,
   },
   word: {
-    color: colors.text,
+    color: color.ink,
     fontWeight: '700',
     textAlign: 'center',
   },

@@ -3,7 +3,7 @@ import { type SFSymbol, SymbolView } from 'expo-symbols'
 import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { strings } from '@/i18n'
-import { colors, radii, spacing, touch } from '@/ui/theme'
+import { color, radius, space, touch } from '@/ui/theme'
 
 /** How a tab is named in the event log (SPEC §6, tab_switch). */
 export type TabLogName = 'requests' | 'pause_game'
@@ -71,7 +71,7 @@ export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBar
       style={[
         styles.bar,
         {
-          paddingBottom: insets.bottom + spacing.sm,
+          paddingBottom: insets.bottom + space.sm,
         },
       ]}
     >
@@ -108,7 +108,7 @@ function ChildTabButton({ tab, isFocused, onPress }: ChildTabButtonProps): React
       onPress={onPress}
       style={[styles.button, isFocused && styles.buttonFocused]}
     >
-      <SymbolView name={tab.icon} size={ICON_SIZE} tintColor={isFocused ? colors.accent : colors.textMuted} />
+      <SymbolView name={tab.icon} size={ICON_SIZE} tintColor={isFocused ? color.accent : color.muted} />
     </Pressable>
   )
 }
@@ -117,18 +117,18 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing.xl,
-    paddingTop: spacing.sm,
-    backgroundColor: colors.background,
+    gap: space.xl,
+    paddingTop: space.sm,
+    backgroundColor: color.ground,
   },
   button: {
     width: touch.child,
     height: touch.child,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radii.lg,
+    borderRadius: radius.card,
   },
   buttonFocused: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: color.accentBg,
   },
 })

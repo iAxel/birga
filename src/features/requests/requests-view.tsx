@@ -8,7 +8,7 @@ import { useActiveBoardCards } from '@/features/requests/use-active-board-cards'
 import { PARENT_GATE_HEIGHT } from '@/features/session/parent-gate'
 import { useEventLog } from '@/features/session/use-event-log'
 import { useSettings } from '@/features/settings/settings-provider'
-import { colors } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 /**
  * Child mode's main screen: the first cards of the active board and the parent's corner controls. The top strip stays
@@ -72,6 +72,6 @@ export function RequestsView(): ReactElement {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: color.ground,
   },
 })

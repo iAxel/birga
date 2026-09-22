@@ -7,7 +7,7 @@ import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
 import { parseIdParam } from '@/ui/route-params'
-import { spacing, typography } from '@/ui/theme'
+import { space, typography } from '@/ui/theme'
 
 /**
  * One board: its cards in the fixed order the child sees, whether it is the active board, adding and ordering cards.
@@ -105,11 +105,11 @@ export default function BoardScreen(): ReactElement | null {
         }}
       />
       {board.isActive ? (
-        <Text style={typography.caption}>{strings.boards.activeHint}</Text>
+        <Text style={typography.body}>{strings.boards.activeHint}</Text>
       ) : (
         <ParentButton onPress={activate} title={strings.boards.activate} />
       )}
-      {cards.length === 0 && <Text style={typography.caption}>{strings.cards.starterHint}</Text>}
+      {cards.length === 0 && <Text style={typography.body}>{strings.cards.starterHint}</Text>}
       {cards.map((card, index) => (
         <Fragment key={card.id}>
           <CardRow
@@ -121,7 +121,7 @@ export default function BoardScreen(): ReactElement | null {
             position={index + 1}
           />
           {index === settings.cardsPerScreen - 1 && cards.length > settings.cardsPerScreen && (
-            <Text style={[typography.caption, styles.limit]}>{strings.cards.visibleLimit(settings.cardsPerScreen)}</Text>
+            <Text style={[typography.body, styles.limit]}>{strings.cards.visibleLimit(settings.cardsPerScreen)}</Text>
           )}
         </Fragment>
       ))}
@@ -133,11 +133,11 @@ export default function BoardScreen(): ReactElement | null {
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: space.sm,
+    padding: space.md,
   },
   limit: {
-    paddingVertical: spacing.sm,
+    paddingVertical: space.sm,
     textAlign: 'center',
   },
 })

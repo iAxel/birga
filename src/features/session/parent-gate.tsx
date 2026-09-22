@@ -5,14 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useSession } from '@/features/session/session-provider'
 import { useEventLog } from '@/features/session/use-event-log'
 import { strings } from '@/i18n'
-import { colors, spacing, touch } from '@/ui/theme'
+import { color, space, touch } from '@/ui/theme'
 
 const HOLD_MS = 3000
 
 const DOT_SIZE = 12
 
 /** Height the gate takes below the top safe area; child screens keep that strip free of touchable content. */
-export const PARENT_GATE_HEIGHT = spacing.sm + touch.parent
+export const PARENT_GATE_HEIGHT = space.sm + touch.parent
 
 /**
  * Hidden way into parent mode: a small dim dot in the top-right corner that reacts only to a 3-second hold. Opening it
@@ -42,8 +42,8 @@ export function ParentGate(): ReactElement {
       style={[
         styles.gate,
         {
-          top: insets.top + spacing.sm,
-          right: insets.right + spacing.sm,
+          top: insets.top + space.sm,
+          right: insets.right + space.sm,
         },
       ]}
     >
@@ -64,6 +64,6 @@ const styles = StyleSheet.create({
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-    backgroundColor: colors.parentControl,
+    backgroundColor: color.hint,
   },
 })
