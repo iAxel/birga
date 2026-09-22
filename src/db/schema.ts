@@ -15,7 +15,7 @@ export interface CardRow {
   board_id: number
   text: string
   image_path: string | null
-  audio_path: string | null
+  audio_path: string
   position: number
   is_archived: SqliteFlag
   created_at: number

@@ -29,7 +29,7 @@ Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the
 ## 2. Requests screen
 
 - Grid of **2, 4 or 6 cards** (parent setting; start with 2–4). Cards fill the screen.
-- Card = real photo + written word underneath (large, high contrast) + parent voice recording.
+- Card = real photo (optional: core words usually have none) + written word underneath (large, high contrast) + parent voice recording (required).
 - On tap:
   1. card scales up to center, others dim;
   2. parent's recording plays once;
@@ -83,9 +83,9 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ### Card editor
 
-- Take photo / pick from library → crop square.
+- Take photo / pick from library → crop square. Optional.
 - Type the word (any script, stored as typed).
-- Record voice: hold-to-record, max 4 s, playback preview, re-record. Trim leading/trailing silence if feasible; otherwise skip in v0.1.
+- Record voice: hold-to-record, max 4 s, playback preview, re-record. Required: a card cannot be saved without it. Trim leading/trailing silence if feasible; otherwise skip in v0.1.
 - Assign to board, set position.
 
 ### Sequence editor
@@ -115,7 +115,7 @@ events(id, session_id, ts, type, card_id, sequence_id, item_position, payload_js
 settings(key, value)
 ```
 
-- Paths are relative to the app document directory.
+- Paths are relative to the app document directory. `cards.audio_path` is required, `cards.image_path` is optional.
 - Cards are archived, never hard-deleted, so old events keep their references.
 
 ### Event types

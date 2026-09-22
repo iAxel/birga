@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals'
 import { migrate } from '@/db/migrate'
 import { migrations } from '@/db/migrations'
+import { initial } from '@/db/migrations/0001-initial'
 import { NodeDatabase } from '@/db/testing/node-database'
 
 async function migratedDatabase(): Promise<NodeDatabase> {
@@ -36,8 +37,56 @@ describe('schema', () => {
     const db = await migratedDatabase()
 
     await expect(
-      db.execAsync("INSERT INTO cards (board_id, text, position, created_at) VALUES (99, 'suv', 0, 0)"),
+      db.execAsync("INSERT INTO cards (board_id, text, audio_path, position, created_at) VALUES (99, 'suv', 'suv.m4a', 0, 0)"),
     ).rejects.toThrow('FOREIGN KEY constraint failed')
+  })
+
+  test('requires the voice recording of a card but not its photo', async () => {
+    const db = await migratedDatabase()
+
+    await db.execAsync("INSERT INTO boards (id, title, position, is_active, created_at) VALUES (1, 'Ovqat', 0, 1, 0)")
+
+    await expect(
+      db.execAsync("INSERT INTO cards (board_id, text, position, created_at) VALUES (1, 'suv', 0, 0)"),
+    ).rejects.toThrow('NOT NULL constraint failed: cards.audio_path')
+
+    await expect(
+      db.execAsync("INSERT INTO cards (board_id, text, audio_path, position, created_at) VALUES (1, 'yana', 'yana.m4a', 0, 0)"),
+    ).resolves.toBeUndefined()
+  })
+
+  test('keeps cards, their ids and the id counter when audio becomes required', async () => {
+    const db = new NodeDatabase()
+
+    await migrate(db, [initial])
+
+    await db.execAsync(`
+      INSERT INTO boards (id, title, position, is_active, created_at) VALUES (1, 'Ovqat', 0, 1, 0);
+      INSERT INTO cards (board_id, text, audio_path, position, created_at) VALUES (1, 'suv', 'suv.m4a', 0, 0);
+      INSERT INTO cards (board_id, text, audio_path, position, created_at) VALUES (1, 'non', 'non.m4a', 1, 0);
+      DELETE FROM cards WHERE id = 2;
+      INSERT INTO sessions (id, started_at) VALUES (1, 0);
+      INSERT INTO events (session_id, ts, type, card_id) VALUES (1, 0, 'request_tap', 1);
+    `)
+
+    await migrate(db, migrations)
+
+    await db.execAsync(
+      "INSERT INTO cards (board_id, text, audio_path, position, created_at) VALUES (1, 'yana', 'yana.m4a', 1, 0)",
+    )
+
+    expect(await db.getAllAsync('SELECT id, text, audio_path FROM cards ORDER BY id')).toEqual([
+      {
+        id: 1,
+        text: 'suv',
+        audio_path: 'suv.m4a',
+      },
+      {
+        id: 3,
+        text: 'yana',
+        audio_path: 'yana.m4a',
+      },
+    ])
   })
 
   test('keeps a sequence that the event log points to', async () => {
