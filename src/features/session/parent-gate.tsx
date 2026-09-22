@@ -9,6 +9,9 @@ const HOLD_MS = 3000
 
 const DOT_SIZE = 12
 
+/** Height the gate takes below the top safe area; child screens keep that strip free of touchable content. */
+export const PARENT_GATE_HEIGHT = spacing.sm + touch.parent
+
 /** Hidden way into parent mode: a small dim dot in the top-right corner that reacts only to a 3-second hold. */
 export function ParentGate(): ReactElement {
   const router = useRouter()

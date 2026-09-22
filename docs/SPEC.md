@@ -30,15 +30,15 @@ Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the
 
 ## 2. Requests screen
 
-- Grid of **2, 4 or 6 cards** (parent setting; start with 2–4). Cards fill the screen.
+- Grid of **2, 4 or 6 cards** (parent setting, default 4). Cards fill the screen. A board may hold more cards: the child sees the first ones in their order, and the board screen in parent mode marks where the visible ones end.
 - Card = real photo (optional: core words usually have none) + written word underneath (large, high contrast) + parent voice recording (required).
 - On tap:
   1. card scales up to center, others dim;
   2. parent's recording plays once;
-  3. card stays enlarged ~3 s (time for the parent to react and hand the item over), then returns.
-- **Debounce:** after a tap, the same card is inert for 8 s (setting). Other cards also inert while audio plays. This prevents tap-loop stimming on the sound.
+  3. card stays enlarged ~3 s, longer if the recording is longer (time for the parent to react and hand the item over), then returns. Until it has returned, every card is inert.
+- **Debounce:** after a tap, the same card is inert for 8 s (setting). This prevents tap-loop stimming on the sound. Every ignored tap of the child is logged as `request_tap_debounced` with payload `{reason}`: `repeat` (same card within the debounce) or `busy` (a request is still on screen).
 - A small "attempt" button is visible only to the parent's side of the screen (bottom corner, low contrast): parent taps it when the child tried to say the word. Logs `request_verbal_attempt` with the last tapped card.
-- **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean.
+- **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean. Parent taps do not start the per-card debounce (the child may repeat the modelled card right away), and parent taps the board ignores are not logged.
 - Card order is fixed (parent-defined). Do not shuffle: position consistency is how AAC motor planning works.
 
 **Starter content guidance (shown in the card editor empty state):** mix things he wants (suv, specific toys, swing) with **core words** that work everywhere: `yana` (more), `ber` (give), `yo'q` (no), `bo'ldi` (done/stop), `yordam` (help). Core words keep a fixed position on every board.

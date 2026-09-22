@@ -5,9 +5,17 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { strings } from '@/i18n'
 import { colors, radii, spacing, touch } from '@/ui/theme'
 
+/** How a tab is named in the event log (SPEC §6, tab_switch). */
+export type TabLogName = 'requests' | 'pause_game'
+
 interface ChildTab {
   icon: SFSymbol
   label: string
+  logName: TabLogName
+}
+
+type ChildTabBarProps = BottomTabBarProps & {
+  onSwitch: (to: TabLogName) => void
 }
 
 interface ChildTabButtonProps {
@@ -21,22 +29,27 @@ const TABS: Partial<Record<string, ChildTab>> = {
   'requests': {
     icon: 'square.grid.2x2.fill',
     label: strings.child.requestsTab,
+    logName: 'requests',
   },
   'pause-game': {
     icon: 'textformat.123',
     label: strings.child.pauseGameTab,
+    logName: 'pause_game',
   },
 }
 
 const ICON_SIZE = 56
 
-/** Child-mode tab bar: large icon-only buttons. With a single tab there is nothing to switch, so there is no bar. */
-export function ChildTabBar({ state, navigation, insets }: BottomTabBarProps): ReactElement | null {
+/**
+ * Child-mode tab bar: large icon-only buttons; every real switch is reported through onSwitch. With a single tab there is
+ * nothing to switch, so there is no bar.
+ */
+export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBarProps): ReactElement | null {
   if (state.routes.length < 2) {
     return null
   }
 
-  function openTab(routeKey: string, routeName: string, isFocused: boolean): void {
+  function openTab(routeKey: string, routeName: string, tab: ChildTab, isFocused: boolean): void {
     const event = navigation.emit({
       type: 'tabPress',
       target: routeKey,
@@ -48,6 +61,8 @@ export function ChildTabBar({ state, navigation, insets }: BottomTabBarProps): R
     }
 
     navigation.navigate(routeName)
+
+    onSwitch(tab.logName)
   }
 
   return (
@@ -73,7 +88,7 @@ export function ChildTabBar({ state, navigation, insets }: BottomTabBarProps): R
           <ChildTabButton
             isFocused={isFocused}
             key={route.key}
-            onPress={() => openTab(route.key, route.name, isFocused)}
+            onPress={() => openTab(route.key, route.name, tab, isFocused)}
             tab={tab}
           />
         )

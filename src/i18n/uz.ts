@@ -38,6 +38,11 @@ export const uz = {
       "Bola xohlaydigan narsalarni (suv, sevimli o'yinchoqlar, arg'imchoq) hamma joyda kerak bo'ladigan so'zlar bilan aralashtiring: yana, ber, yo'q, bo'ldi, yordam. Bu so'zlar har bir to'plamda doim bir joyda tursin.",
     moveUp: 'Yuqoriga',
     moveDown: 'Pastga',
+    visibleLimit: (count: number): string => `Bola faqat yuqoridagi ${count} ta kartani ko'radi.`,
+  },
+  requests: {
+    attempt: "Bola so'zni aytishga harakat qildi",
+    modeling: "Ota-ona ko'rsatmoqda",
   },
   settings: {
     requestsSection: "So'rovlar",

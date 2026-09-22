@@ -1,19 +1,24 @@
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
-import { type ReactElement, useCallback, useState } from 'react'
+import { Fragment, type ReactElement, useCallback, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text } from 'react-native'
 import { type Board, type Card, useRepositories } from '@/db'
 import { CardRow } from '@/features/cards/card-row'
+import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
 import { parseIdParam } from '@/ui/route-params'
 import { spacing, typography } from '@/ui/theme'
 
-/** One board: its cards in the fixed order the child sees, whether it is the active board, adding and ordering cards. */
+/**
+ * One board: its cards in the fixed order the child sees, whether it is the active board, adding and ordering cards.
+ * When the board has more cards than fit on the child's screen, a line marks where the visible ones end.
+ */
 export default function BoardScreen(): ReactElement | null {
   const params = useLocalSearchParams<{ boardId: string }>()
   const boardId = parseIdParam(params.boardId)
   const router = useRouter()
   const repositories = useRepositories()
+  const settings = useSettings()
   const [board, setBoard] = useState<Board | null>(null)
   const [cards, setCards] = useState<Card[]>([])
 
@@ -106,15 +111,19 @@ export default function BoardScreen(): ReactElement | null {
       )}
       {cards.length === 0 && <Text style={typography.caption}>{strings.cards.starterHint}</Text>}
       {cards.map((card, index) => (
-        <CardRow
-          canMoveDown={index < cards.length - 1}
-          canMoveUp={index > 0}
-          card={card}
-          key={card.id}
-          onMove={(offset) => moveCard(card.id, offset)}
-          onOpen={() => openCard(card.id)}
-          position={index + 1}
-        />
+        <Fragment key={card.id}>
+          <CardRow
+            canMoveDown={index < cards.length - 1}
+            canMoveUp={index > 0}
+            card={card}
+            onMove={(offset) => moveCard(card.id, offset)}
+            onOpen={() => openCard(card.id)}
+            position={index + 1}
+          />
+          {index === settings.cardsPerScreen - 1 && cards.length > settings.cardsPerScreen && (
+            <Text style={[typography.caption, styles.limit]}>{strings.cards.visibleLimit(settings.cardsPerScreen)}</Text>
+          )}
+        </Fragment>
       ))}
       <ParentButton onPress={addCard} title={strings.cards.add} variant="primary" />
       <ParentButton onPress={askForTitle} title={strings.boards.rename} />
@@ -126,5 +135,9 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.sm,
     padding: spacing.md,
+  },
+  limit: {
+    paddingVertical: spacing.sm,
+    textAlign: 'center',
   },
 })
