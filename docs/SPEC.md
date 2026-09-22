@@ -18,6 +18,8 @@ The event log exists to answer these questions with data.
 
 No text menus, no settings, no way out except the hidden parent gate. Two screens: **Requests** and **Pause game**, switched by two large icon tabs at the bottom. Plus the **Goodbye** screen at session end.
 
+The Pause game tab is behind a setting, off by default until the game exists. While it is off there is no tab bar at all.
+
 ### Parent mode
 
 Entered by holding a small dim element in the top-right corner for 3 seconds. Contains: cards management, pause-game sequences, session settings, log view/export.
@@ -94,7 +96,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ### Settings
 
-Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break.
+Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break, Pause game tab on/off.
 
 ### Log
 

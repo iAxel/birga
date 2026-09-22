@@ -5,10 +5,7 @@ import { migrations } from '@/db/migrations'
 
 const DATABASE_NAME = 'birga.db'
 
-/**
- * Opens the app database and migrates it before rendering children, which read it with useSQLiteContext().
- * Use withTransactionAsync: withExclusiveTransactionAsync opens a second connection where foreign keys are not enforced.
- */
+/** Opens the app database and migrates it before rendering children, which read it with useSQLiteContext(). */
 export function DatabaseProvider({ children }: PropsWithChildren): ReactElement {
   return (
     <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>

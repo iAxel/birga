@@ -30,8 +30,12 @@ const TABS: Partial<Record<string, ChildTab>> = {
 
 const ICON_SIZE = 56
 
-/** Child-mode tab bar: two large icon-only buttons instead of the standard small tabs. */
-export function ChildTabBar({ state, navigation, insets }: BottomTabBarProps): ReactElement {
+/** Child-mode tab bar: large icon-only buttons. With a single tab there is nothing to switch, so there is no bar. */
+export function ChildTabBar({ state, navigation, insets }: BottomTabBarProps): ReactElement | null {
+  if (state.routes.length < 2) {
+    return null
+  }
+
   function openTab(routeKey: string, routeName: string, isFocused: boolean): void {
     const event = navigation.emit({
       type: 'tabPress',

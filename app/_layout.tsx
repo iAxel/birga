@@ -3,16 +3,19 @@ import * as SplashScreen from 'expo-splash-screen'
 import { type ReactElement, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { DatabaseProvider } from '@/db'
+import { SettingsProvider } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { colors, radii, spacing, touch, typography } from '@/ui/theme'
 
 SplashScreen.preventAutoHideAsync()
 
-/** No screen renders until the database is open and migrated; the splash screen stays up until then. */
+/** No screen renders until the database is migrated and the settings are loaded; the splash screen covers that time. */
 export default function RootLayout(): ReactElement {
   return (
     <DatabaseProvider>
-      <RootStack />
+      <SettingsProvider>
+        <RootStack />
+      </SettingsProvider>
     </DatabaseProvider>
   )
 }
