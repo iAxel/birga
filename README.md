@@ -48,3 +48,18 @@ account that often hits its session limit (`ERR_NGROK_108`).
 
 - Parent mode: hold the dim dot in the top-right corner for 3 seconds.
 - Database on the device: in the terminal running Expo press `Shift+M`, then **Open expo-sqlite**.
+
+## Release to TestFlight
+
+Needs an Apple Developer Program membership. Builds run in the cloud on EAS, so no Mac is needed. `eas.json` has one
+`production` profile for store distribution, and EAS counts the build numbers.
+
+1. `npx eas-cli@latest build -p ios --profile production`. The first run asks for the bundle identifier (permanent: it is
+   written into `app.json` and ties the app to the Apple team) and for the Apple ID, then creates the signing certificate and
+   the provisioning profile.
+2. `npx eas-cli@latest submit -p ios --latest` uploads that build to App Store Connect; the first run creates the app record
+   there.
+3. In App Store Connect, add the parent's Apple ID as an internal tester under TestFlight, then install the TestFlight app on
+   the child's iPhone or iPad and accept the invitation.
+4. On that device, set up Guided Access (Settings → Accessibility → Guided Access) and start it in the app by triple-clicking
+   the side button; switching off Motion in its options locks the rotation.

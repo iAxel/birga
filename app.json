@@ -2,14 +2,16 @@
   "expo": {
     "name": "Birga",
     "slug": "birga",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "birga",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F5F1EA",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
