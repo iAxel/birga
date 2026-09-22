@@ -27,6 +27,8 @@ export interface Settings {
   minBreakMinutes: MinBreakMinutes
   /** The parent's recorded "Xayr!" for the end of a session, relative to the document directory; optional. */
   goodbyeAudioPath: string | null
+  /** The child's name as the parent typed it, for the start screen; empty until set. */
+  childName: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -36,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sessionMinutes: 10,
   minBreakMinutes: 30,
   goodbyeAudioPath: null,
+  childName: '',
 }
 
 /** Settings stored as JSON values under the name of their Settings field. */
@@ -66,6 +69,7 @@ export class SettingsRepository {
         DEFAULT_SETTINGS.minBreakMinutes,
       ),
       goodbyeAudioPath: this.#_readString(stored.get('goodbyeAudioPath')),
+      childName: this.#_readString(stored.get('childName')) ?? DEFAULT_SETTINGS.childName,
     }
   }
 

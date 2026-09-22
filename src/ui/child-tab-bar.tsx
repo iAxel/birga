@@ -3,7 +3,8 @@ import { type SFSymbol, SymbolView } from 'expo-symbols'
 import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { strings } from '@/i18n'
-import { color, radius, space, touch } from '@/ui/theme'
+import { useChildMetrics } from '@/ui/child-metrics'
+import { color, space, touch } from '@/ui/theme'
 
 /** How a tab is named in the event log (SPEC §6, tab_switch). */
 export type TabLogName = 'requests' | 'pause_game'
@@ -27,24 +28,27 @@ interface ChildTabButtonProps {
 /** Tab look by route name. Labels are never shown, VoiceOver reads them. */
 const TABS: Partial<Record<string, ChildTab>> = {
   'requests': {
-    icon: 'square.grid.2x2.fill',
+    icon: 'square.grid.2x2',
     label: strings.child.requestsTab,
     logName: 'requests',
   },
   'pause-game': {
-    icon: 'textformat.123',
+    icon: 'waveform',
     label: strings.child.pauseGameTab,
     logName: 'pause_game',
   },
 }
 
-const ICON_SIZE = 56
+const ICON_SIZE = 40
 
 /**
- * Child-mode tab bar: large icon-only buttons; every real switch is reported through onSwitch. With a single tab there is
- * nothing to switch, so there is no bar.
+ * Child-mode tab bar (DESIGN §2): two round icon targets over the bottom of the screen, the open one on a soft disc.
+ * Every real switch is reported through onSwitch. With a single tab there is nothing to switch, so there is no bar.
+ * It floats over the screens, which keep its height free and may put their own controls beside it.
  */
 export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBarProps): ReactElement | null {
+  const metrics = useChildMetrics()
+
   if (state.routes.length < 2) {
     return null
   }
@@ -71,7 +75,8 @@ export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBar
       style={[
         styles.bar,
         {
-          paddingBottom: insets.bottom + space.sm,
+          bottom: insets.bottom,
+          gap: metrics.tabGap,
         },
       ]}
     >
@@ -108,27 +113,30 @@ function ChildTabButton({ tab, isFocused, onPress }: ChildTabButtonProps): React
       onPress={onPress}
       style={[styles.button, isFocused && styles.buttonFocused]}
     >
-      <SymbolView name={tab.icon} size={ICON_SIZE} tintColor={isFocused ? color.accent : color.muted} />
+      <SymbolView name={tab.icon} size={ICON_SIZE} tintColor={isFocused ? color.ink : color.muted} />
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
   bar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: space.tabBar,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: space.xl,
-    paddingTop: space.sm,
-    backgroundColor: color.ground,
+    pointerEvents: 'box-none',
   },
   button: {
     width: touch.child,
     height: touch.child,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.card,
+    borderRadius: touch.child / 2,
   },
   buttonFocused: {
-    backgroundColor: color.accentBg,
+    backgroundColor: color.cardLine,
   },
 })

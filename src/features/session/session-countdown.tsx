@@ -4,13 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { countdownShare, remainingMs } from '@/features/session/session-clock'
 import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
-import { color, space } from '@/ui/theme'
+import { color } from '@/ui/theme'
 
 const TICK_MS = 1000
 
-const BAR_HEIGHT = 4
+const BAR_HEIGHT = 3
 
-/** The last minute of a session as a thin bar across the top that shrinks to nothing; no sound (SPEC §4). */
+/** The last minute of a session as a thin bar along the top edge that shrinks from right to left; no sound (SPEC §4). */
 export function SessionCountdown(): ReactElement | null {
   const insets = useSafeAreaInsets()
   const { active } = useSession()
@@ -31,9 +31,7 @@ export function SessionCountdown(): ReactElement | null {
       style={[
         styles.track,
         {
-          top: insets.top + space.xs,
-          left: insets.left + space.lg,
-          right: insets.right + space.lg,
+          top: insets.top,
         },
       ]}
     >
@@ -52,14 +50,13 @@ export function SessionCountdown(): ReactElement | null {
 const styles = StyleSheet.create({
   track: {
     position: 'absolute',
+    left: 0,
+    right: 0,
     height: BAR_HEIGHT,
-    overflow: 'hidden',
-    borderRadius: BAR_HEIGHT / 2,
     pointerEvents: 'none',
   },
   bar: {
     height: BAR_HEIGHT,
-    borderRadius: BAR_HEIGHT / 2,
-    backgroundColor: color.accentBg,
+    backgroundColor: color.hint,
   },
 })

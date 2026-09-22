@@ -10,16 +10,18 @@ import { EnlargedCard } from '@/features/requests/enlarged-card'
 import { RequestCard } from '@/features/requests/request-card'
 import { decideTap, ENLARGED_MS } from '@/features/requests/request-gate'
 import { useEventLog } from '@/features/session/use-event-log'
-import { space } from '@/ui/theme'
 
+/** DESIGN §4: 300 ms ease-out, no springs. */
 const MOVE_MS = 300
 
-const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1)
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1)
 
 interface RequestsBoardProps {
   cards: Card[]
   cardsPerScreen: CardsPerScreen
   debounceMs: number
+  /** Space between the cards and around them. */
+  gap: number
   isModeling: boolean
   onPlayed: (cardId: number) => void
 }
@@ -33,7 +35,14 @@ interface ActiveRequest {
  * The child's board (SPEC §2): cards in fixed slots, one request at a time. A played card moves to the middle over the
  * dimmed board, its recording plays once, and it returns after ENLARGED_MS or when the recording ends, whichever is later.
  */
-export function RequestsBoard({ cards, cardsPerScreen, debounceMs, isModeling, onPlayed }: RequestsBoardProps): ReactElement {
+export function RequestsBoard({
+  cards,
+  cardsPerScreen,
+  debounceMs,
+  gap,
+  isModeling,
+  onPlayed,
+}: RequestsBoardProps): ReactElement {
   const logEvent = useEventLog()
   const player = useVoicePlayer()
   const playerStatus = useAudioPlayerStatus(player)
@@ -74,7 +83,7 @@ export function RequestsBoard({ cards, cardsPerScreen, debounceMs, isModeling, o
         0,
         {
           duration: MOVE_MS,
-          easing: EASE_IN_OUT,
+          easing: EASE_OUT,
         },
         (finished) => {
           'worklet'
@@ -124,12 +133,12 @@ export function RequestsBoard({ cards, cardsPerScreen, debounceMs, isModeling, o
     progress.set(
       withTiming(1, {
         duration: MOVE_MS,
-        easing: EASE_IN_OUT,
+        easing: EASE_OUT,
       }),
     )
   }
 
-  const slots = area ? layoutGrid(area, gridShape(cardsPerScreen, area), space.md) : []
+  const slots = area ? layoutGrid(area, gridShape(cardsPerScreen, area), gap) : []
 
   return (
     <View
@@ -171,6 +180,7 @@ export function RequestsBoard({ cards, cardsPerScreen, debounceMs, isModeling, o
         <EnlargedCard
           area={area}
           card={active.card}
+          isPlaying={playerStatus.playing}
           onPress={() => tap(active.card, active.slot, Date.now())}
           progress={progress}
           reduceMotion={reduceMotion}

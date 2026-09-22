@@ -15,23 +15,41 @@ import { mediaUri } from '@/db'
 import { useSession } from '@/features/session/session-provider'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { color, space, typography } from '@/ui/theme'
+import { type FormFactor, useFormFactor } from '@/ui/form-factor'
+import { Ornaments } from '@/ui/ornaments'
+import { color, font } from '@/ui/theme'
 
-const HAND_SIZE = 120
+const LOOK: Record<FormFactor, { hand: number; handGap: number; word: number; tracking: number; subtitle: number }> = {
+  tablet: {
+    hand: 144,
+    handGap: 40,
+    word: 160,
+    tracking: -5,
+    subtitle: 26,
+  },
+  phone: {
+    hand: 96,
+    handGap: 28,
+    word: 104,
+    tracking: -3.5,
+    subtitle: 19,
+  },
+}
 
 const WAVE_STEP_MS = 250
 
 const WAVE_EASING = Easing.bezier(0.77, 0, 0.175, 1)
 
 /**
- * End of a session (SPEC §4). The first time the child sees it after a session, the hand waves once (about 1 s) and the
- * parent's "Xayr!" plays; then it stays still with the word. When the app opens without a session, only the hand is shown.
+ * End of a session (SPEC §4): a waving hand, "Xayr!" and "Ertaga yana o'ynaymiz". The first time the child sees it
+ * after a session, the hand waves once (about 1 s) and the parent's "Xayr!" plays; then it stays still.
  */
 export function GoodbyeView(): ReactElement {
   const isFocused = useIsFocused()
   const session = useSession()
   const settings = useSettings()
   const player = useVoicePlayer()
+  const look = LOOK[useFormFactor()]
   const reduceMotion = useReducedMotion()
   const rotation = useSharedValue(0)
   const saidGoodbyeForRef = useRef<number | null>(null)
@@ -90,10 +108,39 @@ export function GoodbyeView(): ReactElement {
 
   return (
     <View style={styles.root}>
-      <Animated.View style={[styles.hand, handStyle]}>
-        <SymbolView name="hand.wave.fill" size={HAND_SIZE} tintColor={color.accent} />
+      <Ornaments largeOpacity={0.45} smallOpacity={0.36} />
+      <Animated.View
+        style={[
+          styles.hand,
+          {
+            marginBottom: look.handGap,
+          },
+          handStyle,
+        ]}
+      >
+        <SymbolView name="hand.wave" size={look.hand} tintColor={color.accent} />
       </Animated.View>
-      {session.lastEndedSessionId !== null && <Text style={typography.title}>{strings.child.goodbye}</Text>}
+      <Text
+        style={[
+          styles.word,
+          {
+            fontSize: look.word,
+            letterSpacing: look.tracking,
+          },
+        ]}
+      >
+        {strings.child.goodbye}
+      </Text>
+      <Text
+        style={[
+          styles.subtitle,
+          {
+            fontSize: look.subtitle,
+          },
+        ]}
+      >
+        {strings.child.goodbyeSubtitle}
+      </Text>
     </View>
   )
 }
@@ -103,10 +150,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: space.xl,
     backgroundColor: color.ground,
   },
   hand: {
     transformOrigin: '50% 85%',
+  },
+  word: {
+    color: color.ink,
+    fontFamily: font.extraBold,
+  },
+  subtitle: {
+    color: color.muted,
+    fontFamily: font.medium,
+    textAlign: 'center',
   },
 })

@@ -13,7 +13,7 @@ async function createRepository(): Promise<{ db: NodeDatabase; settings: Setting
 }
 
 describe('SettingsRepository', () => {
-  test('starts with four cards, an 8 s repeat pause, 10 min sessions, a 30 min break and the pause game hidden', async () => {
+  test('starts with four cards, an 8 s repeat pause, 10 min sessions, a 30 min break, the pause game hidden and no name', async () => {
     const { settings } = await createRepository()
 
     expect(await settings.load()).toEqual({
@@ -23,6 +23,7 @@ describe('SettingsRepository', () => {
       sessionMinutes: 10,
       minBreakMinutes: 30,
       goodbyeAudioPath: null,
+      childName: '',
     })
     expect(DEFAULT_SETTINGS.pauseGameEnabled).toBe(false)
   })
@@ -74,5 +75,13 @@ describe('SettingsRepository', () => {
     await settings.save('goodbyeAudioPath', null)
 
     expect((await settings.load()).goodbyeAudioPath).toBeNull()
+  })
+
+  test("keeps the child's name exactly as typed", async () => {
+    const { settings } = await createRepository()
+
+    await settings.save('childName', ' Сулаймон ')
+
+    expect((await settings.load()).childName).toBe(' Сулаймон ')
   })
 })

@@ -1,4 +1,5 @@
 import type { CardsPerScreen } from '@/db'
+import type { FormFactor } from '@/ui/form-factor'
 
 export interface Size {
   width: number
@@ -39,6 +40,15 @@ const PORTRAIT_SHAPES: Record<CardsPerScreen, GridShape> = {
     columns: 2,
     rows: 3,
   },
+}
+
+/** How many cards the child sees: the setting on a tablet; a phone shows two stacked cards in v0.1 (SPEC §2). */
+export function cardsOnScreen(cardsPerScreen: CardsPerScreen, formFactor: FormFactor): CardsPerScreen {
+  if (formFactor === 'phone') {
+    return 2
+  }
+
+  return cardsPerScreen
 }
 
 /** Portrait stacks cards vertically; a landscape screen (an iPad on the table) turns the same grid sideways. */

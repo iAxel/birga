@@ -8,7 +8,12 @@ export const uz = {
   child: {
     requestsTab: "So'rovlar",
     pauseGameTab: "O'yin",
+    wordmark: 'Birga',
+    startSubtitle: (name: string): string => `${name} bilan birga o'ynaymiz`,
+    startSubtitleNoName: "Birga o'ynaymiz",
+    startHint: 'Sessiyani ota-ona boshlaydi',
     goodbye: 'Xayr!',
+    goodbyeSubtitle: "Ertaga yana o'ynaymiz",
   },
   parentGate: {
     label: 'Ota-ona rejimi',
@@ -45,8 +50,13 @@ export const uz = {
     modeling: "Ota-ona ko'rsatmoqda",
   },
   settings: {
+    childSection: 'Bola',
+    childName: 'Ismi',
+    childNamePlaceholder: 'Ism',
+    childNameHint: "Boshlash ekranida ko'rinadi: «… bilan birga o'ynaymiz».",
     requestsSection: "So'rovlar",
     cardsPerScreen: 'Ekrandagi kartalar',
+    cardsPerScreenPhoneHint: "iPhone'da bola doim 2 ta kartani ko'radi.",
     debounce: 'Qayta bosish pauzasi',
     seconds: (count: number): string => `${count} soniya`,
     debounceHint: 'Bola bir kartani qayta bossa, karta shuncha vaqt jim turadi.',

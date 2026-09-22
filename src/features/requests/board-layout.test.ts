@@ -1,10 +1,19 @@
 import { describe, expect, test } from '@jest/globals'
-import { enlargement, gridShape, layoutGrid } from '@/features/requests/board-layout'
+import { cardsOnScreen, enlargement, gridShape, layoutGrid } from '@/features/requests/board-layout'
 
 const PHONE = {
   width: 400,
   height: 700,
 }
+
+describe('cardsOnScreen', () => {
+  test('follows the setting on a tablet and shows two cards on a phone', () => {
+    expect(cardsOnScreen(6, 'tablet')).toBe(6)
+    expect(cardsOnScreen(2, 'tablet')).toBe(2)
+    expect(cardsOnScreen(4, 'phone')).toBe(2)
+    expect(cardsOnScreen(6, 'phone')).toBe(2)
+  })
+})
 
 describe('gridShape', () => {
   test('stacks two cards and puts four or six in two columns on a portrait screen', () => {
