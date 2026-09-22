@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSession } from '@/features/session/session-provider'
+import { useEventLog } from '@/features/session/use-event-log'
 import { strings } from '@/i18n'
 import { colors, spacing, touch } from '@/ui/theme'
 
@@ -12,12 +14,23 @@ const DOT_SIZE = 12
 /** Height the gate takes below the top safe area; child screens keep that strip free of touchable content. */
 export const PARENT_GATE_HEIGHT = spacing.sm + touch.parent
 
-/** Hidden way into parent mode: a small dim dot in the top-right corner that reacts only to a 3-second hold. */
+/**
+ * Hidden way into parent mode: a small dim dot in the top-right corner that reacts only to a 3-second hold. Opening it
+ * is logged and pauses the running session until the parent returns.
+ */
 export function ParentGate(): ReactElement {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const session = useSession()
+  const logEvent = useEventLog()
 
-  function openParentMode(): void {
+  function openParentMode(now: number): void {
+    logEvent({
+      type: 'parent_gate_open',
+    })
+
+    session.pause(now)
+
     router.push('/parent')
   }
 
@@ -25,7 +38,7 @@ export function ParentGate(): ReactElement {
     <Pressable
       accessibilityLabel={strings.parentGate.label}
       delayLongPress={HOLD_MS}
-      onLongPress={openParentMode}
+      onLongPress={() => openParentMode(Date.now())}
       style={[
         styles.gate,
         {

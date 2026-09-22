@@ -4,6 +4,7 @@ import { type ReactElement, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { configureAudioSession } from '@/audio/audio-session'
 import { DatabaseProvider } from '@/db'
+import { SessionProvider } from '@/features/session/session-provider'
 import { SettingsProvider } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { colors, radii, spacing, touch, typography } from '@/ui/theme'
@@ -12,12 +13,14 @@ SplashScreen.preventAutoHideAsync()
 
 configureAudioSession()
 
-/** No screen renders until the database is migrated and the settings are loaded; the splash screen covers that time. */
+/** No screen renders until the database is migrated and settings and sessions are ready; the splash screen covers that. */
 export default function RootLayout(): ReactElement {
   return (
     <DatabaseProvider>
       <SettingsProvider>
-        <RootStack />
+        <SessionProvider>
+          <RootStack />
+        </SessionProvider>
       </SettingsProvider>
     </DatabaseProvider>
   )

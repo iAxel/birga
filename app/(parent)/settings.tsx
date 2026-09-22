@@ -1,13 +1,18 @@
-import { FieldGroup, Host, Picker, Row, Spacer, Text } from '@expo/ui'
+import { Button, FieldGroup, Host, Picker, Row, Spacer, Text } from '@expo/ui'
+import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { StyleSheet } from 'react-native'
-import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS } from '@/db'
+import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS, MIN_BREAK_MINUTES_OPTIONS, SESSION_MINUTES_OPTIONS } from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { colors, spacing } from '@/ui/theme'
 
-/** Parent settings (SPEC §5): how many cards the child sees, and how long a card stays silent after the child played it. */
+/**
+ * Parent settings (SPEC §5): how many cards the child sees, how long a card stays silent after the child played it, how
+ * long a session lasts, the break before the next one, and the parent's "Xayr!" for its end.
+ */
 export default function SettingsScreen(): ReactElement {
+  const router = useRouter()
   const settings = useSettings()
   const saveSetting = useSaveSetting()
 
@@ -43,6 +48,31 @@ export default function SettingsScreen(): ReactElement {
               {strings.settings.debounceHint}
             </Text>
           </FieldGroup.SectionFooter>
+        </FieldGroup.Section>
+        <FieldGroup.Section title={strings.settings.sessionSection}>
+          <Row alignment="center" spacing={spacing.md}>
+            <Text>{strings.settings.sessionLength}</Text>
+            <Spacer flexible />
+            <Picker onValueChange={(value) => saveSetting('sessionMinutes', value)} selectedValue={settings.sessionMinutes}>
+              {SESSION_MINUTES_OPTIONS.map((option) => (
+                <Picker.Item key={option} label={strings.settings.minutes(option)} value={option} />
+              ))}
+            </Picker>
+          </Row>
+          <Row alignment="center" spacing={spacing.md}>
+            <Text>{strings.settings.minBreak}</Text>
+            <Spacer flexible />
+            <Picker onValueChange={(value) => saveSetting('minBreakMinutes', value)} selectedValue={settings.minBreakMinutes}>
+              {MIN_BREAK_MINUTES_OPTIONS.map((option) => (
+                <Picker.Item
+                  key={option}
+                  label={option === 0 ? strings.settings.noBreak : strings.settings.minutes(option)}
+                  value={option}
+                />
+              ))}
+            </Picker>
+          </Row>
+          <Button label={strings.settings.goodbyeVoice} onPress={() => router.push('/goodbye-voice')} />
         </FieldGroup.Section>
       </FieldGroup>
     </Host>

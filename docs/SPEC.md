@@ -74,10 +74,12 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ## 4. Session
 
-- Session starts on entering child mode. Length: **10 min** default (setting: 5/10/15).
+- The parent starts a session from parent mode; the app itself opens on the calm Goodbye screen, so the child never starts one alone. Length: **10 min** default (setting: 5/10/15).
+- Parent mode pauses the running session. The parent returns to it, or ends it there (`parent_exit`).
 - Last minute: subtle visual countdown (a bar shrinking), no sound.
-- At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional), then a static calm screen. Nothing on it is tappable except the parent gate.
-- New session only via parent mode. Optional setting: minimum break between sessions (default 30 min).
+- At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional, recorded in Settings), then a static calm screen. Nothing on it is tappable except the parent gate. Until the character exists, a waving hand symbol stands in for it.
+- New session only via parent mode. Optional setting: minimum break between sessions (default 30 min, 0 = off). It blocks starting a new session until it has passed, counted from the last session that ended by the timer.
+- A session the app died in is closed at the next launch as `app_killed`, at its last logged event.
 
 ---
 

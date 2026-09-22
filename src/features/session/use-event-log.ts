@@ -1,17 +1,17 @@
 import { useCallback } from 'react'
 import { type EventInput, useRepositories } from '@/db'
+import { useSession } from '@/features/session/session-provider'
 
-/**
- * Writes a child-facing interaction to the event log without making the UI wait for it. Sessions arrive in build step 4;
- * until then events carry no session.
- */
+/** Writes a child-facing interaction to the event log, with the running session, without making the UI wait for it. */
 export function useEventLog(): (event: EventInput) => void {
   const { events } = useRepositories()
+  const { active } = useSession()
+  const sessionId = active?.id ?? null
 
   return useCallback(
     (event: EventInput) => {
-      events.log(null, event, Date.now())
+      events.log(sessionId, event, Date.now())
     },
-    [events],
+    [events, sessionId],
   )
 }

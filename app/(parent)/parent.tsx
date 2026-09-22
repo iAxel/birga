@@ -1,8 +1,8 @@
-import { type Href, Link, useRouter } from 'expo-router'
+import { type Href, Link } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
+import { SessionControls } from '@/features/session/session-controls'
 import { strings } from '@/i18n'
-import { ParentButton } from '@/ui/parent-button'
 import { colors, radii, spacing, touch, typography } from '@/ui/theme'
 
 interface Section {
@@ -29,22 +29,11 @@ const SECTIONS: Section[] = [
   },
 ]
 
-/** Parent mode home: its sections, the Guided Access advice and the only way back to child mode. */
+/** Parent mode home: the session, the sections of parent mode and the Guided Access advice. */
 export default function ParentHomeScreen(): ReactElement {
-  const router = useRouter()
-
-  function backToChildMode(): void {
-    if (router.canGoBack()) {
-      router.back()
-
-      return
-    }
-
-    router.replace('/requests')
-  }
-
   return (
     <ScrollView contentContainerStyle={styles.content}>
+      <SessionControls />
       {SECTIONS.map((section) => (
         <Link asChild href={section.href} key={section.title}>
           <Pressable style={styles.row}>
@@ -53,7 +42,6 @@ export default function ParentHomeScreen(): ReactElement {
         </Link>
       ))}
       <Text style={[typography.caption, styles.hint]}>{strings.parent.guidedAccessHint}</Text>
-      <ParentButton onPress={backToChildMode} title={strings.parent.backToChild} variant="primary" />
     </ScrollView>
   )
 }

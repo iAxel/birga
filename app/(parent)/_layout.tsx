@@ -64,6 +64,12 @@ export default function ParentLayout(): ReactElement {
           }}
         />
         <Stack.Screen
+          name="goodbye-voice"
+          options={{
+            title: strings.goodbyeVoice.title,
+          }}
+        />
+        <Stack.Screen
           name="log"
           options={{
             title: strings.parent.log,
