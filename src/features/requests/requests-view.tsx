@@ -1,6 +1,7 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { storeMedia } from '@/db'
 import { cardsOnScreen } from '@/features/requests/board-layout'
 import { ParentControls } from '@/features/requests/parent-controls'
 import { MODELING_MS } from '@/features/requests/request-gate'
@@ -46,6 +47,20 @@ export function RequestsView(): ReactElement {
     })
   }
 
+  /** Keeps the recording the parent made of an attempt and logs where it went (SPEC §2). */
+  async function saveAttempt(uri: string, durationMs: number): Promise<void> {
+    const audioPath = await storeMedia(uri, 'attempts')
+
+    logEvent({
+      type: 'attempt_recorded',
+      cardId: lastPlayedCardIdRef.current,
+      payload: {
+        audioPath,
+        durationMs,
+      },
+    })
+  }
+
   const bottom = settings.pauseGameEnabled
     ? insets.bottom + space.tabBar
     : Math.max(insets.bottom, metrics.cornerMargin) + metrics.corner
@@ -74,7 +89,12 @@ export function RequestsView(): ReactElement {
           }}
         />
       </View>
-      <ParentControls isModeling={modelingUntil !== null} onAttempt={logAttempt} onToggleModeling={toggleModeling} />
+      <ParentControls
+        isModeling={modelingUntil !== null}
+        onAttempt={logAttempt}
+        onAttemptRecorded={saveAttempt}
+        onToggleModeling={toggleModeling}
+      />
     </View>
   )
 }

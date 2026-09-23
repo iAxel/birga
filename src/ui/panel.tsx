@@ -39,11 +39,13 @@ interface ListRowProps {
   value?: string
   /** Line under the row; the last row of a panel has none. */
   hasSeparator?: boolean
+  /** A row that opens a screen ends in a chevron; one that acts on the spot does not. */
+  hasChevron?: boolean
   onPress: () => void
 }
 
 /** A tappable row of a panel: icon, title, value and a chevron. */
-export function ListRow({ title, icon, value, hasSeparator = false, onPress }: ListRowProps): ReactElement {
+export function ListRow({ title, icon, value, hasSeparator = false, hasChevron = true, onPress }: ListRowProps): ReactElement {
   return (
     <Pressable
       accessibilityRole="button"
@@ -59,7 +61,7 @@ export function ListRow({ title, icon, value, hasSeparator = false, onPress }: L
           {value}
         </Text>
       )}
-      <SymbolView name="chevron.right" size={15} tintColor={color.hint} weight="semibold" />
+      {hasChevron && <SymbolView name="chevron.right" size={15} tintColor={color.hint} weight="semibold" />}
     </Pressable>
   )
 }

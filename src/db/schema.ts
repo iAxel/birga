@@ -56,6 +56,7 @@ export type EventType =
   | 'request_tap_model'
   | 'request_tap_debounced'
   | 'request_verbal_attempt'
+  | 'attempt_recorded'
   | 'pause_open'
   | 'pause_filled'
   | 'pause_timeout'

@@ -16,6 +16,14 @@ const MIN_RECORDING_MS = 300
 
 export type MicrophoneAccess = 'pending' | 'granted' | 'denied'
 
+export interface VoiceRecorderOptions {
+  /**
+   * Whether to ask for the microphone on mount. Child mode passes false: the question belongs to the moment the parent
+   * holds the corner, not to a screen the child is looking at. The first hold then only asks, and records from the next.
+   */
+  askOnMount?: boolean
+}
+
 export interface VoiceRecorder {
   access: MicrophoneAccess
   isRecording: boolean
@@ -33,19 +41,34 @@ interface Take {
 
 /**
  * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded together with
- * the loudness sampled while it was spoken. Each take is prepared with explicit options, which gives it a new file:
- * without options expo-audio records over the previous take.
+ * the loudness sampled while it was spoken, and how long it lasted. Each take is prepared with explicit options, which
+ * gives it a new file: without options expo-audio records over the previous take.
  */
-export function useVoiceRecorder(onRecorded: (uri: string, levels: number[]) => void): VoiceRecorder {
+export function useVoiceRecorder(
+  onRecorded: (uri: string, levels: number[], durationMs: number) => void,
+  { askOnMount = true }: VoiceRecorderOptions = {},
+): VoiceRecorder {
   const recorder = useAudioRecorder(RECORDING_OPTIONS)
   const [access, setAccess] = useState<MicrophoneAccess>('pending')
   const [isRecording, setIsRecording] = useState(false)
   const [levels, setLevels] = useState<number[]>([])
   const levelsRef = useRef<number[]>([])
+  const [isRequested, setIsRequested] = useState(askOnMount)
   const takeRef = useRef<Take | null>(null)
   const isPreparedRef = useRef(false)
 
   useEffect(() => {
+    return () => {
+      clearTimeout(takeRef.current?.timeout)
+      clearInterval(takeRef.current?.meter)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isRequested) {
+      return
+    }
+
     async function prepareFirstTake(): Promise<void> {
       const permission = await requestRecordingPermissionsAsync()
 
@@ -61,12 +84,7 @@ export function useVoiceRecorder(onRecorded: (uri: string, levels: number[]) => 
     }
 
     prepareFirstTake()
-
-    return () => {
-      clearTimeout(takeRef.current?.timeout)
-      clearInterval(takeRef.current?.meter)
-    }
-  }, [recorder])
+  }, [isRequested, recorder])
 
   /** The readings live in a ref, which stop() reads, and in state, which draws them while the parent speaks. */
   function sampleLevel(): void {
@@ -75,9 +93,20 @@ export function useVoiceRecorder(onRecorded: (uri: string, levels: number[]) => 
     setLevels(levelsRef.current)
   }
 
-  /** Returns false when there is nothing to record into yet: no permission or the next file is still being prepared. */
+  /**
+   * Returns false when there is nothing to record into yet: no permission, or the next file is still being prepared.
+   * A recorder that did not ask on mount asks here, so the first hold only brings up the question.
+   */
   function start(): boolean {
-    if (!isPreparedRef.current || takeRef.current) {
+    if (!isPreparedRef.current) {
+      if (access !== 'denied') {
+        setIsRequested(true)
+      }
+
+      return false
+    }
+
+    if (takeRef.current) {
       return false
     }
 
@@ -121,7 +150,7 @@ export function useVoiceRecorder(onRecorded: (uri: string, levels: number[]) => 
     isPreparedRef.current = true
 
     if (uri && durationMs >= MIN_RECORDING_MS) {
-      onRecorded(uri, takeLevels(durationMs))
+      onRecorded(uri, takeLevels(durationMs), durationMs)
     }
   }
 

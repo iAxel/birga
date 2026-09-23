@@ -1,13 +1,17 @@
 import { type SFSymbol, SymbolView } from 'expo-symbols'
-import { type ReactElement, useEffect, useState } from 'react'
+import { type ReactElement, useEffect, useRef, useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useVoiceRecorder } from '@/audio/use-voice-recorder'
 import { strings } from '@/i18n'
 import { useChildMetrics } from '@/ui/child-metrics'
 import { color } from '@/ui/theme'
 
 /** How long the attempt icon stays lit, so the parent sees the tap counted. */
 const ATTEMPT_NOTED_MS = 800
+
+/** Held longer than this, the attempt control records instead of crediting a tap. */
+const HOLD_TO_RECORD_MS = 400
 
 const ICON_SIZE = 26
 
@@ -16,24 +20,39 @@ const MODELING_BAR_HEIGHT = 3
 interface ParentControlsProps {
   isModeling: boolean
   onAttempt: () => void
+  /** A recorded attempt, as the temporary file the recorder wrote and how long it lasted. */
+  onAttemptRecorded: (uri: string, durationMs: number) => void
   onToggleModeling: () => void
 }
 
 interface CornerButtonProps {
   icon: SFSymbol
   label: string
+  hint?: string
   isOn: boolean
   side: 'left' | 'right'
-  onPress: () => void
+  onPressIn?: () => void
+  onPressOut?: () => void
+  onPress?: () => void
 }
 
 /**
- * Two faint controls in the bottom corners, meant for the parent (SPEC §2): the speech bubble credits an attempt of the
- * child to say the word, the tapping hand switches on modelling, which marks the next taps as the parent's own. While
- * modelling is on, the hand is accent and a thin accent bar runs along the bottom edge.
+ * Two faint controls in the bottom corners, meant for the parent (SPEC §2). The speech bubble credits an attempt of the
+ * child to say the word when tapped, and records the attempt itself while it is held. The tapping hand switches on
+ * modelling, which marks the next taps as the parent's own; while it is on, the hand is accent and a thin accent bar
+ * runs along the bottom edge.
  */
-export function ParentControls({ isModeling, onAttempt, onToggleModeling }: ParentControlsProps): ReactElement {
+export function ParentControls({
+  isModeling,
+  onAttempt,
+  onAttemptRecorded,
+  onToggleModeling,
+}: ParentControlsProps): ReactElement {
   const [isAttemptNoted, setIsAttemptNoted] = useState(false)
+  const recorder = useVoiceRecorder((uri, _levels, durationMs) => onAttemptRecorded(uri, durationMs), {
+    askOnMount: false,
+  })
+  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!isAttemptNoted) {
@@ -45,20 +64,45 @@ export function ParentControls({ isModeling, onAttempt, onToggleModeling }: Pare
     return () => clearTimeout(timeout)
   }, [isAttemptNoted])
 
-  function noteAttempt(): void {
-    onAttempt()
+  useEffect(() => {
+    return () => clearTimeout(holdRef.current ?? undefined)
+  }, [])
 
-    setIsAttemptNoted(true)
+  function startHold(): void {
+    holdRef.current = setTimeout(() => {
+      holdRef.current = null
+
+      recorder.start()
+    }, HOLD_TO_RECORD_MS)
+  }
+
+  /** Let go before the hold turned into a recording: that was a tap, and a tap credits the attempt. */
+  function endHold(): void {
+    if (holdRef.current !== null) {
+      clearTimeout(holdRef.current)
+
+      holdRef.current = null
+
+      onAttempt()
+
+      setIsAttemptNoted(true)
+
+      return
+    }
+
+    recorder.stop()
   }
 
   return (
     <>
       {isModeling && <View style={styles.modelingBar} />}
       <CornerButton
+        hint={strings.requests.attemptHold}
         icon="bubble.left"
-        isOn={isAttemptNoted}
+        isOn={isAttemptNoted || recorder.isRecording}
         label={strings.requests.attempt}
-        onPress={noteAttempt}
+        onPressIn={startHold}
+        onPressOut={endHold}
         side="left"
       />
       <CornerButton
@@ -72,18 +116,21 @@ export function ParentControls({ isModeling, onAttempt, onToggleModeling }: Pare
   )
 }
 
-function CornerButton({ icon, label, isOn, side, onPress }: CornerButtonProps): ReactElement {
+function CornerButton({ icon, label, hint, isOn, side, onPress, onPressIn, onPressOut }: CornerButtonProps): ReactElement {
   const insets = useSafeAreaInsets()
   const metrics = useChildMetrics()
 
   return (
     <Pressable
+      accessibilityHint={hint}
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{
         selected: isOn,
       }}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       style={[
         styles.button,
         {
