@@ -44,8 +44,8 @@ interface Take {
 }
 
 /**
- * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded together with
- * the loudness sampled while it was spoken, and how long it lasted.
+ * Hold-to-record: start once a press has been held long enough to be a take, stop on release or after 4 s, and hand a
+ * usable take to onRecorded together with the loudness sampled while it was spoken, and how long it lasted.
  *
  * The recorder goes through TakeRecorder, which prepares it for one take and never leaves it prepared: expo-audio
  * restarts every prepared recorder by itself when the app comes back to the foreground or an audio interruption ends,
