@@ -37,18 +37,15 @@ export default function ParentHomeScreen(): ReactElement {
     >
       <SessionControls activeBoard={activeBoard} lastEndedAt={stats?.lastEndedAt} />
       <Panel hasRows>
+        <ListRow icon="list.bullet" onPress={() => router.push('/session-guide')} title={strings.sessionGuide.title} />
+      </Panel>
+      <Panel hasRows>
         <ListRow
           hasSeparator
           icon="square.grid.2x2"
           onPress={() => router.push('/cards')}
           title={strings.parent.cards}
           value={activeBoard ? strings.boards.summary(activeBoard.board.title, activeBoard.cardCount) : undefined}
-        />
-        <ListRow
-          hasSeparator
-          icon="list.bullet"
-          onPress={() => router.push('/session-guide')}
-          title={strings.sessionGuide.title}
         />
         <ListRow
           hasSeparator
