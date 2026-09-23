@@ -58,7 +58,8 @@ export const uz = {
     exportFailed: "Eksport qilinmadi. Yana urinib ko'ring.",
     pauses: "Pauza o'yini",
     pauseRatio: (filled: number, total: number): string => `${total} ta pauzadan ${filled} tasi to'ldirildi`,
-    pauseHint: "To'ldirilgan pauza — bola ovoz chiqargan yoki siz tugma bilan qayd etgan payt.",
+    pauseHint:
+      "Faqat mikrofon eshitgan pauzalar sanaladi. Siz tugma bilan qayd etganlaringiz «aytishga urindi» soniga qo'shiladi.",
     attempts: 'Urinishlar',
     attemptsEmpty:
       "Hali urinish yozilmagan. Bola so'z aytishga urinsa, ekranning chap pastki burchagidagi tugmani bosib turing.",
@@ -66,7 +67,7 @@ export const uz = {
     todayDay: (date: string): string => `Bugun, ${date}`,
     months: ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'],
     attemptMeta: (time: string, seconds: string): string => `${time} · ${seconds} s`,
-    attemptWithoutCard: 'Arxivdagi karta',
+    attemptWithoutWord: "So'zsiz",
     play: 'Eshitish',
   },
   boards: {

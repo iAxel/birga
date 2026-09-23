@@ -45,6 +45,9 @@ export interface Attempt {
  */
 const PAYLOAD_WORD = "CASE WHEN json_valid(events.payload_json) THEN json_extract(events.payload_json, '$.word') END"
 
+/** Why the board ignored a tap: `repeat` (the same card within the debounce) or `busy` (another card on screen). */
+const PAYLOAD_REASON = "CASE WHEN json_valid(events.payload_json) THEN json_extract(events.payload_json, '$.reason') END"
+
 /** One entry of the event log (SPEC §6). Fields that an event type does not use stay empty. */
 export interface EventInput {
   type: EventType
@@ -90,11 +93,28 @@ export class EventsRepository {
       to,
     )
 
-    return rows.map((row) => ({
-      cardId: row.card_id,
-      cardText: row.card_text,
-      count: row.count,
-    }))
+    return rows.map((row) => this.#_toCardCount(row))
+  }
+
+  /**
+   * Taps of the child the board ignored because the same card was still resting, per card, in `[from, to)`: the sign
+   * of a loop (SPEC §6). Taps ignored while another card was on screen are left out: they were aimed at a card the
+   * child could not have yet, not at the sound of this one.
+   */
+  async repeatsByCard(from: number, to: number): Promise<CardCount[]> {
+    const rows = await this.#_db.getAllAsync<CardCountRow>(
+      `SELECT events.card_id, COALESCE(${PAYLOAD_WORD}, cards.text) AS card_text, COUNT(*) AS count
+       FROM events
+       LEFT JOIN cards ON cards.id = events.card_id
+       WHERE events.type = 'request_tap_debounced' AND ${PAYLOAD_REASON} = 'repeat'
+         AND events.ts >= ? AND events.ts < ? AND events.card_id IS NOT NULL
+       GROUP BY events.card_id, card_text
+       ORDER BY count DESC, card_text`,
+      from,
+      to,
+    )
+
+    return rows.map((row) => this.#_toCardCount(row))
   }
 
   /** When events of one type happened in `[from, to)`: the week strip counts them into days itself. */
@@ -112,6 +132,14 @@ export class EventsRepository {
   /** Every event, oldest first: the export writes them as a spreadsheet. */
   async listAll(): Promise<EventRow[]> {
     return this.#_db.getAllAsync<EventRow>('SELECT * FROM events ORDER BY ts, id')
+  }
+
+  #_toCardCount(row: CardCountRow): CardCount {
+    return {
+      cardId: row.card_id,
+      cardText: row.card_text,
+      count: row.count,
+    }
   }
 
   /** The recorded attempts, newest first. Rows whose payload is damaged are left out rather than shown empty. */

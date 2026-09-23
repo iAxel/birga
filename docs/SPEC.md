@@ -133,9 +133,9 @@ The daily tip on parent home is one of these seven steps, a different one each d
 
 ### Log
 
-- Simple daily summary list: session count, request taps per card, pause filled / timeout ratio, parent-credited attempts.
+- Simple daily summary list: session count, request taps per card, the pauses the microphone heard filled out of those that ran their course (`pause_filled` / (`pause_filled` + `pause_timeout`)), and attempts: the parent's credits on the board and in the game and the recorded attempts. The day's numbers turn over at midnight even while the diary stays open.
 - **Urinishlar**: the attempt recordings of the day, each with the word it belongs to — a card, or an item of the sequence in the pause game — the time and its length, playable by the parent.
-- **Export** as CSV/JSON via share sheet, together with the attempt recordings. This is the only way data leaves the device.
+- **Export** as CSV/JSON via share sheet, together with the attempt recordings. The time of each event is written as the family's clock showed it, with its offset from UTC. This is the only way data leaves the device.
 
 ---
 
@@ -161,7 +161,7 @@ settings(key, value)
 
 An event about a card or a sequence item keeps the word as it read at that moment in `payload.word`, and a sequence item's id in `payload.itemId`. Cards get renamed and sequences reordered; the diary and the export read the word from the event, so a past tap or pause keeps saying what the child actually saw. Events logged before the word was kept fall back on the card or the item as it is now.
 
-`request_tap_debounced` matters: a high count on one card means he is looping on it, which is a signal to change the card or the debounce.
+`request_tap_debounced` matters: a high count of `repeat` on one card means he is looping on it, which is a signal to change the card or the debounce. `busy` taps were aimed at a card while another one was on screen and do not count toward the diary's loop warning.
 
 `game_start` is logged when the play button of the pause game is pressed; payload `{round}` is the round it starts, so a game picked up again after a tab switch is visible.
 

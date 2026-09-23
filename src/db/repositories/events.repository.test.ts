@@ -149,6 +149,22 @@ describe('EventsRepository', () => {
     ])
   })
 
+  test('counts as a loop only the taps that repeated a resting card, not the ones made while another was on screen', async () => {
+    const db = await migratedDatabase()
+    const cards = new CardsRepository(db)
+    const boardId = await new BoardsRepository(db).create('Ovqat')
+    const water = await cards.create({ boardId, text: 'suv', imagePath: null, audioPath: 'suv.m4a', audioLevels: null })
+    const more = await cards.create({ boardId, text: 'yana', imagePath: null, audioPath: 'yana.m4a', audioLevels: null })
+    const events = new EventsRepository(db)
+
+    for (const ts of [1000, 2000, 3000]) {
+      await events.log(null, { type: 'request_tap_debounced', cardId: water, payload: { reason: 'repeat', word: 'suv' } }, ts)
+      await events.log(null, { type: 'request_tap_debounced', cardId: more, payload: { reason: 'busy', word: 'yana' } }, ts)
+    }
+
+    expect(await events.repeatsByCard(0, 10_000)).toEqual([{ cardId: water, cardText: 'suv', count: 3 }])
+  })
+
   test('reports when the events of a type happened', async () => {
     const db = await migratedDatabase()
     const events = new EventsRepository(db)

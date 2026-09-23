@@ -103,7 +103,7 @@ Card editor, top to bottom: RASM panel (square preview 168 pt centered; Kamera /
 
 *Built differently:* the waveform is the real shape of the take. The microphone level is sampled ten times a second while the parent speaks and kept with the card, so the bars are there when the card is opened again; a card recorded before that has flat bars. While the recording plays, the bars it has passed stay `accent` and the rest turn `hint`, so the row is also the playback position. A ready recording can be imported instead of recorded: the third button of the OVOZ row opens the file picker and refuses a file longer than four seconds.
 
-Log: week strip (7 tiles, accent tint by activity), "BUGUN" stats (sessiya / bosish / aytishga urindi), URINISHLAR·YOZUVLAR list (play button, card, time · duration), KARTALAR BO'YICHA bars, loop warning panel when `request_tap_debounced` for one card ≥ 5 in a day. Export icon top-right.
+Log: week strip (7 tiles, accent tint by activity), "BUGUN" stats (sessiya / bosish / aytishga urindi), URINISHLAR·YOZUVLAR list (play button, card, time · duration), KARTALAR BO'YICHA bars, loop warning panel when `request_tap_debounced` with reason `repeat` for one card ≥ 5 in a day. Export icon top-right.
 
 Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, primary button), steps 2–3 (Guided Access path; the session script) inactive; disabled "Boshlash" until 2 cards exist. Shown on first launch, and again from Settings when the parent asks for it.
 

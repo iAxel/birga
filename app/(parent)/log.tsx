@@ -47,8 +47,8 @@ export default function LogScreen(): ReactElement {
   const repositories = useRepositories()
   const player = useVoicePlayer()
   const attempts = useAttempts()
-  const log = useDayLog()
   const now = useNow(REFRESH_MS)
+  const log = useDayLog(startOfDay(now))
   const [isExporting, setIsExporting] = useState(false)
   const days = groupByDay(attempts ?? [])
   const most = log?.cards[0]?.count ?? 0
@@ -182,7 +182,7 @@ function AttemptRow({ attempt, hasSeparator, onPlay }: AttemptRowProps): ReactEl
       hasSeparator={hasSeparator}
       icon="play.fill"
       onPress={onPlay}
-      title={attempt.word ?? strings.log.attemptWithoutCard}
+      title={attempt.word ?? strings.log.attemptWithoutWord}
       value={strings.log.attemptMeta(timeOfDay(attempt.ts), (attempt.durationMs / 1000).toFixed(1))}
     />
   )

@@ -74,7 +74,7 @@ animation — turn them off.
 
 - the week strip: how many taps on each of the last seven days, so a good week and a lost one are visible at a glance;
 - today: sessions, taps, and sounds credited or recorded;
-- the pause game: how many pauses were filled out of how many opened;
+- the pause game: how many pauses the microphone heard filled, out of the ones that ran their course; a sound you credited with the bubble counts among the attempts instead, so this share is how well the detector hears him in your room;
 - taps per card, most played first — this is the vocabulary he is actually using;
 - a warning when one card was tapped five times or more while the app was ignoring repeats. That is a loop, not a
   request: change the card, raise the debounce, or end the session;

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { StyleSheet, Text } from 'react-native'
 import { useActiveBoard } from '@/features/cards/use-active-board'
+import { startOfDay } from '@/features/parent/relative-time'
 import { tipOfDay } from '@/features/parent/tip-of-day'
 import { useSessionStats } from '@/features/parent/use-session-stats'
 import { useActiveSequence } from '@/features/sequences/use-active-sequence'
@@ -13,7 +14,7 @@ import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
 import { color, font, space, typography } from '@/ui/theme'
 
-/** The tip changes at midnight; parent home is seldom open for long, so a minute is precise enough. */
+/** The tip and today's count change at midnight; parent home is seldom open for long, so a minute is precise enough. */
 const TIP_REFRESH_MS = 60_000
 
 /**
@@ -23,10 +24,10 @@ const TIP_REFRESH_MS = 60_000
 export default function ParentHomeScreen(): ReactElement {
   const router = useRouter()
   const activeBoard = useActiveBoard()
-  const stats = useSessionStats()
+  const now = useNow(TIP_REFRESH_MS)
+  const stats = useSessionStats(startOfDay(now))
   const sequence = useActiveSequence()
   const backToChildMode = useBackToChildMode()
-  const now = useNow(TIP_REFRESH_MS)
   const tip = strings.sessionGuide.steps[tipOfDay(new Date(now), strings.sessionGuide.steps.length)]
 
   return (

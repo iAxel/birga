@@ -10,19 +10,22 @@ export interface SessionStats {
   todayCount: number
 }
 
-/** What parent home says about the sessions themselves, reloaded whenever the screen comes back into view. */
-export function useSessionStats(): SessionStats | undefined {
+/**
+ * What parent home says about the sessions themselves, for the day starting at `day`: reloaded whenever the screen
+ * comes back into view, and when midnight passes while it is open.
+ */
+export function useSessionStats(day: number): SessionStats | undefined {
   const repositories = useRepositories()
 
   return useFocusQuery(
     useCallback(async () => {
       const lastEndedAt = await repositories.sessions.lastEndedAt()
-      const todayCount = await repositories.sessions.countStartedSince(startOfDay(Date.now()))
+      const todayCount = await repositories.sessions.countStartedSince(startOfDay(day))
 
       return {
         lastEndedAt,
         todayCount,
       }
-    }, [repositories]),
+    }, [repositories, day]),
   )
 }
