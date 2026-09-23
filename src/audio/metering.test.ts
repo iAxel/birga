@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { flatLevels, levelOrMinimum, meteringLevel } from '@/audio/metering'
+import { flatLevels, levelOrMinimum, meteringLevel, trimLevels } from '@/audio/metering'
 
 describe('meteringLevel', () => {
   test('maps the microphone range onto 0 to 1', () => {
@@ -26,5 +26,19 @@ describe('flatLevels', () => {
   test('gives one flat bar per tenth of a second of a recording of unknown shape', () => {
     expect(flatLevels(1.2)).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     expect(flatLevels(0)).toEqual([])
+  })
+})
+
+describe('trimLevels', () => {
+  test('keeps one reading per tenth of a second of the take', () => {
+    expect(trimLevels([0.2, 0.8, 0.4, 0.9], 300)).toEqual([0.2, 0.8, 0.4])
+  })
+
+  test('fills in the readings a take did not manage to take', () => {
+    expect(trimLevels([0.5], 300)).toEqual([0.5, 0, 0])
+  })
+
+  test('gives the shortest take one bar', () => {
+    expect(trimLevels([], 20)).toEqual([0])
   })
 })

@@ -1,7 +1,8 @@
-import { useFocusEffect, useRouter } from 'expo-router'
-import { type ReactElement, useCallback, useState } from 'react'
+import { useRouter } from 'expo-router'
+import { type ReactElement, useCallback } from 'react'
 import { Alert, Text } from 'react-native'
-import { type Sequence, useRepositories } from '@/db'
+import { useRepositories } from '@/db'
+import { useFocusQuery } from '@/db/use-focus-query'
 import { strings } from '@/i18n'
 import { ListRow, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
@@ -12,13 +13,7 @@ import { typography } from '@/ui/theme'
 export default function SequencesScreen(): ReactElement | null {
   const router = useRouter()
   const { sequences: sequencesRepository } = useRepositories()
-  const [sequences, setSequences] = useState<Sequence[] | null>(null)
-
-  useFocusEffect(
-    useCallback(() => {
-      sequencesRepository.list().then(setSequences)
-    }, [sequencesRepository]),
-  )
+  const sequences = useFocusQuery(useCallback(() => sequencesRepository.list(), [sequencesRepository]))
 
   function askForTitle(): void {
     Alert.prompt(strings.sequences.namePrompt, undefined, createSequence)

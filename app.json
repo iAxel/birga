@@ -57,7 +57,8 @@
           "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

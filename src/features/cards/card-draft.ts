@@ -63,41 +63,50 @@ export function isDraftComplete(draft: CardDraft): boolean {
 }
 
 /**
- * Stores newly captured media, then writes the card. If the write fails, the files it just stored are removed again;
- * after a successful edit, the files the card no longer uses are removed.
+ * Stores newly captured media, then writes the card. Every file this call stored is removed again if anything after it
+ * fails, so a half-saved card leaves nothing behind; after a successful edit, the files the card no longer uses go.
  */
 export async function saveCard(cards: CardsRepository, draft: CardDraft, original: Card | null): Promise<void> {
   if (!draft.audio || !isDraftComplete(draft)) {
     throw new Error('CARD_DRAFT_INCOMPLETE')
   }
 
-  const input: CardInput = {
-    boardId: draft.boardId,
-    text: draft.text,
-    imagePath: draft.image ? await persist(draft.image) : null,
-    audioPath: await persist(draft.audio),
-    audioLevels: draft.audioLevels,
-  }
+  const stored: string[] = []
 
   try {
+    const input: CardInput = {
+      boardId: draft.boardId,
+      text: draft.text,
+      imagePath: draft.image ? await persist(draft.image, stored) : null,
+      audioPath: await persist(draft.audio, stored),
+      audioLevels: draft.audioLevels,
+    }
+
     await writeCard(cards, input, original)
+
+    if (original) {
+      removeReplacedFiles(original, input)
+    }
   } catch (err) {
-    removeNewFiles(draft, input)
+    for (const path of stored) {
+      deleteMedia(path)
+    }
 
     throw err
   }
-
-  if (original) {
-    removeReplacedFiles(original, input)
-  }
 }
 
-async function persist(media: MediaDraft): Promise<string> {
+/** Copies a freshly captured file into the app's media folder and notes it, so a later failure can take it back. */
+async function persist(media: MediaDraft, stored: string[]): Promise<string> {
   if (media.kind === 'stored') {
     return media.path
   }
 
-  return storeMedia(media.uri, 'cards')
+  const path = await storeMedia(media.uri, 'cards')
+
+  stored.push(path)
+
+  return path
 }
 
 async function writeCard(cards: CardsRepository, input: CardInput, original: Card | null): Promise<void> {
@@ -108,16 +117,6 @@ async function writeCard(cards: CardsRepository, input: CardInput, original: Car
   }
 
   await cards.create(input)
-}
-
-function removeNewFiles(draft: CardDraft, input: CardInput): void {
-  if (draft.image?.kind === 'captured' && input.imagePath) {
-    deleteMedia(input.imagePath)
-  }
-
-  if (draft.audio?.kind === 'captured') {
-    deleteMedia(input.audioPath)
-  }
 }
 
 function removeReplacedFiles(original: Card, input: CardInput): void {

@@ -143,9 +143,11 @@ settings(key, value)
 
 ### Event types
 
-`session_start`, `session_end`, `request_tap`, `request_tap_model`, `request_tap_debounced`, `request_verbal_attempt`, `attempt_recorded`, `pause_open`, `pause_filled`, `pause_timeout`, `pause_parent_credit`, `game_round_end`, `parent_gate_open`, `tab_switch`.
+`session_start`, `session_end`, `request_tap`, `request_tap_model`, `request_tap_debounced`, `request_verbal_attempt`, `attempt_recorded`, `pause_open`, `pause_filled`, `pause_timeout`, `pause_parent_credit`, `game_start`, `game_round_end`, `parent_gate_open`, `tab_switch`.
 
 `request_tap_debounced` matters: a high count on one card means he is looping on it, which is a signal to change the card or the debounce.
+
+`game_start` is logged when the play button of the pause game is pressed; payload `{round}` is the round it starts, so a game picked up again after a tab switch is visible.
 
 `tab_switch` is logged when the child switches between Requests and Pause game; payload `{to}` is the tab he switched to: `requests` or `pause_game`.
 

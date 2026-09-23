@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { type Board, useRepositories } from '@/db'
+import { useFocusQuery } from '@/db/use-focus-query'
 
 export interface ActiveBoard {
   board: Board
@@ -13,30 +13,21 @@ export interface ActiveBoard {
  */
 export function useActiveBoard(): ActiveBoard | null | undefined {
   const repositories = useRepositories()
-  const [activeBoard, setActiveBoard] = useState<ActiveBoard | null | undefined>(undefined)
 
-  useFocusEffect(
-    useCallback(() => {
-      async function load(): Promise<void> {
-        const board = await repositories.boards.getActive()
+  return useFocusQuery(
+    useCallback(async () => {
+      const board = await repositories.boards.getActive()
 
-        if (!board) {
-          setActiveBoard(null)
-
-          return
-        }
-
-        const cards = await repositories.cards.listByBoard(board.id)
-
-        setActiveBoard({
-          board,
-          cardCount: cards.length,
-        })
+      if (!board) {
+        return null
       }
 
-      load()
+      const cards = await repositories.cards.listByBoard(board.id)
+
+      return {
+        board,
+        cardCount: cards.length,
+      }
     }, [repositories]),
   )
-
-  return activeBoard
 }

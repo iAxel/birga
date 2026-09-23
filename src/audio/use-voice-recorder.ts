@@ -1,7 +1,7 @@
 import { RecordingPresets, requestRecordingPermissionsAsync, useAudioRecorder } from 'expo-audio'
 import { useEffect, useRef, useState } from 'react'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
-import { LEVEL_INTERVAL_MS, meteringLevel } from '@/audio/metering'
+import { LEVEL_INTERVAL_MS, meteringLevel, trimLevels } from '@/audio/metering'
 
 /** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
 const RECORDING_OPTIONS = {
@@ -42,8 +42,12 @@ interface Take {
 
 /**
  * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded together with
- * the loudness sampled while it was spoken, and how long it lasted. Each take is prepared with explicit options, which
- * gives it a new file: without options expo-audio records over the previous take.
+ * the loudness sampled while it was spoken, and how long it lasted.
+ *
+ * The microphone is prepared for one take and left unprepared afterwards, which is what keeps it cold: expo-audio
+ * restarts every prepared recorder by itself when an audio interruption ends (a call, Siri), and a recorder left ready
+ * on the child's screen would then write the child to disk with nobody asking for it. Preparing each take also gives it
+ * its own file: without explicit options expo-audio records over the previous one.
  */
 export function useVoiceRecorder(
   onRecorded: (uri: string, levels: number[], durationMs: number) => void,
@@ -53,39 +57,38 @@ export function useVoiceRecorder(
   const [access, setAccess] = useState<MicrophoneAccess>('pending')
   const [isRecording, setIsRecording] = useState(false)
   const [levels, setLevels] = useState<number[]>([])
-  const levelsRef = useRef<number[]>([])
   const [isRequested, setIsRequested] = useState(askOnMount)
+  const levelsRef = useRef<number[]>([])
   const takeRef = useRef<Take | null>(null)
-  const isPreparedRef = useRef(false)
-
-  useEffect(() => {
-    return () => {
-      clearTimeout(takeRef.current?.timeout)
-      clearInterval(takeRef.current?.meter)
-    }
-  }, [])
+  const isWantedRef = useRef(false)
 
   useEffect(() => {
     if (!isRequested) {
       return
     }
 
-    async function prepareFirstTake(): Promise<void> {
-      const permission = await requestRecordingPermissionsAsync()
+    requestRecordingPermissionsAsync().then(
+      (permission) => setAccess(permission.granted ? 'granted' : 'denied'),
+      () => setAccess('denied'),
+    )
+  }, [isRequested])
 
-      setAccess(permission.granted ? 'granted' : 'denied')
+  /** A screen that goes away mid-take takes the microphone with it, rather than leaving it open. */
+  useEffect(() => {
+    return () => {
+      const take = takeRef.current
 
-      if (!permission.granted) {
-        return
+      isWantedRef.current = false
+      takeRef.current = null
+
+      if (take) {
+        clearTimeout(take.timeout)
+        clearInterval(take.meter)
+
+        recorder.stop().catch(() => undefined)
       }
-
-      await recorder.prepareToRecordAsync(RECORDING_OPTIONS)
-
-      isPreparedRef.current = true
     }
-
-    prepareFirstTake()
-  }, [isRequested, recorder])
+  }, [recorder])
 
   /** The readings live in a ref, which stop() reads, and in state, which draws them while the parent speaks. */
   function sampleLevel(): void {
@@ -95,39 +98,60 @@ export function useVoiceRecorder(
   }
 
   /**
-   * Returns false when there is nothing to record into yet: no permission, or the next file is still being prepared.
-   * A recorder that did not ask on mount asks here, so the first hold only brings up the question.
+   * Returns false when nothing will be recorded this time: no permission yet, in which case the question comes up now
+   * and the next hold records, or the microphone was refused.
    */
   function start(): boolean {
-    if (!isPreparedRef.current) {
-      if (access !== 'denied') {
-        setIsRequested(true)
-      }
+    if (takeRef.current || isWantedRef.current) {
+      return false
+    }
+
+    if (access === 'denied') {
+      return false
+    }
+
+    if (access !== 'granted') {
+      setIsRequested(true)
 
       return false
     }
 
-    if (takeRef.current) {
-      return false
+    isWantedRef.current = true
+
+    beginTake()
+
+    return true
+  }
+
+  async function beginTake(): Promise<void> {
+    try {
+      await recorder.prepareToRecordAsync(RECORDING_OPTIONS)
+    } catch {
+      isWantedRef.current = false
+
+      return
+    }
+
+    if (!isWantedRef.current) {
+      return
     }
 
     recorder.record()
 
+    levelsRef.current = []
     takeRef.current = {
       startedAt: Date.now(),
       timeout: setTimeout(stop, MAX_RECORDING_MS),
       meter: setInterval(sampleLevel, LEVEL_INTERVAL_MS),
     }
 
-    levelsRef.current = []
-
     setLevels(levelsRef.current)
     setIsRecording(true)
-
-    return true
   }
 
   async function stop(): Promise<void> {
+    isWantedRef.current = false
+
     const take = takeRef.current
 
     if (!take) {
@@ -135,7 +159,7 @@ export function useVoiceRecorder(
     }
 
     takeRef.current = null
-    isPreparedRef.current = false
+
     clearTimeout(take.timeout)
     clearInterval(take.meter)
 
@@ -146,20 +170,9 @@ export function useVoiceRecorder(
     const uri = recorder.uri
     const durationMs = Date.now() - take.startedAt
 
-    await recorder.prepareToRecordAsync(RECORDING_OPTIONS)
-
-    isPreparedRef.current = true
-
     if (uri && durationMs >= MIN_RECORDING_MS) {
-      onRecorded(uri, takeLevels(durationMs), durationMs)
+      onRecorded(uri, trimLevels(levelsRef.current, durationMs), durationMs)
     }
-  }
-
-  /** One level per interval of the take: the readings taken, trimmed or padded to the length it actually lasted. */
-  function takeLevels(durationMs: number): number[] {
-    const wanted = Math.max(1, Math.round(durationMs / LEVEL_INTERVAL_MS))
-
-    return Array.from({ length: wanted }, (_, index) => levelsRef.current[index] ?? 0)
   }
 
   return {

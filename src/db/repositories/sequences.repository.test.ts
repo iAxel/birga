@@ -83,7 +83,7 @@ describe('SequencesRepository', () => {
     expect(await wordsOf(sequences, sequenceId)).toEqual(['ikki', 'uch', 'bir'])
   })
 
-  test('closes the gap a deleted item leaves', async () => {
+  test('leaves the places of the other items alone when one is deleted, so the log keeps its meaning', async () => {
     const { sequences, sequenceId } = await sequenceWithItems(['bir', 'ikki', 'uch'])
     const [, second] = await sequences.listItems(sequenceId)
 
@@ -91,7 +91,7 @@ describe('SequencesRepository', () => {
 
     expect(await sequences.listItems(sequenceId)).toMatchObject([
       { text: 'bir', position: 0 },
-      { text: 'uch', position: 1 },
+      { text: 'uch', position: 2 },
     ])
   })
 

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router'
 import { type ReactElement, useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native'
-import { type Sequence, type SequenceItem, useRepositories } from '@/db'
+import { deleteMedia, type Sequence, type SequenceItem, useRepositories } from '@/db'
 import { PhotoField } from '@/features/cards/photo-field'
 import { VoiceField } from '@/features/cards/voice-field'
 import {
@@ -94,12 +94,21 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
     ])
   }
 
+  /** The item goes, and its recording and photo go with it: nothing else points at them. */
   async function remove(): Promise<void> {
     if (!original) {
       return
     }
 
     await repositories.sequences.deleteItem(original.id)
+
+    if (original.audioPath) {
+      deleteMedia(original.audioPath)
+    }
+
+    if (original.imagePath) {
+      deleteMedia(original.imagePath)
+    }
 
     router.back()
   }

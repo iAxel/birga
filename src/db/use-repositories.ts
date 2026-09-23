@@ -6,6 +6,7 @@ import { EventsRepository } from '@/db/repositories/events.repository'
 import { SequencesRepository } from '@/db/repositories/sequences.repository'
 import { SessionsRepository } from '@/db/repositories/sessions.repository'
 import { SettingsRepository } from '@/db/repositories/settings.repository'
+import { serializeTransactions } from '@/db/serialized-database'
 
 export interface Repositories {
   boards: BoardsRepository
@@ -21,15 +22,16 @@ export function useRepositories(): Repositories {
   const db = useSQLiteContext()
 
   return useMemo(() => {
-    const events = new EventsRepository(db)
+    const database = serializeTransactions(db)
+    const events = new EventsRepository(database)
 
     return {
-      boards: new BoardsRepository(db),
-      cards: new CardsRepository(db),
+      boards: new BoardsRepository(database),
+      cards: new CardsRepository(database),
       events,
-      sequences: new SequencesRepository(db),
-      sessions: new SessionsRepository(db, events),
-      settings: new SettingsRepository(db),
+      sequences: new SequencesRepository(database),
+      sessions: new SessionsRepository(database, events),
+      settings: new SettingsRepository(database),
     }
   }, [db])
 }

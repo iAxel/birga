@@ -46,8 +46,8 @@ export function isItemDraftComplete(draft: SequenceItemDraft): boolean {
 }
 
 /**
- * Stores newly captured media, then writes the item. If the write fails, the files it just stored are removed again;
- * after a successful edit, the files the item no longer uses are removed.
+ * Stores newly captured media, then writes the item. Every file this call stored is removed again if anything after it
+ * fails; after a successful edit, the files the item no longer uses go.
  */
 export async function saveSequenceItem(
   sequences: SequencesRepository,
@@ -58,33 +58,42 @@ export async function saveSequenceItem(
     throw new Error('SEQUENCE_ITEM_DRAFT_INCOMPLETE')
   }
 
-  const input: SequenceItemInput = {
-    sequenceId: draft.sequenceId,
-    text: draft.text,
-    symbol: draft.symbol.trim() === '' ? null : draft.symbol.trim(),
-    imagePath: draft.image ? await persist(draft.image) : null,
-    audioPath: draft.audio ? await persist(draft.audio) : null,
-  }
+  const stored: string[] = []
 
   try {
+    const input: SequenceItemInput = {
+      sequenceId: draft.sequenceId,
+      text: draft.text,
+      symbol: draft.symbol.trim() === '' ? null : draft.symbol.trim(),
+      imagePath: draft.image ? await persist(draft.image, stored) : null,
+      audioPath: draft.audio ? await persist(draft.audio, stored) : null,
+    }
+
     await write(sequences, input, original)
+
+    if (original) {
+      removeReplacedFiles(original, input)
+    }
   } catch (err) {
-    removeNewFiles(draft, input)
+    for (const path of stored) {
+      deleteMedia(path)
+    }
 
     throw err
   }
-
-  if (original) {
-    removeReplacedFiles(original, input)
-  }
 }
 
-async function persist(media: MediaDraft): Promise<string> {
+/** Copies a freshly captured file into the app's media folder and notes it, so a later failure can take it back. */
+async function persist(media: MediaDraft, stored: string[]): Promise<string> {
   if (media.kind === 'stored') {
     return media.path
   }
 
-  return storeMedia(media.uri, 'sequences')
+  const path = await storeMedia(media.uri, 'sequences')
+
+  stored.push(path)
+
+  return path
 }
 
 async function write(sequences: SequencesRepository, input: SequenceItemInput, original: SequenceItem | null): Promise<void> {
@@ -95,16 +104,6 @@ async function write(sequences: SequencesRepository, input: SequenceItemInput, o
   }
 
   await sequences.createItem(input)
-}
-
-function removeNewFiles(draft: SequenceItemDraft, input: SequenceItemInput): void {
-  if (draft.image?.kind === 'captured' && input.imagePath) {
-    deleteMedia(input.imagePath)
-  }
-
-  if (draft.audio?.kind === 'captured' && input.audioPath) {
-    deleteMedia(input.audioPath)
-  }
 }
 
 function removeReplacedFiles(original: SequenceItem, input: SequenceItemInput): void {

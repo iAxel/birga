@@ -63,6 +63,7 @@ export type EventType =
   | 'pause_filled'
   | 'pause_timeout'
   | 'pause_parent_credit'
+  | 'game_start'
   | 'game_round_end'
   | 'parent_gate_open'
   | 'tab_switch'

@@ -20,13 +20,16 @@ export function eventsCsv(events: EventRow[]): string {
   return [COLUMNS.join(','), ...rows.map((row) => row.map(csvValue).join(','))].join('\n')
 }
 
+/** Start of every export's name, which is also how an old one is recognised in the cache. */
+export const EXPORT_PREFIX = 'birga-'
+
 /** What the exported archive is called; the date makes two exports of different days easy to tell apart. */
 export function exportFileName(now: number): string {
   const date = new Date(now)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
 
-  return `birga-${date.getFullYear()}-${month}-${day}.zip`
+  return `${EXPORT_PREFIX}${date.getFullYear()}-${month}-${day}.zip`
 }
 
 /** Empty cells stay empty, and anything with a comma, a quote or a line break is quoted. */

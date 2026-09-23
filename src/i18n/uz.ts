@@ -1,7 +1,6 @@
 /** Uzbek UI strings. Card and sequence text never goes here: it is stored exactly as the parent typed it. */
 export const uz = {
   common: {
-    comingSoon: 'Tez orada',
     back: 'Orqaga',
     cancel: 'Bekor qilish',
     openSettings: 'Sozlamalarni ochish',
@@ -32,8 +31,6 @@ export const uz = {
     log: 'Kundalik',
     logToday: (count: number): string => `Bugun ${count}`,
     close: 'Yopish',
-    logComingSoon: "Tez orada: kunlik xulosa, kartalar bo'yicha bosishlar va eksport.",
-    sequencesComingSoon: "Tez orada: pauza o'yini uchun ketma-ketliklar.",
   },
   onboarding: {
     title: 'Boshlaymiz',
@@ -59,15 +56,17 @@ export const uz = {
     loopHint: "Ovoz uchun takrorlayotgan bo'lishi mumkin. Kartani almashtirib yoki pauzani uzaytirib ko'ring.",
     export: 'Eksport',
     exportFailed: "Eksport qilinmadi. Yana urinib ko'ring.",
+    pauses: "Pauza o'yini",
+    pauseRatio: (filled: number, total: number): string => `${total} ta pauzadan ${filled} tasi to'ldirildi`,
+    pauseHint: "To'ldirilgan pauza — bola ovoz chiqargan yoki siz tugma bilan qayd etgan payt.",
     attempts: 'Urinishlar',
     attemptsEmpty:
       "Hali urinish yozilmagan. Bola so'z aytishga urinsa, ekranning chap pastki burchagidagi tugmani bosib turing.",
-    today: 'Bugun',
     day: (dayNumber: number, month: string): string => `${dayNumber} ${month}`,
     todayDay: (date: string): string => `Bugun, ${date}`,
     months: ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'],
     attemptMeta: (time: string, seconds: string): string => `${time} · ${seconds} s`,
-    attemptWithoutCard: 'Karta yopilgan',
+    attemptWithoutCard: 'Arxivdagi karta',
     play: 'Eshitish',
   },
   boards: {
@@ -83,7 +82,7 @@ export const uz = {
   cards: {
     add: "Karta qo'shish",
     starterHint:
-      "Bola xohlaydigan narsalarni (suv, sevimli o'yinchoqlar, arg'imchoq) hamma joyda kerak bo'ladigan so'zlar bilan aralashtiring: yana, ber, yo'q, bo'ldi, yordam. Bu so'zlar har bir to'plamda doim bir joyda tursin.",
+      "Bola xohlaydigan narsalarni (suv, sevimli o'yinchoqlar, arg'imchoq) hamma joyda kerak bo'ladigan so'zlar bilan aralashtiring: yana, ber, yo'q, bo'ldi, yordam. Bu so'zlar har bir doskada doim bir joyda tursin.",
     moveUp: 'Yuqoriga',
     moveDown: 'Pastga',
     visibleHint: (count: number): string => `Bola birinchi ${count} ta kartani ko'radi. Tartib: ekrandagi kabi.`,

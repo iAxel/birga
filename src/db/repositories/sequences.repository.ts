@@ -151,19 +151,12 @@ export class SequencesRepository {
     )
   }
 
-  /** Removes the item and closes the gap it leaves, so positions stay 0..n-1. */
+  /**
+   * Removes the item and leaves the gap it made. The event log points at an item by its position, so renumbering the
+   * ones behind it would quietly make every past pause of this sequence read as a different word.
+   */
   async deleteItem(id: number): Promise<void> {
-    await this.#_db.withTransactionAsync(async () => {
-      const item = await this.#_db.getFirstAsync<SequenceItemRow>('SELECT * FROM sequence_items WHERE id = ?', id)
-
-      if (!item) {
-        return
-      }
-
-      await this.#_db.runAsync('DELETE FROM sequence_items WHERE id = ?', id)
-
-      await this.#_renumber(item.sequence_id)
-    })
+    await this.#_db.runAsync('DELETE FROM sequence_items WHERE id = ?', id)
   }
 
   /** Swaps the item with its neighbour one place earlier (-1) or later (+1). */
@@ -191,17 +184,6 @@ export class SequencesRepository {
 
       await this.#_db.runAsync('UPDATE sequence_items SET position = ? WHERE id = ?', item.position, neighbour.id)
     })
-  }
-
-  async #_renumber(sequenceId: number): Promise<void> {
-    const rows = await this.#_db.getAllAsync<{ id: number }>(
-      'SELECT id FROM sequence_items WHERE sequence_id = ? ORDER BY position, id',
-      sequenceId,
-    )
-
-    for (const [position, row] of rows.entries()) {
-      await this.#_db.runAsync('UPDATE sequence_items SET position = ? WHERE id = ?', position, row.id)
-    }
   }
 
   #_toSequence(row: SequenceRow): Sequence {

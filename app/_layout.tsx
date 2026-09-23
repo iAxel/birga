@@ -12,7 +12,7 @@ import { color, radius, space, touch, typography } from '@/ui/theme'
 
 SplashScreen.preventAutoHideAsync()
 
-configureAudioSession()
+configureAudioSession().catch(() => undefined)
 
 /**
  * No screen renders until the fonts are loaded and the database, settings and sessions are ready; the splash screen

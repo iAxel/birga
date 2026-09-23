@@ -103,6 +103,13 @@ export default function LogScreen(): ReactElement {
           </View>
         </Panel>
       ))}
+      {log && log.pauses > 0 && (
+        <Panel>
+          <SectionLabel title={strings.log.pauses} />
+          <Text style={typography.row}>{strings.log.pauseRatio(log.pausesFilled, log.pauses)}</Text>
+          <Text style={typography.body}>{strings.log.pauseHint}</Text>
+        </Panel>
+      )}
       {log && log.cards.length > 0 && (
         <Panel>
           <SectionLabel title={strings.log.byCards} />
