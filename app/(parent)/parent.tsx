@@ -29,7 +29,6 @@ export default function ParentHomeScreen(): ReactElement {
 
   return (
     <ParentScreen
-      accessory={<Text style={styles.label}>{strings.parent.label}</Text>}
       footer={<ParentButton onPress={() => backToChildMode(Date.now())} title={strings.parent.close} />}
       hasBack={false}
       title={strings.child.wordmark}
@@ -69,10 +68,6 @@ export default function ParentHomeScreen(): ReactElement {
 }
 
 const styles = StyleSheet.create({
-  label: {
-    ...typography.row,
-    color: color.muted,
-  },
   tipTitle: {
     ...typography.row,
     marginBottom: -space.sm,

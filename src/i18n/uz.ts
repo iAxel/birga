@@ -20,7 +20,6 @@ export const uz = {
     label: 'Ota-ona rejimi',
   },
   parent: {
-    label: 'Ota-ona',
     cards: 'Kartalar',
     sequences: 'Ketma-ketliklar',
     settings: 'Sozlamalar',
@@ -44,6 +43,18 @@ export const uz = {
     start: 'Boshlash',
     startHint: (goal: number): string => `${goal} ta karta qo'shilgach faollashadi`,
   },
+  log: {
+    attempts: 'Urinishlar',
+    attemptsEmpty:
+      "Hali urinish yozilmagan. Bola so'z aytishga urinsa, ekranning chap pastki burchagidagi tugmani bosib turing.",
+    today: 'Bugun',
+    day: (dayNumber: number, month: string): string => `${dayNumber} ${month}`,
+    todayDay: (date: string): string => `Bugun, ${date}`,
+    months: ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'],
+    attemptMeta: (time: string, seconds: string): string => `${time} · ${seconds} s`,
+    attemptWithoutCard: 'Karta yopilgan',
+    play: 'Eshitish',
+  },
   boards: {
     title: 'Doskalar',
     empty: "Hali doska yo'q. Masalan, «Uy», «Ovqat» yoki «O'yin» doskasini yarating.",
@@ -66,6 +77,7 @@ export const uz = {
   },
   requests: {
     attempt: "Bola so'zni aytishga harakat qildi",
+    attemptHold: 'Urinishni yozib olish uchun bosib turing (4 soniyagacha)',
     modeling: "Ota-ona ko'rsatmoqda",
   },
   settings: {

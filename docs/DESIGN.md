@@ -76,7 +76,7 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Ornament.** Suzani-style medallion (concentric rings, 8 petals, 16 dots, 8 leaves; stroke only, `#B9B1A2`). Bottom-left large + top-right small on Start and Goodbye; one small top-right on every parent screen. Opacity: Start 60%/48%, Goodbye 45%/36%, parent 40%. Never on Requests, Tap, or Pause screens. One SVG, generated from `src/ui/medallion.ts`, positioned with absolute layout.
 
-*Built differently:* the medallion is on the parent screens whose top-right corner is free, not only home and onboarding: the plain screens looked unfinished beside them. Where the header has something in that corner (the "Ota-ona" label on home, the FAOL badge of an active board, the board name in the card editor) there is no medallion, so nothing sits on top of text.
+*Built differently:* the medallion is on the parent screens whose top-right corner is free, not only home and onboarding: the plain screens looked unfinished beside them. Where the header has something in that corner (the FAOL badge of an active board, the board name in the card editor) there is no medallion, so nothing sits on top of text. Home dropped its "Ota-ona" label to keep the medallion.
 
 **Parent mode.** iOS-grouped-list feel: `card` panels radius 20 with 1 pt `cardLine`, rows 56–72 pt, chevrons in `hint`. Primary button `accent` 56 pt radius 16; secondary `panelAlt`; outline buttons 1.5 pt `hint` border.
 
