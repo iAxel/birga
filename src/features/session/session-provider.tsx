@@ -67,8 +67,13 @@ export function SessionProvider({ children }: PropsWithChildren): ReactElement |
     prepare().catch(setError)
   }, [repositories])
 
+  /** A timer that fires late, as after an unlock, ends the session when it was due, not at the moment it fired. */
   const onTimeUp = useEffectEvent(() => {
-    end('timer', Date.now())
+    if (!active) {
+      return
+    }
+
+    end('timer', Math.min(Date.now(), endsAt(active.clock)))
   })
 
   const closeIfTimeIsUp = useEffectEvent(() => {

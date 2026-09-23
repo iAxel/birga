@@ -67,11 +67,12 @@ export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsPro
   /**
    * The microphone is asked for here, in parent mode, and not on a screen the child is looking at: the pause game
    * listens for his voice and the attempt corner records it. A refusal only means the session runs without listening.
+   * The session starts once the parent has answered, so the time spent reading the question is not the child's.
    */
-  async function startSession(startedAt: number): Promise<void> {
+  async function startSession(): Promise<void> {
     await askForMicrophone()
 
-    await session.start(startedAt)
+    await session.start(Date.now())
 
     leaveParentMode()
   }
@@ -133,7 +134,7 @@ export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsPro
       </View>
       <ParentButton
         disabled={breakLeft > 0}
-        onPress={() => startSession(Date.now())}
+        onPress={startSession}
         title={strings.session.start(settings.sessionMinutes)}
         variant="primary"
       />
