@@ -1,9 +1,9 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs'
 import { type SFSymbol, SymbolView } from 'expo-symbols'
 import type { ReactElement } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { strings } from '@/i18n'
-import { useChildMetrics } from '@/ui/child-metrics'
+import { tabBarGap, useChildMetrics } from '@/ui/child-metrics'
 import { color, space, touch } from '@/ui/theme'
 
 /** How a tab is named in the event log (SPEC §6, tab_switch). */
@@ -48,6 +48,7 @@ const ICON_SIZE = 40
  */
 export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBarProps): ReactElement | null {
   const metrics = useChildMetrics()
+  const { width } = useWindowDimensions()
 
   if (state.routes.length < 2) {
     return null
@@ -76,7 +77,7 @@ export function ChildTabBar({ state, navigation, insets, onSwitch }: ChildTabBar
         styles.bar,
         {
           bottom: insets.bottom,
-          gap: metrics.tabGap,
+          gap: tabBarGap(width, Math.max(insets.left, insets.right), metrics),
         },
       ]}
     >

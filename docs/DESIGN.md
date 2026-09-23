@@ -60,6 +60,8 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Tab bar (child).** Height 132, two 120×120 circular targets, gap 48 (iPad) / 24 (iPhone). Active: `cardLine` fill, `ink` icon. Inactive: no fill, `muted` icon. Hidden entirely while `pauseGameEnabled` is off.
 
+*Built differently:* on a narrow phone the gap shrinks until the two targets stay clear of the parent's corner controls beside them: on a 375 pt iPhone it is 7 pt, since 24 pt put the edge of each tab over a corner, where the tab bar, drawn on top, took the parent's taps.
+
 **Parent corners (child screens).** 56×56 (iPad) / 52×52 (iPhone) hit areas, 26 pt icons in `faint`, no background. Left-bottom: speech bubble = attempt, a tap credits it. Right-bottom: tapping hand = modeling toggle. Top-left: parent gate.
 
 *Built differently:* the check became a speech bubble (a check reads as "correct", and the app never judges) and the raised hand became a tapping hand. Holding the bubble records the attempt, which CLAUDE.md now allows as the one child audio the app keeps: parent-initiated, never played back, and only leaving the device with the export.
