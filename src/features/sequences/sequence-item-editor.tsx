@@ -12,6 +12,7 @@ import {
   type SequenceItemDraft,
 } from '@/features/sequences/sequence-item-draft'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { ChipGroup } from '@/ui/chips'
 import { fontForText } from '@/ui/fonts'
 import { Panel, SectionLabel } from '@/ui/panel'
@@ -36,6 +37,8 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
   const [original, setOriginal] = useState<SequenceItem | null>(null)
   const [draft, setDraft] = useState<SequenceItemDraft | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  /** The item, or the sequence for a new one, is not there: a link to an item removed meanwhile, or a failed read. */
+  const [isMissing, setIsMissing] = useState(false)
 
   useEffect(() => {
     async function load(): Promise<void> {
@@ -50,12 +53,16 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
         return
       }
 
-      if (sequenceId !== null) {
+      if (itemId === null && sequenceId !== null) {
         setDraft(emptyItemDraft(sequenceId))
+
+        return
       }
+
+      setIsMissing(true)
     }
 
-    load()
+    load().catch(() => setIsMissing(true))
   }, [repositories, itemId, sequenceId])
 
   function update(patch: Partial<SequenceItemDraft>): void {
@@ -89,7 +96,7 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
       {
         text: strings.sequenceItem.remove,
         style: 'destructive',
-        onPress: remove,
+        onPress: () => alertOnFailure(remove),
       },
     ])
   }
@@ -111,6 +118,14 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
     }
 
     router.back()
+  }
+
+  if (isMissing) {
+    return (
+      <ParentScreen title={strings.sequenceItem.editTitle}>
+        <Text style={typography.body}>{strings.common.missing}</Text>
+      </ParentScreen>
+    )
   }
 
   if (!draft) {
@@ -151,7 +166,7 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
         <TextInput
           autoCapitalize="characters"
           autoCorrect={false}
-          maxLength={1}
+          maxLength={2}
           onChangeText={(symbol) => update({ symbol })}
           placeholder={strings.sequenceItem.symbolPlaceholder}
           placeholderTextColor={color.hint}

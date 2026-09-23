@@ -4,6 +4,7 @@ export const uz = {
     back: 'Orqaga',
     cancel: 'Bekor qilish',
     openSettings: 'Sozlamalarni ochish',
+    missing: 'Topilmadi.',
   },
   child: {
     requestsTab: "So'rovlar",
@@ -228,7 +229,7 @@ export const uz = {
     wordHint: "O'yinda shu so'z ko'rinadi va ota-ona ovozida aytiladi.",
     symbol: 'Belgi',
     symbolPlaceholder: '1',
-    symbolHint: "Bitta belgi: raqam yoki harf. Bola uni so'zdan yuqorida ko'radi. Majburiy emas.",
+    symbolHint: "Bir yoki ikki belgi: raqam yoki harf, masalan 7 yoki 10. Bola uni so'zdan yuqorida ko'radi. Majburiy emas.",
     sequence: 'Ketma-ketlik',
     remove: "O'chirish",
     removeConfirm: "Element o'chirilsinmi?",

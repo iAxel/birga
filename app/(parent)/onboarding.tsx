@@ -7,6 +7,7 @@ import { useActiveBoard } from '@/features/cards/use-active-board'
 import { SessionGuide } from '@/features/parent/session-guide'
 import { useSaveSetting } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -71,7 +72,12 @@ export default function OnboardingScreen(): ReactElement {
     <ParentScreen
       footer={
         <View style={styles.footer}>
-          <ParentButton disabled={!hasCards} onPress={finish} title={strings.onboarding.start} variant="primary" />
+          <ParentButton
+            disabled={!hasCards}
+            onPress={() => alertOnFailure(finish)}
+            title={strings.onboarding.start}
+            variant="primary"
+          />
           {!hasCards && <Text style={[typography.body, styles.centered]}>{strings.onboarding.startHint(CARD_GOAL)}</Text>}
         </View>
       }
@@ -89,7 +95,11 @@ export default function OnboardingScreen(): ReactElement {
         title={strings.onboarding.cardsStep(CARD_GOAL)}
       >
         <Text style={styles.text}>{strings.onboarding.cardsText}</Text>
-        <ParentButton onPress={addCard} title={strings.cards.add} variant={hasCards ? 'outline' : 'primary'} />
+        <ParentButton
+          onPress={() => alertOnFailure(addCard)}
+          title={strings.cards.add}
+          variant={hasCards ? 'outline' : 'primary'}
+        />
       </Step>
       <Step isActive={hasCards} number={2} title={strings.onboarding.guidedAccessStep}>
         <Text style={styles.text}>{strings.onboarding.guidedAccessText}</Text>

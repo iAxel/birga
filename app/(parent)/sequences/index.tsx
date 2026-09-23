@@ -5,6 +5,7 @@ import { useRepositories } from '@/db'
 import { useFocusQuery } from '@/db/use-focus-query'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { ListRow, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -18,7 +19,7 @@ export default function SequencesScreen(): ReactElement | null {
   const sequences = useFocusQuery(useCallback(() => sequencesRepository.list(), [sequencesRepository]))
 
   function askForTitle(): void {
-    Alert.prompt(strings.sequences.namePrompt, undefined, createSequence)
+    Alert.prompt(strings.sequences.namePrompt, undefined, (title) => alertOnFailure(() => createSequence(title)))
   }
 
   async function createSequence(title: string): Promise<void> {

@@ -58,7 +58,7 @@ Card sets: parent can create several **boards** (e.g. "Ovqat", "O'yin") and pick
 
 Built on the child's love of sequences. The app says a familiar sequence in the parent's voice and **stops before the next item**, waiting for the child to fill in.
 
-- A **sequence** = ordered list of items; each item = text + voice recording + optional **symbol** (one character, e.g. a digit, shown above the text) + optional image (shown above the symbol at 160 pt). Examples: `bir, ikki, uch, to'rt, besh`; later phrases with a gap: `Men … xohlayman`.
+- A **sequence** = ordered list of items; each item = text + voice recording + optional **symbol** (one or two characters, e.g. a digit or `10`, shown above the text) + optional image (shown above the symbol at 160 pt). Examples: `bir, ikki, uch, to'rt, besh`; later phrases with a gap: `Men … xohlayman`.
 - Flow per round:
   1. App plays items 1..k (k chosen so that the pause falls at a different place each round, never before item 2).
   2. Character switches to "waiting" pose. Next item's **written text is shown** greyed out as a hint. Mic opens.

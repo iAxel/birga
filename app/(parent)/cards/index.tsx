@@ -4,6 +4,7 @@ import { Alert, Text } from 'react-native'
 import { useRepositories } from '@/db'
 import { useFocusQuery } from '@/db/use-focus-query'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { ListRow, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -16,7 +17,7 @@ export default function BoardsScreen(): ReactElement | null {
   const boards = useFocusQuery(useCallback(() => boardsRepository.list(), [boardsRepository]))
 
   function askForTitle(): void {
-    Alert.prompt(strings.boards.namePrompt, undefined, createBoard)
+    Alert.prompt(strings.boards.namePrompt, undefined, (title) => alertOnFailure(() => createBoard(title)))
   }
 
   async function createBoard(title: string): Promise<void> {

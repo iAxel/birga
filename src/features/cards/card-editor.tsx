@@ -7,6 +7,7 @@ import { type CardDraft, draftFromCard, emptyDraft, isDraftComplete, saveCard } 
 import { PhotoField } from '@/features/cards/photo-field'
 import { VoiceField } from '@/features/cards/voice-field'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { fontForText } from '@/ui/fonts'
 import { SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
@@ -28,6 +29,8 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
   const [original, setOriginal] = useState<Card | null>(null)
   const [draft, setDraft] = useState<CardDraft | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  /** The card, or the board for a new one, is not there: a link to a card archived meanwhile, or a read that failed. */
+  const [isMissing, setIsMissing] = useState(false)
 
   useEffect(() => {
     async function load(): Promise<void> {
@@ -42,12 +45,16 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
         return
       }
 
-      if (boardId !== null) {
+      if (cardId === null && boardId !== null) {
         setDraft(emptyDraft(boardId))
+
+        return
       }
+
+      setIsMissing(true)
     }
 
-    load()
+    load().catch(() => setIsMissing(true))
   }, [repositories, cardId, boardId])
 
   function update(patch: Partial<CardDraft>): void {
@@ -81,7 +88,7 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
       {
         text: strings.cardEditor.archive,
         style: 'destructive',
-        onPress: archive,
+        onPress: () => alertOnFailure(archive),
       },
     ])
   }
@@ -94,6 +101,14 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
     await repositories.cards.archive(original.id)
 
     router.back()
+  }
+
+  if (isMissing) {
+    return (
+      <ParentScreen title={strings.cardEditor.editTitle}>
+        <Text style={typography.body}>{strings.common.missing}</Text>
+      </ParentScreen>
+    )
   }
 
   if (!draft) {

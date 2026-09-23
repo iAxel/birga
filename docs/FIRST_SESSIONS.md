@@ -26,7 +26,8 @@ In parent mode:
 
 - **Two cards to begin with**: the thing he actually wants right now (`suv`, `multfilm`, `arg'imchoq`) and `yana`.
   A real photo of his own cup, his own swing — not a picture from the internet. Your voice, one word, calm, no
-  question in it.
+  question in it. A ready recording can be imported (m4a, mp3, wav), but a voice message from Telegram or WhatsApp
+  cannot: iOS does not play their format. Record the word in the app, or send it to yourself as an audio file.
 - **The child's name** in settings, for the start screen.
 - **"Xayr!" in your voice** in settings, so the session has an ending he can hear.
 - **A sequence** for the pause game, once the board works: something he already says or recites by heart, `bir, ikki,

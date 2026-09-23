@@ -5,6 +5,7 @@ import { type Sequence, type SequenceItem, useRepositories } from '@/db'
 import { MIN_SEQUENCE_ITEMS } from '@/features/pauseGame/pause-round'
 import { SequenceItemRow } from '@/features/sequences/sequence-item-row'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { Badge, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -20,11 +21,14 @@ export default function SequenceScreen(): ReactElement | null {
   const sequenceId = parseIdParam(params.sequenceId)
   const router = useRouter()
   const repositories = useRepositories()
-  const [sequence, setSequence] = useState<Sequence | null>(null)
+  /** Undefined while loading, null for a sequence that does not exist. */
+  const [sequence, setSequence] = useState<Sequence | null | undefined>(undefined)
   const [items, setItems] = useState<SequenceItem[]>([])
 
   const reload = useCallback(async (): Promise<void> => {
     if (sequenceId === null) {
+      setSequence(null)
+
       return
     }
 
@@ -34,7 +38,7 @@ export default function SequenceScreen(): ReactElement | null {
 
   useFocusEffect(
     useCallback(() => {
-      reload()
+      alertOnFailure(reload)
     }, [reload]),
   )
 
@@ -59,7 +63,13 @@ export default function SequenceScreen(): ReactElement | null {
       return
     }
 
-    Alert.prompt(strings.sequences.namePrompt, undefined, rename, 'plain-text', sequence.title)
+    Alert.prompt(
+      strings.sequences.namePrompt,
+      undefined,
+      (title) => alertOnFailure(() => rename(title)),
+      'plain-text',
+      sequence.title,
+    )
   }
 
   async function rename(title: string): Promise<void> {
@@ -94,8 +104,16 @@ export default function SequenceScreen(): ReactElement | null {
     })
   }
 
-  if (!sequence) {
+  if (sequence === undefined) {
     return null
+  }
+
+  if (sequence === null) {
+    return (
+      <ParentScreen title={strings.sequences.title}>
+        <Text style={typography.body}>{strings.common.missing}</Text>
+      </ParentScreen>
+    )
   }
 
   const playable = items.filter((item) => item.audioPath !== null)
@@ -106,7 +124,9 @@ export default function SequenceScreen(): ReactElement | null {
       footer={<ParentButton icon="plus" onPress={addItem} title={strings.sequences.addItem} variant="primary" />}
       title={sequence.title}
     >
-      {!sequence.isActive && <ParentButton onPress={activate} title={strings.sequences.activate} variant="secondary" />}
+      {!sequence.isActive && (
+        <ParentButton onPress={() => alertOnFailure(activate)} title={strings.sequences.activate} variant="secondary" />
+      )}
       <Text style={typography.body}>{strings.sequences.itemsHint}</Text>
       {playable.length < MIN_SEQUENCE_ITEMS && (
         <Panel>
@@ -122,7 +142,7 @@ export default function SequenceScreen(): ReactElement | null {
               hasSeparator={index < items.length - 1}
               item={item}
               key={item.id}
-              onMove={(offset) => moveItem(item.id, offset)}
+              onMove={(offset) => alertOnFailure(() => moveItem(item.id, offset))}
               onOpen={() => openItem(item.id)}
             />
           ))}

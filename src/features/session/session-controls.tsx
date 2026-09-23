@@ -10,6 +10,7 @@ import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { color, space, typography } from '@/ui/theme'
@@ -86,7 +87,7 @@ export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsPro
       {
         text: strings.session.end,
         style: 'destructive',
-        onPress: () => session.end('parent_exit', Date.now()),
+        onPress: () => alertOnFailure(() => session.end('parent_exit', Date.now())),
       },
     ])
   }
@@ -134,7 +135,7 @@ export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsPro
       </View>
       <ParentButton
         disabled={breakLeft > 0}
-        onPress={startSession}
+        onPress={() => alertOnFailure(startSession)}
         title={strings.session.start(settings.sessionMinutes)}
         variant="primary"
       />

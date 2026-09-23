@@ -15,6 +15,7 @@ import { clearEverything, clearLog } from '@/features/parent/clear-data'
 import { useSession } from '@/features/session/session-provider'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { ChipGroup } from '@/ui/chips'
 import { fontForText } from '@/ui/fonts'
 import { useFormFactor } from '@/ui/form-factor'
@@ -59,7 +60,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.cardsPerScreen}</Text>
           <ChipGroup
             label={String}
-            onChange={(option) => saveSetting('cardsPerScreen', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('cardsPerScreen', option))}
             options={CARDS_PER_SCREEN_OPTIONS}
             value={settings.cardsPerScreen}
           />
@@ -69,7 +70,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.debounce}</Text>
           <ChipGroup
             label={strings.settings.seconds}
-            onChange={(option) => saveSetting('debounceSeconds', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('debounceSeconds', option))}
             options={DEBOUNCE_SECONDS_OPTIONS}
             value={settings.debounceSeconds}
           />
@@ -79,7 +80,7 @@ export default function SettingsScreen(): ReactElement {
       <Panel>
         <SectionLabel title={strings.settings.gameSection} />
         <SwitchRow
-          onChange={(value) => saveSetting('pauseGameEnabled', value)}
+          onChange={(value) => alertOnFailure(() => saveSetting('pauseGameEnabled', value))}
           title={strings.settings.gameEnabled}
           value={settings.pauseGameEnabled}
         />
@@ -88,7 +89,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.pauseWindow}</Text>
           <ChipGroup
             label={strings.settings.seconds}
-            onChange={(option) => saveSetting('pauseWindowSeconds', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('pauseWindowSeconds', option))}
             options={PAUSE_WINDOW_SECONDS_OPTIONS}
             value={settings.pauseWindowSeconds}
           />
@@ -98,7 +99,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.rounds}</Text>
           <ChipGroup
             label={String}
-            onChange={(option) => saveSetting('roundsPerGame', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('roundsPerGame', option))}
             options={ROUNDS_PER_GAME_OPTIONS}
             value={settings.roundsPerGame}
           />
@@ -108,19 +109,19 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.detectionMargin}</Text>
           <ChipGroup
             label={strings.settings.decibels}
-            onChange={(option) => saveSetting('detectionMarginDb', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('detectionMarginDb', option))}
             options={DETECTION_MARGIN_DB_OPTIONS}
             value={settings.detectionMarginDb}
           />
           <Text style={typography.body}>{strings.settings.detectionMarginHint}</Text>
         </View>
         <SwitchRow
-          onChange={(value) => saveSetting('rewardGlow', value)}
+          onChange={(value) => alertOnFailure(() => saveSetting('rewardGlow', value))}
           title={strings.settings.rewardGlow}
           value={settings.rewardGlow}
         />
         <SwitchRow
-          onChange={(value) => saveSetting('rewardSparks', value)}
+          onChange={(value) => alertOnFailure(() => saveSetting('rewardSparks', value))}
           title={strings.settings.rewardSparks}
           value={settings.rewardSparks}
         />
@@ -131,7 +132,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.sessionLength}</Text>
           <ChipGroup
             label={strings.settings.minutes}
-            onChange={(option) => saveSetting('sessionMinutes', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('sessionMinutes', option))}
             options={SESSION_MINUTES_OPTIONS}
             value={settings.sessionMinutes}
           />
@@ -140,7 +141,7 @@ export default function SettingsScreen(): ReactElement {
           <Text style={typography.row}>{strings.settings.minBreak}</Text>
           <ChipGroup
             label={(option) => (option === 0 ? strings.settings.noBreak : strings.settings.minutes(option))}
-            onChange={(option) => saveSetting('minBreakMinutes', option)}
+            onChange={(option) => alertOnFailure(() => saveSetting('minBreakMinutes', option))}
             options={MIN_BREAK_MINUTES_OPTIONS}
             value={settings.minBreakMinutes}
           />
@@ -246,7 +247,7 @@ function ChildNameField(): ReactElement {
   function type(text: string): void {
     setName(text)
 
-    saveSetting('childName', text)
+    saveSetting('childName', text).catch(() => undefined)
   }
 
   return (

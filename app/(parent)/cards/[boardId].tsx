@@ -6,6 +6,7 @@ import { CardRow } from '@/features/cards/card-row'
 import { cardsOnScreen } from '@/features/requests/board-layout'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { alertOnFailure } from '@/ui/alert-on-failure'
 import { useFormFactor } from '@/ui/form-factor'
 import { Badge, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
@@ -25,11 +26,14 @@ export default function BoardScreen(): ReactElement | null {
   const repositories = useRepositories()
   const settings = useSettings()
   const formFactor = useFormFactor()
-  const [board, setBoard] = useState<Board | null>(null)
+  /** Undefined while loading, null for a board that does not exist. */
+  const [board, setBoard] = useState<Board | null | undefined>(undefined)
   const [cards, setCards] = useState<Card[]>([])
 
   const reload = useCallback(async (): Promise<void> => {
     if (boardId === null) {
+      setBoard(null)
+
       return
     }
 
@@ -39,7 +43,7 @@ export default function BoardScreen(): ReactElement | null {
 
   useFocusEffect(
     useCallback(() => {
-      reload()
+      alertOnFailure(reload)
     }, [reload]),
   )
 
@@ -64,7 +68,13 @@ export default function BoardScreen(): ReactElement | null {
       return
     }
 
-    Alert.prompt(strings.boards.namePrompt, undefined, rename, 'plain-text', board.title)
+    Alert.prompt(
+      strings.boards.namePrompt,
+      undefined,
+      (title) => alertOnFailure(() => rename(title)),
+      'plain-text',
+      board.title,
+    )
   }
 
   async function rename(title: string): Promise<void> {
@@ -99,8 +109,16 @@ export default function BoardScreen(): ReactElement | null {
     })
   }
 
-  if (!board) {
+  if (board === undefined) {
     return null
+  }
+
+  if (board === null) {
+    return (
+      <ParentScreen title={strings.boards.title}>
+        <Text style={typography.body}>{strings.common.missing}</Text>
+      </ParentScreen>
+    )
   }
 
   const visibleCount = cardsOnScreen(settings.cardsPerScreen, formFactor)
@@ -115,7 +133,7 @@ export default function BoardScreen(): ReactElement | null {
         card={card}
         hasSeparator={index < rows.length - 1}
         key={card.id}
-        onMove={(move) => moveCard(card.id, move)}
+        onMove={(move) => alertOnFailure(() => moveCard(card.id, move))}
         onOpen={() => openCard(card.id)}
       />
     ))
@@ -127,7 +145,9 @@ export default function BoardScreen(): ReactElement | null {
       footer={<ParentButton icon="plus" onPress={addCard} title={strings.cards.add} variant="primary" />}
       title={board.title}
     >
-      {!board.isActive && <ParentButton onPress={activate} title={strings.boards.activate} variant="secondary" />}
+      {!board.isActive && (
+        <ParentButton onPress={() => alertOnFailure(activate)} title={strings.boards.activate} variant="secondary" />
+      )}
       {cards.length === 0 ? (
         <Panel>
           <Text style={typography.body}>{strings.cards.starterHint}</Text>
