@@ -90,6 +90,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 - Starting a session asks for the microphone, so the system dialog comes up in parent mode and never in front of the child. A refusal only means the session runs without listening: the pause game then ends its pauses on the timer and on the parent's button.
 - Parent mode pauses the running session. The parent returns to it, or ends it there (`parent_exit`).
 - Last minute: subtle visual countdown, a 3 pt bar at the top edge shrinking right to left, no sound.
+- The screen stays on while a session runs in child mode: a round of the pause game passes with nobody touching it, and iOS would otherwise lock it halfway through.
 - At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional, recorded in Settings), then a static calm screen. Nothing on it is tappable except the parent gate. Until the character exists, a waving hand symbol stands in for it.
 - New session only via parent mode. Optional setting: minimum break between sessions (default 30 min, 0 = off). It blocks starting a new session until it has passed, counted from the last session that ended by the timer.
 - A session the app died in is closed at the next launch as `app_killed`, at its last logged event.

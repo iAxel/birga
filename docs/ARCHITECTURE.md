@@ -81,6 +81,8 @@ another, records and stops such a take at once and deletes its file, knows every
 the recorder again whenever the app becomes active.
 
 The audio session itself is configured once at start-up (`audio-session.ts`): recording allowed, sound in silent mode.
+While a session runs in child mode the screen is kept on (`KeepScreenAwake`); Expo does that by itself only in a
+development build.
 
 ## The pause game
 
