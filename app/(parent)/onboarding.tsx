@@ -26,9 +26,10 @@ interface StepProps extends PropsWithChildren {
 }
 
 /**
- * First launch (SPEC §1, DESIGN §3): why the app is used together, then three steps. Only the first, adding two cards,
- * is done here; the others are advice. Boshlash stays off until two cards exist, then leads to parent home, and the
- * screen is never shown again. The first card goes onto a board "Uy", created here, which becomes the active one.
+ * First launch (SPEC §1, DESIGN §3): why the app is used together, then four steps. Only the first, adding two cards,
+ * is done here; the others are advice. Boshlash stays off until two cards exist, then marks the onboarding done and
+ * leads to parent home, or back to settings when it was opened from there. The first card goes onto a board "Uy",
+ * created here, which becomes the active one.
  */
 export default function OnboardingScreen(): ReactElement {
   const router = useRouter()
@@ -56,6 +57,12 @@ export default function OnboardingScreen(): ReactElement {
 
   async function finish(): Promise<void> {
     await saveSetting('onboardingDone', true)
+
+    if (router.canGoBack()) {
+      router.back()
+
+      return
+    }
 
     router.replace('/parent')
   }

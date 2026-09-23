@@ -24,6 +24,13 @@ export default function SettingsScreen(): ReactElement {
   const saveSetting = useSaveSetting()
   const isPhone = useFormFactor() === 'phone'
 
+  /** Opens the onboarding again; finishing it marks it done and comes back here. */
+  async function showOnboarding(): Promise<void> {
+    await saveSetting('onboardingDone', false)
+
+    router.push('/onboarding')
+  }
+
   return (
     <ParentScreen title={strings.parent.settings}>
       <Panel>
@@ -86,10 +93,12 @@ export default function SettingsScreen(): ReactElement {
       </Panel>
       <Panel hasRows>
         <ListRow
+          hasSeparator
           onPress={() => router.push('/goodbye-voice')}
           title={strings.settings.goodbyeVoice}
           value={settings.goodbyeAudioPath ? strings.settings.goodbyeVoiceRecorded : strings.settings.goodbyeVoiceMissing}
         />
+        <ListRow onPress={showOnboarding} title={strings.settings.showOnboarding} />
       </Panel>
     </ParentScreen>
   )

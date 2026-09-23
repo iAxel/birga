@@ -93,6 +93,7 @@ export const uz = {
     goodbyeVoice: '«Xayr!» ovozi',
     goodbyeVoiceRecorded: 'yozilgan',
     goodbyeVoiceMissing: "yo'q",
+    showOnboarding: "Yo'riqnomani qayta ko'rish",
   },
   session: {
     paused: "Sessiya to'xtatilgan",
