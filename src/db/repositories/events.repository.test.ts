@@ -14,6 +14,7 @@ describe('EventsRepository', () => {
       text: 'suv',
       imagePath: null,
       audioPath: 'suv.m4a',
+      audioLevels: null,
     })
 
     await new EventsRepository(db).log(

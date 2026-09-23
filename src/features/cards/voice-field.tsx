@@ -2,7 +2,7 @@ import { useAudioPlayerStatus } from 'expo-audio'
 import { SymbolView } from 'expo-symbols'
 import { type ReactElement, useEffect } from 'react'
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
-import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { flatLevels, LEVEL_INTERVAL_MS } from '@/audio/metering'
 import { useVoicePlayer } from '@/audio/use-voice-player'
 import { MAX_RECORDING_MS, useVoiceRecorder } from '@/audio/use-voice-recorder'
 import { type MediaDraft, mediaDraftUri } from '@/features/cards/card-draft'
@@ -10,29 +10,30 @@ import { strings } from '@/i18n'
 import { Panel, SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { color, radius, space, typography } from '@/ui/theme'
+import { Waveform } from '@/ui/waveform'
 
 const RECORD_BUTTON_HEIGHT = 48
 
-const TRACK_HEIGHT = 4
+/** Slots of the waveform: the longest recording allowed, one bar per interval. */
+const WAVEFORM_SLOTS = MAX_RECORDING_MS / LEVEL_INTERVAL_MS
 
 interface VoiceFieldProps {
   audio: MediaDraft | null
-  onRecorded: (uri: string) => void
+  /** Shape of the stored recording; null for one made before the app kept it. */
+  levels: number[] | null
+  onRecorded: (uri: string, levels: number[]) => void
 }
 
 /**
  * The parent's voice (DESIGN §3, OVOZ): hold and speak (4 s at most), release to stop, listen back, hold again to
  * re-record. The recording is loaded into the preview player as soon as it exists, which also tells its length.
  */
-export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement {
+export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): ReactElement {
   const player = useVoicePlayer()
   const playerStatus = useAudioPlayerStatus(player)
   const recorder = useVoiceRecorder(onRecorded)
-  const progress = useSharedValue(0)
   const audioUri = audio ? mediaDraftUri(audio) : null
-  const progressStyle = useAnimatedStyle(() => ({
-    width: `${progress.get() * 100}%`,
-  }))
+  const shownLevels = recorder.isRecording ? recorder.levels : (levels ?? flatLevels(audio ? playerStatus.duration : 0))
 
   useEffect(() => {
     if (audioUri) {
@@ -47,22 +48,10 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
       player.pause()
     }
 
-    if (!recorder.start()) {
-      return
-    }
-
-    progress.set(
-      withTiming(1, {
-        duration: MAX_RECORDING_MS,
-        easing: Easing.linear,
-      }),
-    )
+    recorder.start()
   }
 
   async function stopRecording(): Promise<void> {
-    cancelAnimation(progress)
-    progress.set(0)
-
     await recorder.stop()
   }
 
@@ -93,9 +82,7 @@ export function VoiceField({ audio, onRecorded }: VoiceFieldProps): ReactElement
         note={<VoiceStatus audio={audio} durationSeconds={playerStatus.duration} isRecording={recorder.isRecording} />}
         title={strings.cardEditor.voice}
       />
-      <View style={styles.track}>
-        <Animated.View style={[styles.progress, progressStyle]} />
-      </View>
+      <Waveform levels={shownLevels} slots={WAVEFORM_SLOTS} />
       <View style={styles.actions}>
         {audio && <ParentButton icon="play.fill" onPress={play} style={styles.action} title={strings.cardEditor.play} />}
         <Pressable
@@ -149,16 +136,6 @@ function recordLabel(isRecording: boolean, hasAudio: boolean): string {
 }
 
 const styles = StyleSheet.create({
-  track: {
-    height: TRACK_HEIGHT,
-    overflow: 'hidden',
-    borderRadius: TRACK_HEIGHT / 2,
-    backgroundColor: color.panelAlt,
-  },
-  progress: {
-    height: TRACK_HEIGHT,
-    backgroundColor: color.accent,
-  },
   actions: {
     flexDirection: 'row',
     gap: space.sm,

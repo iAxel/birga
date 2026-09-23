@@ -17,6 +17,8 @@ export interface CardDraft {
   text: string
   image: MediaDraft | null
   audio: MediaDraft | null
+  /** Loudness of the recording while it was made; null for a card recorded before the app kept it. */
+  audioLevels: number[] | null
 }
 
 export function emptyDraft(boardId: number): CardDraft {
@@ -25,6 +27,7 @@ export function emptyDraft(boardId: number): CardDraft {
     text: '',
     image: null,
     audio: null,
+    audioLevels: null,
   }
 }
 
@@ -42,6 +45,7 @@ export function draftFromCard(card: Card): CardDraft {
       kind: 'stored',
       path: card.audioPath,
     },
+    audioLevels: card.audioLevels,
   }
 }
 
@@ -72,6 +76,7 @@ export async function saveCard(cards: CardsRepository, draft: CardDraft, origina
     text: draft.text,
     imagePath: draft.image ? await persist(draft.image) : null,
     audioPath: await persist(draft.audio),
+    audioLevels: draft.audioLevels,
   }
 
   try {

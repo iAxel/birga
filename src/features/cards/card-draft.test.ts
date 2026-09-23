@@ -39,6 +39,7 @@ describe('saveCard', () => {
         kind: 'captured',
         uri: 'file:///cache/suv.m4a',
       },
+      audioLevels: [0.2, 0.8, 0.4],
     }
 
     await saveCard(cards, draft, null)
@@ -49,6 +50,7 @@ describe('saveCard', () => {
       text: 'suv',
       imagePath: 'media/cards/stored-cup.jpg',
       audioPath: 'media/cards/stored-suv.m4a',
+      audioLevels: [0.2, 0.8, 0.4],
     })
     expect(deleteMedia).not.toHaveBeenCalled()
   })
@@ -60,6 +62,7 @@ describe('saveCard', () => {
       text: 'suv',
       imagePath: 'media/cards/cup.jpg',
       audioPath: 'media/cards/old.m4a',
+      audioLevels: null,
     })
     const original = await cards.get(id)
 
@@ -76,6 +79,7 @@ describe('saveCard', () => {
           kind: 'captured',
           uri: 'file:///cache/new.m4a',
         },
+        audioLevels: null,
       },
       original,
     )
@@ -95,6 +99,7 @@ describe('saveCard', () => {
         kind: 'captured',
         uri: 'file:///cache/suv.m4a',
       },
+      audioLevels: null,
     }
 
     await expect(saveCard(cards, draft, null)).rejects.toThrow('FOREIGN KEY constraint failed')
@@ -114,6 +119,7 @@ describe('saveCard', () => {
           text: 'suv',
           image: null,
           audio: null,
+          audioLevels: null,
         },
         null,
       ),
@@ -130,6 +136,7 @@ describe('saveCard', () => {
             kind: 'captured',
             uri: 'file:///cache/suv.m4a',
           },
+          audioLevels: null,
         },
         null,
       ),

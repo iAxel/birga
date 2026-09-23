@@ -16,6 +16,8 @@ export interface CardRow {
   text: string
   image_path: string | null
   audio_path: string
+  /** Loudness of the recording as a JSON array of numbers from 0 to 1; null for cards recorded before it was stored. */
+  audio_levels: string | null
   position: number
   is_archived: SqliteFlag
   created_at: number

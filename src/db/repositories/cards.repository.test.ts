@@ -23,6 +23,7 @@ async function boardWithCards(words: string[]): Promise<Fixture> {
       text: word,
       imagePath: null,
       audioPath: `${word}.m4a`,
+      audioLevels: null,
     })
   }
 
@@ -55,6 +56,7 @@ describe('CardsRepository', () => {
       text: 'Сув ',
       imagePath: 'media/cards/cup.jpg',
       audioPath: 'media/cards/suv.m4a',
+      audioLevels: null,
     })
 
     expect(await cards.get(id)).toEqual({
@@ -63,6 +65,7 @@ describe('CardsRepository', () => {
       text: 'Сув ',
       imagePath: 'media/cards/cup.jpg',
       audioPath: 'media/cards/suv.m4a',
+      audioLevels: null,
     })
   })
 
@@ -98,6 +101,7 @@ describe('CardsRepository', () => {
       text: 'ber',
       imagePath: null,
       audioPath: 'ber.m4a',
+      audioLevels: null,
     })
 
     await cards.update(ids.suv, {
@@ -105,9 +109,29 @@ describe('CardsRepository', () => {
       text: 'suv',
       imagePath: null,
       audioPath: 'suv.m4a',
+      audioLevels: null,
     })
 
     expect(await wordsOf(cards, boardId)).toEqual(['non'])
     expect(await wordsOf(cards, playBoardId)).toEqual(['ber', 'suv'])
+  })
+
+  test('keeps the shape of a recording and ignores a damaged one', async () => {
+    const db = await migratedDatabase()
+    const cards = new CardsRepository(db)
+    const boardId = await new BoardsRepository(db).create('Ovqat')
+    const id = await cards.create({
+      boardId,
+      text: 'suv',
+      imagePath: null,
+      audioPath: 'suv.m4a',
+      audioLevels: [0.125, 0.5, 1],
+    })
+
+    expect((await cards.get(id))?.audioLevels).toEqual([0.13, 0.5, 1])
+
+    await db.execAsync(`UPDATE cards SET audio_levels = 'not json' WHERE id = ${id}`)
+
+    expect((await cards.get(id))?.audioLevels).toBeNull()
   })
 })

@@ -54,6 +54,7 @@ export default function GoodbyeVoiceScreen(): ReactElement {
       <Text style={typography.body}>{strings.goodbyeVoice.hint}</Text>
       <VoiceField
         audio={audio}
+        levels={null}
         onRecorded={(uri) =>
           setAudio({
             kind: 'captured',

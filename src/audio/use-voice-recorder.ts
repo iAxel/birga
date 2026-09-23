@@ -1,7 +1,12 @@
 import { RecordingPresets, requestRecordingPermissionsAsync, useAudioRecorder } from 'expo-audio'
 import { useEffect, useRef, useState } from 'react'
+import { LEVEL_INTERVAL_MS, meteringLevel } from '@/audio/metering'
 
-const RECORDING_OPTIONS = RecordingPresets.HIGH_QUALITY
+/** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
+const RECORDING_OPTIONS = {
+  ...RecordingPresets.HIGH_QUALITY,
+  isMeteringEnabled: true,
+}
 
 /** SPEC §5: a card recording lasts at most 4 s. */
 export const MAX_RECORDING_MS = 4000
@@ -14,6 +19,8 @@ export type MicrophoneAccess = 'pending' | 'granted' | 'denied'
 export interface VoiceRecorder {
   access: MicrophoneAccess
   isRecording: boolean
+  /** Loudness of the take so far, one value per LEVEL_INTERVAL_MS, for drawing it while it is spoken. */
+  levels: number[]
   start(): boolean
   stop(): Promise<void>
 }
@@ -21,16 +28,20 @@ export interface VoiceRecorder {
 interface Take {
   startedAt: number
   timeout: ReturnType<typeof setTimeout>
+  meter: ReturnType<typeof setInterval>
 }
 
 /**
- * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded. Each take is
- * prepared with explicit options, which gives it a new file: without options expo-audio records over the previous take.
+ * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded together with
+ * the loudness sampled while it was spoken. Each take is prepared with explicit options, which gives it a new file:
+ * without options expo-audio records over the previous take.
  */
-export function useVoiceRecorder(onRecorded: (uri: string) => void): VoiceRecorder {
+export function useVoiceRecorder(onRecorded: (uri: string, levels: number[]) => void): VoiceRecorder {
   const recorder = useAudioRecorder(RECORDING_OPTIONS)
   const [access, setAccess] = useState<MicrophoneAccess>('pending')
   const [isRecording, setIsRecording] = useState(false)
+  const [levels, setLevels] = useState<number[]>([])
+  const levelsRef = useRef<number[]>([])
   const takeRef = useRef<Take | null>(null)
   const isPreparedRef = useRef(false)
 
@@ -53,8 +64,16 @@ export function useVoiceRecorder(onRecorded: (uri: string) => void): VoiceRecord
 
     return () => {
       clearTimeout(takeRef.current?.timeout)
+      clearInterval(takeRef.current?.meter)
     }
   }, [recorder])
+
+  /** The readings live in a ref, which stop() reads, and in state, which draws them while the parent speaks. */
+  function sampleLevel(): void {
+    levelsRef.current = [...levelsRef.current, meteringLevel(recorder.getStatus().metering ?? Number.NaN)]
+
+    setLevels(levelsRef.current)
+  }
 
   /** Returns false when there is nothing to record into yet: no permission or the next file is still being prepared. */
   function start(): boolean {
@@ -67,8 +86,12 @@ export function useVoiceRecorder(onRecorded: (uri: string) => void): VoiceRecord
     takeRef.current = {
       startedAt: Date.now(),
       timeout: setTimeout(stop, MAX_RECORDING_MS),
+      meter: setInterval(sampleLevel, LEVEL_INTERVAL_MS),
     }
 
+    levelsRef.current = []
+
+    setLevels(levelsRef.current)
     setIsRecording(true)
 
     return true
@@ -84,6 +107,7 @@ export function useVoiceRecorder(onRecorded: (uri: string) => void): VoiceRecord
     takeRef.current = null
     isPreparedRef.current = false
     clearTimeout(take.timeout)
+    clearInterval(take.meter)
 
     await recorder.stop()
 
@@ -97,13 +121,21 @@ export function useVoiceRecorder(onRecorded: (uri: string) => void): VoiceRecord
     isPreparedRef.current = true
 
     if (uri && durationMs >= MIN_RECORDING_MS) {
-      onRecorded(uri)
+      onRecorded(uri, takeLevels(durationMs))
     }
+  }
+
+  /** One level per interval of the take: the readings taken, trimmed or padded to the length it actually lasted. */
+  function takeLevels(durationMs: number): number[] {
+    const wanted = Math.max(1, Math.round(durationMs / LEVEL_INTERVAL_MS))
+
+    return Array.from({ length: wanted }, (_, index) => levelsRef.current[index] ?? 0)
   }
 
   return {
     access,
     isRecording,
+    levels,
     start,
     stop,
   }

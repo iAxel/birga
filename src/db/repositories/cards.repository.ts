@@ -8,6 +8,8 @@ export interface Card {
   text: string
   imagePath: string | null
   audioPath: string
+  /** Loudness of the recording, one value per tenth of a second; null for cards recorded before it was kept. */
+  audioLevels: number[] | null
 }
 
 /** What the card editor saves. The text is stored exactly as the parent typed it. */
@@ -16,6 +18,7 @@ export interface CardInput {
   text: string
   imagePath: string | null
   audioPath: string
+  audioLevels: number[] | null
 }
 
 /** Cards are archived, never deleted, so the event log keeps its references (SPEC §6). */
@@ -49,12 +52,13 @@ export class CardsRepository {
   /** Adds the card at the end of its board. */
   async create(input: CardInput): Promise<number> {
     const result = await this.#_db.runAsync(
-      `INSERT INTO cards (board_id, text, image_path, audio_path, position, created_at)
-       VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(position) + 1, 0) FROM cards WHERE board_id = ?), ?)`,
+      `INSERT INTO cards (board_id, text, image_path, audio_path, audio_levels, position, created_at)
+       VALUES (?, ?, ?, ?, ?, (SELECT COALESCE(MAX(position) + 1, 0) FROM cards WHERE board_id = ?), ?)`,
       input.boardId,
       input.text,
       input.imagePath,
       input.audioPath,
+      encodeLevels(input.audioLevels),
       input.boardId,
       Date.now(),
     )
@@ -69,6 +73,7 @@ export class CardsRepository {
        SET text = ?,
          image_path = ?,
          audio_path = ?,
+         audio_levels = ?,
          position = CASE
            WHEN board_id = ? THEN position
            ELSE (SELECT COALESCE(MAX(position) + 1, 0) FROM cards WHERE board_id = ?)
@@ -78,6 +83,7 @@ export class CardsRepository {
       input.text,
       input.imagePath,
       input.audioPath,
+      encodeLevels(input.audioLevels),
       input.boardId,
       input.boardId,
       input.boardId,
@@ -126,6 +132,34 @@ export class CardsRepository {
       text: row.text,
       imagePath: row.image_path,
       audioPath: row.audio_path,
+      audioLevels: decodeLevels(row.audio_levels),
     }
   }
+}
+
+function encodeLevels(levels: number[] | null): string | null {
+  if (!levels || levels.length === 0) {
+    return null
+  }
+
+  return JSON.stringify(levels.map((level) => Math.round(level * 100) / 100))
+}
+
+/** A malformed value is treated as no recording shape at all: the editor then draws the bars flat. */
+function decodeLevels(raw: string | null): number[] | null {
+  if (raw === null) {
+    return null
+  }
+
+  try {
+    const levels: unknown = JSON.parse(raw)
+
+    if (Array.isArray(levels) && levels.every((level) => typeof level === 'number')) {
+      return levels
+    }
+  } catch {
+    return null
+  }
+
+  return null
 }

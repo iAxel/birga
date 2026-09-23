@@ -132,12 +132,14 @@ export function CardEditor({ cardId, boardId }: CardEditorProps): ReactElement |
       </View>
       <VoiceField
         audio={draft.audio}
-        onRecorded={(uri) =>
+        levels={draft.audioLevels}
+        onRecorded={(uri, audioLevels) =>
           update({
             audio: {
               kind: 'captured',
               uri,
             },
+            audioLevels,
           })
         }
       />
