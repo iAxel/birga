@@ -97,6 +97,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 - Type the word (any script, stored as typed).
 - Record voice: hold-to-record, max 4 s, playback preview, re-record. Required: a card cannot be saved without it. Trim leading/trailing silence if feasible; otherwise skip in v0.1.
 - Or import a ready audio file via `expo-document-picker` (m4a, wav, mp3); a file longer than 4 s is rejected with a hint.
+- While the parent speaks, the microphone level is sampled ten times a second and stored with the card, so the editor draws the shape of the recording whenever the card is opened. Nothing of the child's voice is recorded here (see §3).
 - Assign to board, set position.
 
 ### Sequence editor
@@ -118,7 +119,7 @@ Cards per screen, debounce seconds, pause window seconds, detection margin dB, s
 
 ```
 boards(id, title, position, is_active, created_at)
-cards(id, board_id, text, image_path, audio_path, position, is_archived, created_at)
+cards(id, board_id, text, image_path, audio_path, audio_levels, position, is_archived, created_at)
 sequences(id, title, is_active, created_at)
 sequence_items(id, sequence_id, position, text, symbol, audio_path, image_path)
 sessions(id, started_at, ended_at, end_reason)            -- timer | parent_exit | app_killed
@@ -127,6 +128,7 @@ settings(key, value)
 ```
 
 - Paths are relative to the app document directory. `cards.audio_path` is required, `cards.image_path` is optional.
+- `cards.audio_levels` is the loudness of the parent's recording as a JSON array of numbers from 0 to 1, one per tenth of a second; null for cards recorded before it was kept.
 - Cards are archived, never hard-deleted, so old events keep their references.
 
 ### Event types
