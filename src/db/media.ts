@@ -35,6 +35,22 @@ export function deleteMedia(relativePath: string): void {
   }
 }
 
+/** Removes a whole folder of media, e.g. every attempt ever recorded of the child. */
+export function deleteMediaFolder(folder: MediaFolder): void {
+  deleteDirectory(new Directory(Paths.document, MEDIA_ROOT, folder))
+}
+
+/** Removes every photo and every recording the parent ever made. */
+export function deleteAllMedia(): void {
+  deleteDirectory(new Directory(Paths.document, MEDIA_ROOT))
+}
+
+function deleteDirectory(directory: Directory): void {
+  if (directory.exists) {
+    directory.delete()
+  }
+}
+
 /** Every stored file gets a new name, so a replaced photo never shows up from an image cache. */
 function uniqueFileName(sourceUri: string): string {
   const randomPart = Math.random().toString(36).slice(2, 10)

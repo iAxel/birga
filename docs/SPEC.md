@@ -114,6 +114,11 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 Cards per screen, debounce seconds, pause window seconds, rounds per game, detection margin dB, session length, min break, Pause game tab on/off, child's name (the subtitle on the start screen: "<name> bilan birga o'ynaymiz"), reward glow on/off, reward sparks on/off.
 
+Under them, throwing data away. Both ask first and are blocked while a session runs:
+
+- **Kundalikni tozalash** deletes every session, every event and the attempt recordings they point at, and keeps cards, sequences and settings. It is also the way to get the child's voice off the device once the log has been exported.
+- **Hammasini o'chirish** puts the app back to a fresh install — cards, sequences, settings, photos, recordings, log — and restarts it on the onboarding. Development builds only: it does not exist in a build the family uses.
+
 ### How a session goes
 
 A screen of its own, "Sessiya qanday o'tadi", on parent home right under the session panel and apart from the list of sections: it belongs to starting a session, not to managing content. On its own screen each part stands on a panel of its own; inside the onboarding it stays flat. It is the script the parent follows, and the same text is step 3 of the onboarding:

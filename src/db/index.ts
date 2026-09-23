@@ -1,9 +1,10 @@
 export type { Database } from './database'
 export { DatabaseProvider } from './database-provider'
-export { deleteMedia, type MediaFolder, mediaUri, storeMedia } from './media'
+export { deleteAllMedia, deleteMedia, deleteMediaFolder, type MediaFolder, mediaUri, storeMedia } from './media'
 export { type Board, BoardsRepository } from './repositories/boards.repository'
 export { type Card, type CardInput, CardsRepository } from './repositories/cards.repository'
 export { type Attempt, type CardCount, type EventInput, EventsRepository } from './repositories/events.repository'
+export { MaintenanceRepository } from './repositories/maintenance.repository'
 export {
   type Sequence,
   type SequenceItem,

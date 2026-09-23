@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { BoardsRepository } from '@/db/repositories/boards.repository'
 import { CardsRepository } from '@/db/repositories/cards.repository'
 import { EventsRepository } from '@/db/repositories/events.repository'
+import { MaintenanceRepository } from '@/db/repositories/maintenance.repository'
 import { SequencesRepository } from '@/db/repositories/sequences.repository'
 import { SessionsRepository } from '@/db/repositories/sessions.repository'
 import { SettingsRepository } from '@/db/repositories/settings.repository'
@@ -12,6 +13,7 @@ export interface Repositories {
   boards: BoardsRepository
   cards: CardsRepository
   events: EventsRepository
+  maintenance: MaintenanceRepository
   sequences: SequencesRepository
   sessions: SessionsRepository
   settings: SettingsRepository
@@ -29,6 +31,7 @@ export function useRepositories(): Repositories {
       boards: new BoardsRepository(database),
       cards: new CardsRepository(database),
       events,
+      maintenance: new MaintenanceRepository(database),
       sequences: new SequencesRepository(database),
       sessions: new SessionsRepository(database, events),
       settings: new SettingsRepository(database),

@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router'
 import { type ReactElement, useState } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, DevSettings, StyleSheet, Text, TextInput, View } from 'react-native'
 import {
   CARDS_PER_SCREEN_OPTIONS,
   DEBOUNCE_SECONDS_OPTIONS,
@@ -9,13 +9,17 @@ import {
   PAUSE_WINDOW_SECONDS_OPTIONS,
   ROUNDS_PER_GAME_OPTIONS,
   SESSION_MINUTES_OPTIONS,
+  useRepositories,
 } from '@/db'
+import { clearEverything, clearLog } from '@/features/parent/clear-data'
+import { useSession } from '@/features/session/session-provider'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ChipGroup } from '@/ui/chips'
 import { fontForText } from '@/ui/fonts'
 import { useFormFactor } from '@/ui/form-factor'
 import { ListRow, Panel, SectionLabel } from '@/ui/panel'
+import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
 import { SwitchRow } from '@/ui/switch-row'
 import { color, font, radius, space, typography } from '@/ui/theme'
@@ -142,6 +146,7 @@ export default function SettingsScreen(): ReactElement {
           />
         </View>
       </Panel>
+      <DataPanel />
       <Panel hasRows>
         <ListRow
           hasSeparator
@@ -152,6 +157,80 @@ export default function SettingsScreen(): ReactElement {
         <ListRow onPress={showOnboarding} title={strings.settings.showOnboarding} />
       </Panel>
     </ParentScreen>
+  )
+}
+
+/**
+ * Throwing data away (SPEC §5). The diary can always go, once the parent has had the chance to export it; everything
+ * else only in a development build, where the app is being built and a fresh install is wanted every other hour. Both
+ * ask first, and neither is allowed while a session is running.
+ */
+function DataPanel(): ReactElement {
+  const repositories = useRepositories()
+  const { active } = useSession()
+  const [isClearing, setIsClearing] = useState(false)
+
+  function confirm(title: string, action: string, clear: () => Promise<void>): void {
+    Alert.alert(title, undefined, [
+      {
+        text: strings.common.cancel,
+        style: 'cancel',
+      },
+      {
+        text: action,
+        style: 'destructive',
+        onPress: () => run(clear),
+      },
+    ])
+  }
+
+  async function run(clear: () => Promise<void>): Promise<void> {
+    setIsClearing(true)
+
+    try {
+      await clear()
+    } catch {
+      Alert.alert(strings.error.message)
+    } finally {
+      setIsClearing(false)
+    }
+  }
+
+  async function clearTheLog(): Promise<void> {
+    await clearLog(repositories)
+
+    Alert.alert(strings.settings.clearLogDone)
+  }
+
+  /** Nothing below the database knows that it is empty now: the providers hold what they loaded, so the app restarts. */
+  async function clearAll(): Promise<void> {
+    await clearEverything(repositories)
+
+    DevSettings.reload()
+  }
+
+  return (
+    <Panel>
+      <SectionLabel title={strings.settings.dataSection} />
+      <ParentButton
+        disabled={active !== null || isClearing}
+        onPress={() => confirm(strings.settings.clearLogConfirm, strings.settings.clearLogAction, clearTheLog)}
+        title={strings.settings.clearLog}
+        variant="danger"
+      />
+      <Text style={typography.body}>{active === null ? strings.settings.clearLogHint : strings.settings.clearBlocked}</Text>
+      {__DEV__ && (
+        <>
+          <ParentButton
+            disabled={active !== null || isClearing}
+            onPress={() => confirm(strings.settings.clearAllConfirm, strings.settings.clearAllAction, clearAll)}
+            title={strings.settings.clearAll}
+            variant="danger"
+          />
+          <Text style={typography.body}>{strings.settings.clearAllHint}</Text>
+        </>
+      )}
+    </Panel>
   )
 }
 
