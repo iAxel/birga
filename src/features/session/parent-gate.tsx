@@ -25,9 +25,12 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
 /**
- * Hidden way into parent mode: a small dim dot in the top-right corner that reacts only to a 3-second hold. While it is
+ * Hidden way into parent mode: a small dim dot in the top-left corner that reacts only to a 3-second hold. While it is
  * held, a thin accent ring around the dot fills clockwise; letting go resets it. Opening parent mode is logged and
  * pauses the running session until the parent returns.
+ *
+ * The mockups put it on the right, where the medallion of the start and goodbye screens is: the dot was hard to make
+ * out against it, so it sits on the left, where nothing is drawn.
  */
 export function ParentGate(): ReactElement {
   const router = useRouter()
@@ -74,7 +77,7 @@ export function ParentGate(): ReactElement {
         styles.gate,
         {
           top: insets.top + GATE_INSET,
-          right: insets.right + GATE_INSET,
+          left: insets.left + GATE_INSET,
         },
       ]}
     >

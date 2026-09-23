@@ -1,7 +1,7 @@
 import { type FormFactor, useFormFactor } from '@/ui/form-factor'
 import { space, touch } from '@/ui/theme'
 
-/** Distance of the parent gate from the top and right safe-area edges. */
+/** Distance of the parent gate from the top and left safe-area edges. */
 export const GATE_INSET = 2
 
 /** Distances of child mode for one device size (DESIGN §2–3), all measured from the safe area. */
@@ -11,7 +11,7 @@ export interface ChildMetrics {
   pad: number
   /** Gap between cards. */
   gap: number
-  /** Margin above the board. A tablet has room for the parent gate in the side margin; on a phone the board starts below it. */
+  /** Margin above the board. A tablet has room for the parent gate in its side margin; on a phone the board starts below it. */
   top: number
   /** Hit area of a parent corner control. */
   corner: number
