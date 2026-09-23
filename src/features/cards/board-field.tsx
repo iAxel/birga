@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { Board } from '@/db'
 import { strings } from '@/i18n'
+import { ChipGroup } from '@/ui/chips'
 import { Panel, SectionLabel } from '@/ui/panel'
-import { color, radius, space, touch, typography } from '@/ui/theme'
 
 interface BoardFieldProps {
   boards: Board[]
@@ -20,48 +19,12 @@ export function BoardField({ boards, boardId, onChange }: BoardFieldProps): Reac
   return (
     <Panel>
       <SectionLabel title={strings.cardEditor.board} />
-      <View style={styles.options}>
-        {boards.map((board) => {
-          const isSelected = board.id === boardId
-
-          return (
-            <Pressable
-              accessibilityRole="radio"
-              accessibilityState={{
-                selected: isSelected,
-              }}
-              key={board.id}
-              onPress={() => onChange(board.id)}
-              style={[styles.option, isSelected && styles.optionSelected]}
-            >
-              <Text style={[typography.button, isSelected && styles.optionSelectedText]}>{board.title}</Text>
-            </Pressable>
-          )
-        })}
-      </View>
+      <ChipGroup
+        label={(id) => boards.find((board) => board.id === id)?.title ?? ''}
+        onChange={onChange}
+        options={boards.map((board) => board.id)}
+        value={boardId}
+      />
     </Panel>
   )
 }
-
-const styles = StyleSheet.create({
-  options: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.sm,
-  },
-  option: {
-    minHeight: touch.parent,
-    justifyContent: 'center',
-    paddingHorizontal: space.md,
-    borderWidth: 1.5,
-    borderColor: color.hint,
-    borderRadius: radius.buttonSm,
-  },
-  optionSelected: {
-    borderColor: color.accentBg,
-    backgroundColor: color.accentBg,
-  },
-  optionSelectedText: {
-    color: color.accent,
-  },
-})

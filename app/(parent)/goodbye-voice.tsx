@@ -1,13 +1,14 @@
 import { useRouter } from 'expo-router'
 import { type ReactElement, useState } from 'react'
-import { ScrollView, StyleSheet, Text } from 'react-native'
+import { Text } from 'react-native'
 import { deleteMedia, storeMedia } from '@/db'
 import type { MediaDraft } from '@/features/cards/card-draft'
 import { VoiceField } from '@/features/cards/voice-field'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ParentButton } from '@/ui/parent-button'
-import { space, typography } from '@/ui/theme'
+import { ParentScreen } from '@/ui/parent-screen'
+import { typography } from '@/ui/theme'
 
 /** The parent's "Xayr!" that the child hears at the end of a session (SPEC §4); recording it is optional. */
 export default function GoodbyeVoiceScreen(): ReactElement {
@@ -49,7 +50,7 @@ export default function GoodbyeVoiceScreen(): ReactElement {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ParentScreen title={strings.goodbyeVoice.title}>
       <Text style={typography.body}>{strings.goodbyeVoice.hint}</Text>
       <VoiceField
         audio={audio}
@@ -71,13 +72,6 @@ export default function GoodbyeVoiceScreen(): ReactElement {
         variant="primary"
       />
       {settings.goodbyeAudioPath && <ParentButton onPress={remove} title={strings.goodbyeVoice.remove} variant="danger" />}
-    </ScrollView>
+    </ParentScreen>
   )
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: space.parentPad,
-    padding: space.parentPad,
-  },
-})

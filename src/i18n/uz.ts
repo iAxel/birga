@@ -87,6 +87,8 @@ export const uz = {
     minutes: (count: number): string => `${count} daqiqa`,
     noBreak: "Yo'q",
     goodbyeVoice: '«Xayr!» ovozi',
+    goodbyeVoiceRecorded: 'yozilgan',
+    goodbyeVoiceMissing: "yo'q",
   },
   session: {
     paused: "Sessiya to'xtatilgan",

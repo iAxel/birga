@@ -1,17 +1,17 @@
-import { Button, FieldGroup, Host, Picker, Row, Spacer, Text, TextInput, useNativeState } from '@expo/ui'
 import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS, MIN_BREAK_MINUTES_OPTIONS, SESSION_MINUTES_OPTIONS } from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
+import { ChipGroup } from '@/ui/chips'
+import { fontForText } from '@/ui/fonts'
 import { useFormFactor } from '@/ui/form-factor'
-import { color, space } from '@/ui/theme'
+import { ListRow, Panel, SectionLabel } from '@/ui/panel'
+import { ParentScreen } from '@/ui/parent-screen'
+import { color, font, radius, space, typography } from '@/ui/theme'
 
-const FOOTER_STYLE = {
-  fontSize: 13,
-  color: color.muted,
-}
+const NAME_HEIGHT = 48
 
 /**
  * Parent settings (SPEC §5): the child's name for the start screen, how many cards the child sees, how long a card
@@ -23,85 +23,90 @@ export default function SettingsScreen(): ReactElement {
   const settings = useSettings()
   const saveSetting = useSaveSetting()
   const isPhone = useFormFactor() === 'phone'
-  const childName = useNativeState(settings.childName)
 
   return (
-    <Host colorScheme="light" style={styles.host}>
-      <FieldGroup>
-        <FieldGroup.Section title={strings.settings.childSection}>
-          <Row alignment="center" spacing={space.md}>
-            <Text>{strings.settings.childName}</Text>
-            <TextInput
-              autoCapitalize="words"
-              autoCorrect={false}
-              onChangeText={(text) => saveSetting('childName', text)}
-              placeholder={strings.settings.childNamePlaceholder}
-              value={childName}
-            />
-          </Row>
-          <FieldGroup.SectionFooter>
-            <Text textStyle={FOOTER_STYLE}>{strings.settings.childNameHint}</Text>
-          </FieldGroup.SectionFooter>
-        </FieldGroup.Section>
-        <FieldGroup.Section title={strings.settings.requestsSection}>
-          <Row alignment="center" spacing={space.md}>
-            <Text>{strings.settings.cardsPerScreen}</Text>
-            <Spacer flexible />
-            <Picker onValueChange={(value) => saveSetting('cardsPerScreen', value)} selectedValue={settings.cardsPerScreen}>
-              {CARDS_PER_SCREEN_OPTIONS.map((option) => (
-                <Picker.Item key={option} label={String(option)} value={option} />
-              ))}
-            </Picker>
-          </Row>
-          <Row alignment="center" spacing={space.md}>
-            <Text>{strings.settings.debounce}</Text>
-            <Spacer flexible />
-            <Picker onValueChange={(value) => saveSetting('debounceSeconds', value)} selectedValue={settings.debounceSeconds}>
-              {DEBOUNCE_SECONDS_OPTIONS.map((option) => (
-                <Picker.Item key={option} label={strings.settings.seconds(option)} value={option} />
-              ))}
-            </Picker>
-          </Row>
-          <FieldGroup.SectionFooter>
-            <Text textStyle={FOOTER_STYLE}>
-              {isPhone
-                ? `${strings.settings.cardsPerScreenPhoneHint} ${strings.settings.debounceHint}`
-                : strings.settings.debounceHint}
-            </Text>
-          </FieldGroup.SectionFooter>
-        </FieldGroup.Section>
-        <FieldGroup.Section title={strings.settings.sessionSection}>
-          <Row alignment="center" spacing={space.md}>
-            <Text>{strings.settings.sessionLength}</Text>
-            <Spacer flexible />
-            <Picker onValueChange={(value) => saveSetting('sessionMinutes', value)} selectedValue={settings.sessionMinutes}>
-              {SESSION_MINUTES_OPTIONS.map((option) => (
-                <Picker.Item key={option} label={strings.settings.minutes(option)} value={option} />
-              ))}
-            </Picker>
-          </Row>
-          <Row alignment="center" spacing={space.md}>
-            <Text>{strings.settings.minBreak}</Text>
-            <Spacer flexible />
-            <Picker onValueChange={(value) => saveSetting('minBreakMinutes', value)} selectedValue={settings.minBreakMinutes}>
-              {MIN_BREAK_MINUTES_OPTIONS.map((option) => (
-                <Picker.Item
-                  key={option}
-                  label={option === 0 ? strings.settings.noBreak : strings.settings.minutes(option)}
-                  value={option}
-                />
-              ))}
-            </Picker>
-          </Row>
-          <Button label={strings.settings.goodbyeVoice} onPress={() => router.push('/goodbye-voice')} />
-        </FieldGroup.Section>
-      </FieldGroup>
-    </Host>
+    <ParentScreen title={strings.parent.settings}>
+      <Panel>
+        <SectionLabel title={strings.settings.childSection} />
+        <TextInput
+          autoCapitalize="words"
+          autoCorrect={false}
+          onChangeText={(text) => saveSetting('childName', text)}
+          placeholder={strings.settings.childNamePlaceholder}
+          placeholderTextColor={color.hint}
+          returnKeyType="done"
+          style={[styles.name, fontForText(settings.childName, font.semiBold)]}
+          value={settings.childName}
+        />
+        <Text style={typography.body}>{strings.settings.childNameHint}</Text>
+      </Panel>
+      <Panel>
+        <SectionLabel title={strings.settings.requestsSection} />
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.cardsPerScreen}</Text>
+          <ChipGroup
+            label={String}
+            onChange={(option) => saveSetting('cardsPerScreen', option)}
+            options={CARDS_PER_SCREEN_OPTIONS}
+            value={settings.cardsPerScreen}
+          />
+          {isPhone && <Text style={typography.body}>{strings.settings.cardsPerScreenPhoneHint}</Text>}
+        </View>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.debounce}</Text>
+          <ChipGroup
+            label={strings.settings.seconds}
+            onChange={(option) => saveSetting('debounceSeconds', option)}
+            options={DEBOUNCE_SECONDS_OPTIONS}
+            value={settings.debounceSeconds}
+          />
+          <Text style={typography.body}>{strings.settings.debounceHint}</Text>
+        </View>
+      </Panel>
+      <Panel>
+        <SectionLabel title={strings.settings.sessionSection} />
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.sessionLength}</Text>
+          <ChipGroup
+            label={strings.settings.minutes}
+            onChange={(option) => saveSetting('sessionMinutes', option)}
+            options={SESSION_MINUTES_OPTIONS}
+            value={settings.sessionMinutes}
+          />
+        </View>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.minBreak}</Text>
+          <ChipGroup
+            label={(option) => (option === 0 ? strings.settings.noBreak : strings.settings.minutes(option))}
+            onChange={(option) => saveSetting('minBreakMinutes', option)}
+            options={MIN_BREAK_MINUTES_OPTIONS}
+            value={settings.minBreakMinutes}
+          />
+        </View>
+      </Panel>
+      <Panel hasRows>
+        <ListRow
+          onPress={() => router.push('/goodbye-voice')}
+          title={strings.settings.goodbyeVoice}
+          value={settings.goodbyeAudioPath ? strings.settings.goodbyeVoiceRecorded : strings.settings.goodbyeVoiceMissing}
+        />
+      </Panel>
+    </ParentScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  host: {
-    flex: 1,
+  name: {
+    height: NAME_HEIGHT,
+    paddingHorizontal: space.md,
+    borderWidth: 1,
+    borderColor: color.cardLine,
+    borderRadius: radius.buttonSm,
+    backgroundColor: color.ground,
+    color: color.ink,
+    fontSize: 17,
+  },
+  setting: {
+    gap: space.sm,
   },
 })
