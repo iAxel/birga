@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { AttemptCorner } from '@/features/attempts/attempt-corner'
+import type { AttemptTarget } from '@/features/attempts/use-save-attempt'
 import { strings } from '@/i18n'
 import { CornerButton } from '@/ui/corner-button'
 import { color } from '@/ui/theme'
@@ -9,9 +10,12 @@ const MODELING_BAR_HEIGHT = 3
 
 interface ParentControlsProps {
   isModeling: boolean
-  onAttempt: () => void
-  /** A recorded attempt, as the temporary file the recorder wrote and how long it lasted. */
-  onAttemptRecorded: (uri: string, durationMs: number) => void
+  /** A tap on the attempt corner; true when it was counted. */
+  onAttempt: () => boolean
+  /** What an attempt recorded now would belong to. */
+  attemptTarget: () => AttemptTarget | null
+  /** A recorded attempt, as the temporary file the recorder wrote, how long it lasted and what it belongs to. */
+  onAttemptRecorded: (uri: string, durationMs: number, target: AttemptTarget | null) => void
   onToggleModeling: () => void
 }
 
@@ -24,6 +28,7 @@ interface ParentControlsProps {
 export function ParentControls({
   isModeling,
   onAttempt,
+  attemptTarget,
   onAttemptRecorded,
   onToggleModeling,
 }: ParentControlsProps): ReactElement {
@@ -35,6 +40,7 @@ export function ParentControls({
         label={strings.requests.attempt}
         onCredit={onAttempt}
         onRecorded={onAttemptRecorded}
+        targetNow={attemptTarget}
       />
       <CornerButton
         icon="hand.tap"

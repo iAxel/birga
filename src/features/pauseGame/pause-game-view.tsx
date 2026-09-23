@@ -19,7 +19,7 @@ import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
 import { FIRST_MEASURE_MS, ROUND_MEASURE_MS } from '@/audio/vocalization'
 import { type EventInput, type EventType, mediaUri, type SequenceItem } from '@/db'
 import { AttemptCorner } from '@/features/attempts/attempt-corner'
-import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
+import { type AttemptTarget, useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import {
   afterItem,
   afterPause,
@@ -120,6 +120,8 @@ export function PauseGameView(): ReactElement {
   const stateRef = useRef<RoundState | null>(null)
   /** The item whose recording the player was last given; its end, and only its end, moves the round on. */
   const saidRef = useRef<SaidItem | null>(null)
+  /** The item the app said last, in this round or the one before the play button came back: an attempt is about it. */
+  const lastSaidItemRef = useRef<SequenceItem | null>(null)
   /** The item the open pause waits on; a pause ends once, whichever of the child, the parent or the timer is first. */
   const openPauseRef = useRef<SequenceItem | null>(null)
   const isOver = roundsPlayed >= settings.roundsPerGame
@@ -159,6 +161,7 @@ export function PauseGameView(): ReactElement {
     player.play()
 
     saidRef.current = said
+    lastSaidItemRef.current = item
 
     setSaidCount(said.index + 1)
   })
@@ -215,7 +218,7 @@ export function PauseGameView(): ReactElement {
 
     const wasFilled = reason !== 'timeout'
 
-    logEvent(pauseEvent(PAUSE_END_EVENT[reason], item))
+    logEvent(pauseEvent(PAUSE_END_EVENT[reason], item, reason === 'parent'))
 
     if (wasFilled) {
       setFilledAt(Date.now())
@@ -398,34 +401,66 @@ export function PauseGameView(): ReactElement {
   )
 
   /**
-   * A sound of the child as the parent heard it, kept against the item the round is pausing on (SPEC §3). Without a
-   * round there is nothing to keep it against, and the take goes.
+   * What an attempt of the child is about (SPEC §3): the item the open pause waits on, and at any other moment of the
+   * game the item the app said last. Before the first round there is only the sequence.
    */
-  function recordAttempt(uri: string, durationMs: number): void {
-    const item = items?.[state?.pauseAt ?? -1]
+  function attemptTarget(): AttemptTarget | null {
+    const item = state?.phase === 'waiting' && items ? items[state.pauseAt] : lastSaidItemRef.current
 
     if (!item) {
+      return items?.[0]
+        ? {
+            sequenceId: items[0].sequenceId,
+          }
+        : null
+    }
+
+    return {
+      sequenceId: item.sequenceId,
+      itemPosition: item.position,
+      word: item.text,
+      itemId: item.id,
+    }
+  }
+
+  /** A sound of the child as the parent heard it, kept against what it was about when the hold began. */
+  function recordAttempt(uri: string, durationMs: number, target: AttemptTarget | null): void {
+    if (!target) {
       deleteTake(uri)
 
       return
     }
 
-    saveAttempt(uri, durationMs, {
-      sequenceId: item.sequenceId,
-      itemPosition: item.position,
-      word: item.text,
-      itemId: item.id,
-    }).catch(() => undefined)
+    saveAttempt(uri, durationMs, target).catch(() => undefined)
   }
 
-  function credit(): void {
-    const item = state && items && state.phase === 'waiting' ? items[state.pauseAt] : undefined
+  /**
+   * The parent heard the child. In the open pause that ends it, filled by the parent; at any other moment of the game
+   * it is noted against the item the app said last, and the game goes on as it was.
+   */
+  function credit(): boolean {
+    const pauseItem = state?.phase === 'waiting' && items ? items[state.pauseAt] : undefined
 
-    if (!item) {
-      return
+    if (pauseItem) {
+      endPause('parent', pauseItem)
+
+      return true
     }
 
-    endPause('parent', item)
+    const target = attemptTarget()
+
+    if (!target) {
+      return false
+    }
+
+    logEvent({
+      type: 'pause_parent_credit',
+      sequenceId: target.sequenceId,
+      itemPosition: target.itemPosition,
+      payload: creditPayload(target),
+    })
+
+    return true
   }
 
   /** The tab bar floats over the screen, and the game leaves it, the notch and the corners their room. */
@@ -444,22 +479,6 @@ export function PauseGameView(): ReactElement {
     )
   }
 
-  if (state === null) {
-    return (
-      <View style={[styles.root, padding]}>
-        <Pressable
-          accessibilityLabel={strings.pauseGame.start}
-          accessibilityRole="button"
-          disabled={isOver}
-          onPress={startGame}
-          style={[styles.start, isOver && styles.startOver]}
-        >
-          <SymbolView name="play.fill" size={START_ICON_SIZE} tintColor={isOver ? color.hint : color.accent} />
-        </Pressable>
-      </View>
-    )
-  }
-
   const said = state ? items.slice(0, Math.min(saidCount, state.pauseAt)) : []
   const hint = state && state.index >= state.pauseAt ? items[state.pauseAt] : null
   const isAnswered = state !== null && state.phase !== 'waiting' && state.index >= state.pauseAt
@@ -469,88 +488,126 @@ export function PauseGameView(): ReactElement {
 
   return (
     <View onLayout={(event) => setAreaHeight(event.nativeEvent.layout.height)} style={[styles.root, padding]}>
-      <View
-        onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)}
-        style={[
-          styles.content,
-          {
-            transform: [
-              {
-                scale,
-              },
-            ],
-          },
-        ]}
-      >
-        <View style={styles.said}>
-          {said.map((item) => (
-            <View key={item.id} style={styles.saidItem}>
-              {item.symbol && (
-                <Text style={[styles.saidSymbol, { fontSize: look.saidSymbol }, fontForText(item.symbol, font.extraBold)]}>
-                  {item.symbol}
+      {state === null ? (
+        <Pressable
+          accessibilityLabel={strings.pauseGame.start}
+          accessibilityRole="button"
+          disabled={isOver}
+          onPress={startGame}
+          style={[styles.start, isOver && styles.startOver]}
+        >
+          <SymbolView name="play.fill" size={START_ICON_SIZE} tintColor={isOver ? color.hint : color.accent} />
+        </Pressable>
+      ) : (
+        <View
+          onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)}
+          style={[
+            styles.content,
+            {
+              transform: [
+                {
+                  scale,
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.said}>
+            {said.map((item) => (
+              <View key={item.id} style={styles.saidItem}>
+                {item.symbol && (
+                  <Text style={[styles.saidSymbol, { fontSize: look.saidSymbol }, fontForText(item.symbol, font.extraBold)]}>
+                    {item.symbol}
+                  </Text>
+                )}
+                <Text style={[styles.saidWord, { fontSize: look.saidWord }, fontForText(item.text, font.semiBold)]}>
+                  {item.text}
                 </Text>
-              )}
-              <Text style={[styles.saidWord, { fontSize: look.saidWord }, fontForText(item.text, font.semiBold)]}>
-                {item.text}
+              </View>
+            ))}
+          </View>
+          <View style={styles.hint}>
+            <Reward filledAt={filledAt} hasGlow={settings.rewardGlow} hasSparks={settings.rewardSparks} />
+            {hint?.imagePath && (
+              <Image
+                contentFit="contain"
+                source={{
+                  uri: mediaUri(hint.imagePath),
+                }}
+                style={styles.image}
+              />
+            )}
+            {hint?.symbol && (
+              <Text
+                style={[
+                  styles.symbol,
+                  isAnswered && styles.answered,
+                  { fontSize: look.symbol },
+                  fontForText(hint.symbol, font.extraBold),
+                ]}
+              >
+                {hint.symbol}
               </Text>
-            </View>
-          ))}
+            )}
+            {hint && (
+              <Text
+                style={[styles.word, isAnswered && styles.answered, { fontSize: look.word }, fontForText(hint.text, font.bold)]}
+              >
+                {hint.text}
+              </Text>
+            )}
+            <WaitingMark isAnswered={isAnswered} isWaiting={state.phase === 'waiting'} />
+          </View>
         </View>
-        <View style={styles.hint}>
-          <Reward filledAt={filledAt} hasGlow={settings.rewardGlow} hasSparks={settings.rewardSparks} />
-          {hint?.imagePath && (
-            <Image
-              contentFit="contain"
-              source={{
-                uri: mediaUri(hint.imagePath),
-              }}
-              style={styles.image}
-            />
-          )}
-          {hint?.symbol && (
-            <Text
-              style={[
-                styles.symbol,
-                isAnswered && styles.answered,
-                { fontSize: look.symbol },
-                fontForText(hint.symbol, font.extraBold),
-              ]}
-            >
-              {hint.symbol}
-            </Text>
-          )}
-          {hint && (
-            <Text
-              style={[styles.word, isAnswered && styles.answered, { fontSize: look.word }, fontForText(hint.text, font.bold)]}
-            >
-              {hint.text}
-            </Text>
-          )}
-          <WaitingMark isAnswered={isAnswered} isWaiting={state?.phase === 'waiting'} />
-        </View>
-      </View>
+      )}
       <AttemptCorner
         hint={strings.pauseGame.creditHint}
-        isOn={filledAt !== null && state?.phase !== 'waiting'}
         label={strings.pauseGame.credit}
         onCredit={credit}
         onRecorded={recordAttempt}
+        targetNow={attemptTarget}
       />
     </View>
   )
 }
 
-/** A pause event names its item by sequence and position, and keeps the item's word and id with it (SPEC §6). */
-function pauseEvent(type: EventType, item: SequenceItem): EventInput {
+/**
+ * A pause event names its item by sequence and position, and keeps the item's word and id with it (SPEC §6). A credit
+ * of the parent also says whether it ended the pause.
+ */
+function pauseEvent(type: EventType, item: SequenceItem, isParentCredit = false): EventInput {
+  const payload: Record<string, string | number | boolean> = {
+    word: item.text,
+    itemId: item.id,
+  }
+
+  if (isParentCredit) {
+    payload.inPause = true
+  }
+
   return {
     type,
     sequenceId: item.sequenceId,
     itemPosition: item.position,
-    payload: {
-      word: item.text,
-      itemId: item.id,
-    },
+    payload,
   }
+}
+
+/** A credit of the parent at a moment the game was not waiting on a pause: noted, and nothing ended by it. */
+function creditPayload(target: AttemptTarget): Record<string, string | number | boolean> {
+  const payload: Record<string, string | number | boolean> = {
+    inPause: false,
+  }
+
+  if (target.word !== undefined) {
+    payload.word = target.word
+  }
+
+  if (target.itemId !== undefined) {
+    payload.itemId = target.itemId
+  }
+
+  return payload
 }
 
 interface WaitingMarkProps {

@@ -2,7 +2,7 @@ import { type ReactElement, useEffect, useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { Card } from '@/db'
-import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
+import { type AttemptTarget, useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import { cardsOnScreen } from '@/features/requests/board-layout'
 import { ParentControls } from '@/features/requests/parent-controls'
 import { MODELING_MS } from '@/features/requests/request-gate'
@@ -42,27 +42,47 @@ export function RequestsView(): ReactElement {
     setModelingUntil(modelingUntil === null ? Date.now() + MODELING_MS : null)
   }
 
-  function logAttempt(): void {
+  /**
+   * A card played: the last one is what an attempt of the child is about. While the parent models, every tap of theirs
+   * keeps modelling on for another minute, so it switches itself off only once they have stopped (SPEC §2).
+   */
+  function notePlayed(card: Card): void {
+    lastPlayedRef.current = card
+
+    if (modelingUntil !== null) {
+      setModelingUntil(Date.now() + MODELING_MS)
+    }
+  }
+
+  /** What an attempt of the child is about: the card the board played last, as it reads now. */
+  function attemptTarget(): AttemptTarget {
     const card = lastPlayedRef.current
+
+    return {
+      cardId: card?.id ?? null,
+      word: card?.text,
+    }
+  }
+
+  function logAttempt(): boolean {
+    const target = attemptTarget()
 
     logEvent({
       type: 'request_verbal_attempt',
-      cardId: card?.id ?? null,
-      payload: card
-        ? {
-            word: card.text,
-          }
-        : null,
+      cardId: target.cardId,
+      payload:
+        target.word === undefined
+          ? null
+          : {
+              word: target.word,
+            },
     })
+
+    return true
   }
 
-  function keepAttempt(uri: string, durationMs: number): void {
-    const card = lastPlayedRef.current
-
-    saveAttempt(uri, durationMs, {
-      cardId: card?.id ?? null,
-      word: card?.text,
-    }).catch(() => undefined)
+  function keepAttempt(uri: string, durationMs: number, target: AttemptTarget | null): void {
+    saveAttempt(uri, durationMs, target ?? {}).catch(() => undefined)
   }
 
   const bottom = settings.pauseGameEnabled
@@ -88,13 +108,12 @@ export function RequestsView(): ReactElement {
           debounceMs={settings.debounceSeconds * 1000}
           gap={metrics.gap}
           isModeling={modelingUntil !== null}
-          onPlayed={(card) => {
-            lastPlayedRef.current = card
-          }}
+          onPlayed={notePlayed}
         />
       </View>
       <ParentControls
         isModeling={modelingUntil !== null}
+        attemptTarget={attemptTarget}
         onAttempt={logAttempt}
         onAttemptRecorded={keepAttempt}
         onToggleModeling={toggleModeling}
