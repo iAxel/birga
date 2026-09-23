@@ -88,4 +88,23 @@ export class SessionsRepository {
 
     return row?.ended_at ?? null
   }
+
+  /** When the last session ended, whatever ended it; null before the first one and while one is running. */
+  async lastEndedAt(): Promise<number | null> {
+    const row = await this.#_db.getFirstAsync<{ ended_at: number | null }>(
+      'SELECT MAX(ended_at) AS ended_at FROM sessions WHERE ended_at IS NOT NULL',
+    )
+
+    return row?.ended_at ?? null
+  }
+
+  /** How many sessions started at or after `from`: parent home counts the ones of today with it. */
+  async countStartedSince(from: number): Promise<number> {
+    const row = await this.#_db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) AS count FROM sessions WHERE started_at >= ?',
+      from,
+    )
+
+    return row?.count ?? 0
+  }
 }

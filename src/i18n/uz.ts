@@ -25,6 +25,7 @@ export const uz = {
     sequences: 'Ketma-ketliklar',
     settings: 'Sozlamalar',
     log: 'Kundalik',
+    logToday: (count: number): string => `Bugun ${count}`,
     close: 'Yopish',
     logComingSoon: "Tez orada: kunlik xulosa, kartalar bo'yicha bosishlar va eksport.",
     sequencesComingSoon: "Tez orada: pauza o'yini uchun ketma-ketliklar.",
@@ -40,13 +41,6 @@ export const uz = {
     guidedAccessStep: 'Guided Access yoqing',
     guidedAccessText:
       'Settings → Accessibility → Guided Access. Sessiya oldidan yon tugmani 3 marta bosing: bola ilovadan chiqib keta olmaydi.',
-    cornersStep: 'Ekrandagi ikki tugma',
-    cornersAttempt: "Pastki chapda: bola so'zni aytishga urinsa, shu tugmani bosing. Urinish kundalikka tushadi.",
-    cornersModeling:
-      "Pastki o'ngda: kartani o'zingiz bosib ko'rsatmoqchi bo'lsangiz yoqing. Bunday bosishlar bolaning bosishlari qatoriga kirmaydi va 60 soniyadan keyin o'chadi.",
-    sessionStep: 'Birinchi sessiya',
-    sessionText: (minutes: number): string =>
-      `${minutes} daqiqa, yonida o'tiring. Kartani bosdi — darhol so'ragan narsasini bering. Hech narsa talab qilmang, kuting.`,
     start: 'Boshlash',
     startHint: (goal: number): string => `${goal} ta karta qo'shilgach faollashadi`,
   },
@@ -102,6 +96,11 @@ export const uz = {
     end: 'Tugatish',
     endConfirm: "Sessiya tugatilsinmi? Bola «Xayr!» ekranini ko'radi.",
     none: "Sessiya yo'q",
+    lastAgo: (age: string): string => `oxirgisi ${age}`,
+    ageNow: 'hozirgina',
+    ageMinutes: (count: number): string => `${count} daqiqa oldin`,
+    ageHours: (count: number): string => `${count} soat oldin`,
+    ageDays: (count: number): string => `${count} kun oldin`,
     breakLeft: (minutes: number): string => `tanaffus: yana ${minutes} daqiqa`,
     start: (minutes: number): string => `Yangi sessiya · ${minutes} daqiqa`,
     board: (title: string, count: number): string => `Doska: ${title} · ${count} ta karta. Boshlagach, ekranni bolaga bering.`,
@@ -109,14 +108,48 @@ export const uz = {
   },
   tips: {
     title: 'Bugungi maslahat',
-    items: [
-      "Kartani bosgach, 5 soniya kuting. Shoshilmang: sukut ham javobga o'rin beradi.",
-      "Bola kartani bossa, so'ragan narsasini darhol bering. Karta shunda ma'no oladi.",
-      "O'zingiz ham kartalarni bosing: qo'l belgisini yoqing va gapirayotganda kartani ko'rsating.",
-      "Bolani takrorlashga majburlamang. So'zni o'zingiz ayting va o'yinni davom ettiring.",
-      'Qisqa, har kungi sessiyalar uzoq va kamdan-kam sessiyalardan yaxshiroq.',
-      "Bola ilovadan chiqib ketmasligi uchun Guided Access'ni yoqing: Settings → Accessibility → Guided Access. Keyin ilova ochiq turganda yon tugmani uch marta bosing.",
-      "Yana, ber, yo'q, bo'ldi, yordam: bu so'zlar har bir doskada doim bir joyda tursin.",
+  },
+  sessionGuide: {
+    title: "Sessiya qanday o'tadi",
+    /** Приложение не игрушка для ребенка. Это кнопка между ним и вами. Наградой является не звук, а то, что вы даете. Экран только делает просьбу видимой. */
+    model:
+      "Ilova bola uchun o'yinchoq emas. Bu — u bilan sizning orangizdagi tugma. Mukofot — ovoz emas, balki sizning bergan narsangiz. Ekran faqat iltimosni ko'rinadigan qiladi.",
+    steps: [
+      {
+        /** Момент. Начинайте, когда он чего-то хочет: пить, мультик, качели. Без желания сессии нет. На доске две карточки: это желание и «yana». */
+        title: 'Payt',
+        text: "Bola nimanidir xohlaganda boshlang: suv, multfilm, arg'imchoq. Xohish bo'lmasa, sessiya ham bo'lmaydi. Doskada ikkita karta bo'lsin: o'sha xohish va «yana».",
+      },
+      {
+        /** Место. iPad на столе между вами, Guided Access включен, сессия запущена из родительского режима. Предмет держите на виду и не давайте. */
+        title: 'Joy',
+        text: "iPad stolda, ikkovingizning orangizda. Guided Access yoqilgan, sessiya ota-ona rejimidan boshlangan. Narsani ko'rinadigan joyda ushlab turing va hali bermang.",
+      },
+      {
+        /** Сначала вы. Включите «нажимаю я», нажмите карточку, скажите слово и дайте маленькую порцию, чтобы желание вернулось. Повторите 3–5 раз. */
+        title: 'Avval siz',
+        text: "Qo'l tugmasini yoqing, kartani o'zingiz bosing, so'zni ayting va kichik ulush bering — xohish yana qaytsin. Buni 3–5 marta takrorlang.",
+      },
+      {
+        /** Пауза. Держите предмет, смотрите на него и молчите 5–10 секунд. Когда он потянет вашу руку, мягко доведите ее до карточки. Сыграло — дайте. */
+        title: 'Pauza',
+        text: "Narsani ushlab turing, unga qarang va 5–10 soniya jim turing. Bola qo'lingizni tortsa, qo'lini kartagacha ohista olib boring. Karta ovoz chiqardi — darhol bering.",
+      },
+      {
+        /** Меньше помощи. День за днем: рука → локоть → указание пальцем → ничего. Первое самостоятельное нажатие может прийти на третий день или на десятый. */
+        title: 'Kamroq yordam',
+        text: "Kundan-kunga yordamni kamaytiring: qo'l → tirsak → barmoq bilan ko'rsatish → hech narsa. Birinchi mustaqil bosish uchinchi kuni ham, o'ninchi kuni ham kelishi mumkin.",
+      },
+      {
+        /** Звуки. Любой звук рядом с карточкой отметьте уголком «попытка». Ничего не просите: никаких «скажи». */
+        title: 'Tovushlar',
+        text: "Karta yonida chiqqan har qanday tovushni burchakdagi «urinish» tugmasi bilan belgilang. Hech narsa so'ramang: «ayt-chi» demang.",
+      },
+      {
+        /** Конец. Таймер закончился — все. Не продлевайте, особенно если пошло хорошо. */
+        title: 'Tugash',
+        text: "Taymer tugadi — sessiya tamom. Uzaytirmang, ayniqsa yaxshi ketayotgan bo'lsa.",
+      },
     ],
   },
   goodbyeVoice: {

@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
 import type { ActiveBoard } from '@/features/cards/use-active-board'
+import { ageLabel } from '@/features/parent/age-label'
+import { ageOf } from '@/features/parent/relative-time'
 import { remainingMs } from '@/features/session/session-clock'
 import { useSession } from '@/features/session/session-provider'
 import { useNow } from '@/features/session/use-now'
@@ -20,6 +22,8 @@ const PROGRESS_HEIGHT = 6
 interface SessionControlsProps {
   /** The board the child will see, summed up under the start button; undefined while loading. */
   activeBoard: ActiveBoard | null | undefined
+  /** When the last session ended; null before the first one, undefined while loading. */
+  lastEndedAt: number | null | undefined
 }
 
 /** Leaves parent mode for child mode, resuming the paused session if there is one. */
@@ -52,7 +56,7 @@ function useLeaveParentMode(): () => void {
  * The session panel of parent home: go back to the paused session or end it, or start a new one once the break after
  * the last full session is over. Returning to child mode without a session shows the calm start screen.
  */
-export function SessionControls({ activeBoard }: SessionControlsProps): ReactElement {
+export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsProps): ReactElement {
   const session = useSession()
   const settings = useSettings()
   const backToChildMode = useBackToChildMode()
@@ -118,7 +122,7 @@ export function SessionControls({ activeBoard }: SessionControlsProps): ReactEle
     <Panel>
       <View style={styles.status}>
         <Text style={styles.statusText}>{strings.session.none}</Text>
-        {breakLeft > 0 && <Text style={styles.statusText}>{strings.session.breakLeft(Math.ceil(breakLeft / MINUTE_MS))}</Text>}
+        <Text style={styles.statusText}>{idleNote(breakLeft, lastEndedAt, now)}</Text>
       </View>
       <ParentButton
         disabled={breakLeft > 0}
@@ -133,6 +137,19 @@ export function SessionControls({ activeBoard }: SessionControlsProps): ReactEle
       )}
     </Panel>
   )
+}
+
+/** The break blocks a new session, so it comes first; otherwise the panel says when the last session ended. */
+function idleNote(breakLeft: number, lastEndedAt: number | null | undefined, now: number): string {
+  if (breakLeft > 0) {
+    return strings.session.breakLeft(Math.ceil(breakLeft / MINUTE_MS))
+  }
+
+  if (!lastEndedAt) {
+    return ''
+  }
+
+  return strings.session.lastAgo(ageLabel(ageOf(lastEndedAt, now)))
 }
 
 const styles = StyleSheet.create({

@@ -92,4 +92,31 @@ describe('SessionsRepository', () => {
 
     expect(await sessions.lastTimerEndedAt()).toBe(600_000)
   })
+
+  test('reports the end of the last session whatever ended it', async () => {
+    const { sessions } = await setUp()
+
+    expect(await sessions.lastEndedAt()).toBeNull()
+
+    await sessions.end(await sessions.start(0), 'timer', 600_000)
+
+    const running = await sessions.start(700_000)
+
+    expect(await sessions.lastEndedAt()).toBe(600_000)
+
+    await sessions.end(running, 'parent_exit', 800_000)
+
+    expect(await sessions.lastEndedAt()).toBe(800_000)
+  })
+
+  test('counts the sessions started since a moment', async () => {
+    const { sessions } = await setUp()
+
+    await sessions.end(await sessions.start(1000), 'timer', 2000)
+    await sessions.end(await sessions.start(5000), 'timer', 6000)
+
+    expect(await sessions.countStartedSince(0)).toBe(2)
+    expect(await sessions.countStartedSince(5000)).toBe(1)
+    expect(await sessions.countStartedSince(6000)).toBe(0)
+  })
 })

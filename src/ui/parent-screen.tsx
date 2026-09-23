@@ -7,14 +7,14 @@ import { strings } from '@/i18n'
 import { Ornaments } from '@/ui/ornaments'
 import { color, space, touch, typography } from '@/ui/theme'
 
-/** DESIGN §2: the medallion sits in the top-right corner of parent mode at 40%. */
+/** DESIGN §2: the medallion sits in the top-right corner of parent mode at 40%, where the header leaves it free. */
 const ORNAMENT_OPACITY = 0.4
 
 interface ParentScreenProps extends PropsWithChildren {
   title: string
   /** Parent home has no way back, only its own close button. */
   hasBack?: boolean
-  /** Right end of the header: a badge, a label or an icon button. */
+  /** Right end of the header: a badge, a label or an icon button. It takes the corner the medallion would use. */
   accessory?: ReactNode
   /** Pinned under the scrolling content, for the screen's main action. */
   footer?: ReactNode
@@ -30,7 +30,7 @@ export function ParentScreen({ title, hasBack = true, accessory, footer, childre
 
   return (
     <View style={styles.root}>
-      <Ornaments smallOpacity={ORNAMENT_OPACITY} />
+      {!accessory && <Ornaments smallOpacity={ORNAMENT_OPACITY} />}
       <ScrollView
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[

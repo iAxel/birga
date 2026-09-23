@@ -3,13 +3,14 @@ import type { ReactElement } from 'react'
 import { StyleSheet, Text } from 'react-native'
 import { useActiveBoard } from '@/features/cards/use-active-board'
 import { tipOfDay } from '@/features/parent/tip-of-day'
+import { useSessionStats } from '@/features/parent/use-session-stats'
 import { SessionControls, useBackToChildMode } from '@/features/session/session-controls'
 import { useNow } from '@/features/session/use-now'
 import { strings } from '@/i18n'
 import { ListRow, Panel, SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
-import { color, font, typography } from '@/ui/theme'
+import { color, font, space, typography } from '@/ui/theme'
 
 /** The tip changes at midnight; parent home is seldom open for long, so a minute is precise enough. */
 const TIP_REFRESH_MS = 60_000
@@ -21,9 +22,10 @@ const TIP_REFRESH_MS = 60_000
 export default function ParentHomeScreen(): ReactElement {
   const router = useRouter()
   const activeBoard = useActiveBoard()
+  const stats = useSessionStats()
   const backToChildMode = useBackToChildMode()
   const now = useNow(TIP_REFRESH_MS)
-  const tip = strings.tips.items[tipOfDay(new Date(now), strings.tips.items.length)]
+  const tip = strings.sessionGuide.steps[tipOfDay(new Date(now), strings.sessionGuide.steps.length)]
 
   return (
     <ParentScreen
@@ -32,7 +34,7 @@ export default function ParentHomeScreen(): ReactElement {
       hasBack={false}
       title={strings.child.wordmark}
     >
-      <SessionControls activeBoard={activeBoard} />
+      <SessionControls activeBoard={activeBoard} lastEndedAt={stats?.lastEndedAt} />
       <Panel hasRows>
         <ListRow
           hasSeparator
@@ -41,13 +43,26 @@ export default function ParentHomeScreen(): ReactElement {
           title={strings.parent.cards}
           value={activeBoard ? strings.boards.summary(activeBoard.board.title, activeBoard.cardCount) : undefined}
         />
+        <ListRow
+          hasSeparator
+          icon="list.bullet"
+          onPress={() => router.push('/session-guide')}
+          title={strings.sessionGuide.title}
+        />
         <ListRow hasSeparator icon="waveform" onPress={() => router.push('/sequences')} title={strings.parent.sequences} />
-        <ListRow hasSeparator icon="chart.bar" onPress={() => router.push('/log')} title={strings.parent.log} />
+        <ListRow
+          hasSeparator
+          icon="chart.bar"
+          onPress={() => router.push('/log')}
+          title={strings.parent.log}
+          value={stats && stats.todayCount > 0 ? strings.parent.logToday(stats.todayCount) : undefined}
+        />
         <ListRow icon="gearshape" onPress={() => router.push('/settings')} title={strings.parent.settings} />
       </Panel>
       <Panel>
         <SectionLabel title={strings.tips.title} />
-        <Text style={styles.tip}>{tip}</Text>
+        <Text style={styles.tipTitle}>{tip.title}</Text>
+        <Text style={styles.tip}>{tip.text}</Text>
       </Panel>
     </ParentScreen>
   )
@@ -57,6 +72,11 @@ const styles = StyleSheet.create({
   label: {
     ...typography.row,
     color: color.muted,
+  },
+  tipTitle: {
+    ...typography.row,
+    marginBottom: -space.sm,
+    fontFamily: font.bold,
   },
   tip: {
     color: color.ink,
