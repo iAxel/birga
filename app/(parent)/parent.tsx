@@ -4,6 +4,7 @@ import { StyleSheet, Text } from 'react-native'
 import { useActiveBoard } from '@/features/cards/use-active-board'
 import { tipOfDay } from '@/features/parent/tip-of-day'
 import { useSessionStats } from '@/features/parent/use-session-stats'
+import { useActiveSequence } from '@/features/sequences/use-active-sequence'
 import { SessionControls, useBackToChildMode } from '@/features/session/session-controls'
 import { useNow } from '@/features/session/use-now'
 import { strings } from '@/i18n'
@@ -23,6 +24,7 @@ export default function ParentHomeScreen(): ReactElement {
   const router = useRouter()
   const activeBoard = useActiveBoard()
   const stats = useSessionStats()
+  const sequence = useActiveSequence()
   const backToChildMode = useBackToChildMode()
   const now = useNow(TIP_REFRESH_MS)
   const tip = strings.sessionGuide.steps[tipOfDay(new Date(now), strings.sessionGuide.steps.length)]
@@ -48,7 +50,13 @@ export default function ParentHomeScreen(): ReactElement {
           onPress={() => router.push('/session-guide')}
           title={strings.sessionGuide.title}
         />
-        <ListRow hasSeparator icon="waveform" onPress={() => router.push('/sequences')} title={strings.parent.sequences} />
+        <ListRow
+          hasSeparator
+          icon="waveform"
+          onPress={() => router.push('/sequences')}
+          title={strings.parent.sequences}
+          value={sequence?.title}
+        />
         <ListRow
           hasSeparator
           icon="chart.bar"

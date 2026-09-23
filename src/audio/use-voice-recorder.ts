@@ -1,5 +1,6 @@
 import { RecordingPresets, requestRecordingPermissionsAsync, useAudioRecorder } from 'expo-audio'
 import { useEffect, useRef, useState } from 'react'
+import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { LEVEL_INTERVAL_MS, meteringLevel } from '@/audio/metering'
 
 /** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
@@ -8,8 +9,8 @@ const RECORDING_OPTIONS = {
   isMeteringEnabled: true,
 }
 
-/** SPEC §5: a card recording lasts at most 4 s. */
-export const MAX_RECORDING_MS = 4000
+/** A recording lasts as long as an imported file may: SPEC §5 allows 4 s either way. */
+export const MAX_RECORDING_MS = MAX_AUDIO_MS
 
 /** Anything shorter is a tap on the button, not a recording. */
 const MIN_RECORDING_MS = 300

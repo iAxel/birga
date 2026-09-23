@@ -1,7 +1,13 @@
 import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS, MIN_BREAK_MINUTES_OPTIONS, SESSION_MINUTES_OPTIONS } from '@/db'
+import {
+  CARDS_PER_SCREEN_OPTIONS,
+  DEBOUNCE_SECONDS_OPTIONS,
+  MIN_BREAK_MINUTES_OPTIONS,
+  PAUSE_WINDOW_SECONDS_OPTIONS,
+  SESSION_MINUTES_OPTIONS,
+} from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ChipGroup } from '@/ui/chips'
@@ -9,6 +15,7 @@ import { fontForText } from '@/ui/fonts'
 import { useFormFactor } from '@/ui/form-factor'
 import { ListRow, Panel, SectionLabel } from '@/ui/panel'
 import { ParentScreen } from '@/ui/parent-screen'
+import { SwitchRow } from '@/ui/switch-row'
 import { color, font, radius, space, typography } from '@/ui/theme'
 
 const NAME_HEIGHT = 48
@@ -69,6 +76,35 @@ export default function SettingsScreen(): ReactElement {
           />
           <Text style={typography.body}>{strings.settings.debounceHint}</Text>
         </View>
+      </Panel>
+      <Panel>
+        <SectionLabel title={strings.settings.gameSection} />
+        <SwitchRow
+          onChange={(value) => saveSetting('pauseGameEnabled', value)}
+          title={strings.settings.gameEnabled}
+          value={settings.pauseGameEnabled}
+        />
+        <Text style={typography.body}>{strings.settings.gameEnabledHint}</Text>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.pauseWindow}</Text>
+          <ChipGroup
+            label={strings.settings.seconds}
+            onChange={(option) => saveSetting('pauseWindowSeconds', option)}
+            options={PAUSE_WINDOW_SECONDS_OPTIONS}
+            value={settings.pauseWindowSeconds}
+          />
+          <Text style={typography.body}>{strings.settings.pauseWindowHint}</Text>
+        </View>
+        <SwitchRow
+          onChange={(value) => saveSetting('rewardGlow', value)}
+          title={strings.settings.rewardGlow}
+          value={settings.rewardGlow}
+        />
+        <SwitchRow
+          onChange={(value) => saveSetting('rewardSparks', value)}
+          title={strings.settings.rewardSparks}
+          value={settings.rewardSparks}
+        />
       </Panel>
       <Panel>
         <SectionLabel title={strings.settings.sessionSection} />

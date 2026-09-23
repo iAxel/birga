@@ -131,8 +131,6 @@ Both are rendered from `src/ui/medallion.ts` by `npm run brand-assets`, so the o
 
 Named here so the mockups are not read as a promise:
 
-- **Pause game** (mockups 6, 7, 12, 13) and the sequence editor: build step 6.
-- **Log** (mockup 19): the screen has the header and a "coming soon" panel; the week strip, the counters, the per-card bars and the export come with build step 8, which is where the queries over the event log belong.
-- **Values that need data the app does not keep yet:** "oxirgisi 2 soat oldin" and "Bugun 2" on home, the voice length and the recorder's name in the board rows, the sequence name beside Ketma-ketliklar.
-- **Attempt recordings** (§6.1) and the Urinishlar list in the log: not adopted, see the parent corners above.
-- **Audio import** in the card editor and the **symbol** of a sequence item: spec only.
+- **The vocalization detector**: the pause ends on the parent's button or when its time runs out; the microphone comes with build step 7.
+- **The "waiting" character**: the pause game shows the hint and three dots, no character; v0.1 has none anywhere.
+- **Values that need data the app does not keep:** the voice length and the recorder's name in the board rows.
