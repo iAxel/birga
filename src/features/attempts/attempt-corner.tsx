@@ -29,6 +29,8 @@ interface AttemptCornerProps {
 export function AttemptCorner({ label, hint, onCredit, targetNow, onRecorded }: AttemptCornerProps): ReactElement {
   const [isNoted, setIsNoted] = useState(false)
   const targetRef = useRef<AttemptTarget | null>(null)
+  /** The screen's latest idea of what an attempt is about, read when the hold turns into a recording 400 ms later. */
+  const targetNowRef = useRef(targetNow)
   const recorder = useVoiceRecorder((uri, _levels, durationMs) => onRecorded(uri, durationMs, targetRef.current), {
     askOnMount: false,
   })
@@ -47,6 +49,10 @@ export function AttemptCorner({ label, hint, onCredit, targetNow, onRecorded }: 
   }, [isNoted])
 
   useEffect(() => {
+    targetNowRef.current = targetNow
+  }, [targetNow])
+
+  useEffect(() => {
     return () => clearTimeout(holdRef.current ?? undefined)
   }, [])
 
@@ -61,7 +67,7 @@ export function AttemptCorner({ label, hint, onCredit, targetNow, onRecorded }: 
 
     holdRef.current = setTimeout(() => {
       holdRef.current = null
-      targetRef.current = targetNow()
+      targetRef.current = targetNowRef.current()
 
       if (!recorder.start()) {
         isCreditHoldRef.current = true
