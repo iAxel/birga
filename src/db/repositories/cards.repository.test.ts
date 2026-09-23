@@ -66,6 +66,7 @@ describe('CardsRepository', () => {
       imagePath: 'media/cards/cup.jpg',
       audioPath: 'media/cards/suv.m4a',
       audioLevels: null,
+      isArchived: false,
     })
   })
 

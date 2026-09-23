@@ -1,6 +1,6 @@
 import type { Database } from '@/db/database'
 import type { EventsRepository } from '@/db/repositories/events.repository'
-import type { SessionEndReason } from '@/db/schema'
+import type { SessionEndReason, SessionRow } from '@/db/schema'
 
 interface InterruptedSessionRow {
   id: number
@@ -78,6 +78,11 @@ export class SessionsRepository {
     for (const row of rows) {
       await this.end(row.id, 'app_killed', row.last_at)
     }
+  }
+
+  /** Every session, oldest first: the export carries them as they are. */
+  async listAll(): Promise<SessionRow[]> {
+    return this.#_db.getAllAsync<SessionRow>('SELECT * FROM sessions ORDER BY started_at, id')
   }
 
   /** When the last session that ran its full time ended: the minimum break counts from there. */

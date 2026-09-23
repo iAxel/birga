@@ -6,6 +6,8 @@ export interface Card {
   id: number
   boardId: number
   text: string
+  /** An archived card is out of the child's board but stays for the events that point at it. */
+  isArchived: boolean
   imagePath: string | null
   audioPath: string
   /** Loudness of the recording, one value per tenth of a second; null for cards recorded before it was kept. */
@@ -35,6 +37,13 @@ export class CardsRepository {
       'SELECT * FROM cards WHERE board_id = ? AND is_archived = 0 ORDER BY position, id',
       boardId,
     )
+
+    return rows.map((row) => this.#_toCard(row))
+  }
+
+  /** Every card of every board, archived ones too: the export keeps the words the event log refers to. */
+  async listAll(): Promise<Card[]> {
+    const rows = await this.#_db.getAllAsync<CardRow>('SELECT * FROM cards ORDER BY board_id, position, id')
 
     return rows.map((row) => this.#_toCard(row))
   }
@@ -133,6 +142,7 @@ export class CardsRepository {
       imagePath: row.image_path,
       audioPath: row.audio_path,
       audioLevels: decodeLevels(row.audio_levels),
+      isArchived: row.is_archived === 1,
     }
   }
 }

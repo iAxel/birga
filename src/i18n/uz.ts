@@ -44,6 +44,15 @@ export const uz = {
     startHint: (goal: number): string => `${goal} ta karta qo'shilgach faollashadi`,
   },
   log: {
+    weekdays: ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'],
+    sessions: 'sessiya',
+    taps: 'bosish',
+    tries: 'aytishga urindi',
+    byCards: "Kartalar bo'yicha",
+    loopTitle: (word: string, count: number): string => `«${word}» ${count} marta qayta bosildi`,
+    loopHint: "Ovoz uchun takrorlayotgan bo'lishi mumkin. Kartani almashtirib yoki pauzani uzaytirib ko'ring.",
+    export: 'Eksport',
+    exportFailed: "Eksport qilinmadi. Yana urinib ko'ring.",
     attempts: 'Urinishlar',
     attemptsEmpty:
       "Hali urinish yozilmagan. Bola so'z aytishga urinsa, ekranning chap pastki burchagidagi tugmani bosib turing.",

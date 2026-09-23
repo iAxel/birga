@@ -56,7 +56,8 @@
           "cameraPermission": "Kartalar uchun narsalarni suratga olish uchun kerak.",
           "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
