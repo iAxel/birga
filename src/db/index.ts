@@ -17,6 +17,8 @@ export {
   DEBOUNCE_SECONDS_OPTIONS,
   type DebounceSeconds,
   DEFAULT_SETTINGS,
+  DETECTION_MARGIN_DB_OPTIONS,
+  type DetectionMarginDb,
   MIN_BREAK_MINUTES_OPTIONS,
   type MinBreakMinutes,
   PAUSE_WINDOW_SECONDS_OPTIONS,

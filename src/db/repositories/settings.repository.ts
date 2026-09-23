@@ -13,6 +13,11 @@ export const PAUSE_WINDOW_SECONDS_OPTIONS = [3, 5, 8] as const
 
 export type PauseWindowSeconds = (typeof PAUSE_WINDOW_SECONDS_OPTIONS)[number]
 
+/** How far above the room a sound has to be to count as the child's; a smaller number listens more readily. */
+export const DETECTION_MARGIN_DB_OPTIONS = [6, 9, 12, 15] as const
+
+export type DetectionMarginDb = (typeof DETECTION_MARGIN_DB_OPTIONS)[number]
+
 export const SESSION_MINUTES_OPTIONS = [5, 10, 15] as const
 
 export type SessionMinutes = (typeof SESSION_MINUTES_OPTIONS)[number]
@@ -29,6 +34,8 @@ export interface Settings {
   debounceSeconds: DebounceSeconds
   /** How long the pause game waits for the child before it says the item itself (SPEC §3). */
   pauseWindowSeconds: PauseWindowSeconds
+  /** How far above the room the child has to sound for the pause game to count it (SPEC §3). */
+  detectionMarginDb: DetectionMarginDb
   /** The soft glow behind a filled pause. */
   rewardGlow: boolean
   /** The sparks that rise once over a filled pause. */
@@ -48,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cardsPerScreen: 4,
   debounceSeconds: 8,
   pauseWindowSeconds: 5,
+  detectionMarginDb: 12,
   rewardGlow: true,
   rewardSparks: true,
   sessionMinutes: 10,
@@ -82,6 +90,11 @@ export class SettingsRepository {
         stored.get('pauseWindowSeconds'),
         PAUSE_WINDOW_SECONDS_OPTIONS,
         DEFAULT_SETTINGS.pauseWindowSeconds,
+      ),
+      detectionMarginDb: this.#_readOneOf(
+        stored.get('detectionMarginDb'),
+        DETECTION_MARGIN_DB_OPTIONS,
+        DEFAULT_SETTINGS.detectionMarginDb,
       ),
       rewardGlow: this.#_readBoolean(stored.get('rewardGlow'), DEFAULT_SETTINGS.rewardGlow),
       rewardSparks: this.#_readBoolean(stored.get('rewardSparks'), DEFAULT_SETTINGS.rewardSparks),
