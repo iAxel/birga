@@ -6,7 +6,7 @@ function attempt(id: number, ts: number): Attempt {
   return {
     id,
     ts,
-    cardText: 'suv',
+    word: 'suv',
     audioPath: `media/attempts/${id}.m4a`,
     durationMs: 1200,
   }

@@ -1,7 +1,8 @@
-import { RecordingPresets, requestRecordingPermissionsAsync, useAudioRecorder } from 'expo-audio'
+import { RecordingPresets, useAudioRecorder } from 'expo-audio'
 import { useEffect, useRef, useState } from 'react'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { LEVEL_INTERVAL_MS, meteringLevel, trimLevels } from '@/audio/metering'
+import { askForMicrophone, hasMicrophone } from '@/audio/microphone'
 
 /** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
 const RECORDING_OPTIONS = {
@@ -19,8 +20,9 @@ export type MicrophoneAccess = 'pending' | 'granted' | 'denied'
 
 export interface VoiceRecorderOptions {
   /**
-   * Whether to ask for the microphone on mount. Child mode passes false: the question belongs to the moment the parent
-   * holds the corner, not to a screen the child is looking at. The first hold then only asks, and records from the next.
+   * Whether to ask for the microphone on mount. Child mode passes false: the system dialog belongs to parent mode,
+   * which asks for the microphone when the parent starts a session. A permission already given is found here either
+   * way, so the first hold of a session records.
    */
   askOnMount?: boolean
 }
@@ -62,15 +64,27 @@ export function useVoiceRecorder(
   const takeRef = useRef<Take | null>(null)
   const isWantedRef = useRef(false)
 
+  /** What the app is allowed to do already, without asking anybody. */
+  useEffect(() => {
+    let isCurrent = true
+
+    hasMicrophone().then((isAllowed) => {
+      if (isCurrent && isAllowed) {
+        setAccess('granted')
+      }
+    })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
   useEffect(() => {
     if (!isRequested) {
       return
     }
 
-    requestRecordingPermissionsAsync().then(
-      (permission) => setAccess(permission.granted ? 'granted' : 'denied'),
-      () => setAccess('denied'),
-    )
+    askForMicrophone().then((isAllowed) => setAccess(isAllowed ? 'granted' : 'denied'))
   }, [isRequested])
 
   /** A screen that goes away mid-take takes the microphone with it, rather than leaving it open. */

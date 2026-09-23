@@ -63,7 +63,7 @@ docs/SPEC.md
 - Migrations are append-only, numbered files. Never edit an applied migration.
 - Change the database schema (a table, a column, a migration) only when I ask for it. A feature that seems to need one: stop and ask.
 - Every child-facing interaction writes an event to the log (see SPEC, Event log). If you add an interaction, add its event type.
-- Touch targets in child mode: minimum 120×120 pt. Parent-mode entry is a 3-second hold on a small corner element, never a plain tap.
+- Touch targets in child mode: minimum 120×120 pt for anything the child taps. The parent's own controls on a child screen (the corner buttons, the gate dot) are deliberately small, 44–56 pt, so the child does not aim for them. Parent-mode entry is a 3-second hold on a small corner element, never a plain tap.
 - Pure logic (vocalization detector, debounce, session timer) gets unit tests with Jest. UI does not need tests in v0.1.
 
 ## Audio rules (easy to get wrong)

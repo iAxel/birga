@@ -182,7 +182,7 @@ function AttemptRow({ attempt, hasSeparator, onPlay }: AttemptRowProps): ReactEl
       hasSeparator={hasSeparator}
       icon="play.fill"
       onPress={onPlay}
-      title={attempt.cardText ?? strings.log.attemptWithoutCard}
+      title={attempt.word ?? strings.log.attemptWithoutCard}
       value={strings.log.attemptMeta(timeOfDay(attempt.ts), (attempt.durationMs / 1000).toFixed(1))}
     />
   )

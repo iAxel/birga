@@ -1,15 +1,9 @@
-import { type ReactElement, useEffect, useRef, useState } from 'react'
+import type { ReactElement } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { useVoiceRecorder } from '@/audio/use-voice-recorder'
+import { AttemptCorner } from '@/features/attempts/attempt-corner'
 import { strings } from '@/i18n'
 import { CornerButton } from '@/ui/corner-button'
 import { color } from '@/ui/theme'
-
-/** How long the attempt icon stays lit, so the parent sees the tap counted. */
-const ATTEMPT_NOTED_MS = 800
-
-/** Held longer than this, the attempt control records instead of crediting a tap. */
-const HOLD_TO_RECORD_MS = 400
 
 const MODELING_BAR_HEIGHT = 3
 
@@ -33,62 +27,14 @@ export function ParentControls({
   onAttemptRecorded,
   onToggleModeling,
 }: ParentControlsProps): ReactElement {
-  const [isAttemptNoted, setIsAttemptNoted] = useState(false)
-  const recorder = useVoiceRecorder((uri, _levels, durationMs) => onAttemptRecorded(uri, durationMs), {
-    askOnMount: false,
-  })
-  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    if (!isAttemptNoted) {
-      return
-    }
-
-    const timeout = setTimeout(() => setIsAttemptNoted(false), ATTEMPT_NOTED_MS)
-
-    return () => clearTimeout(timeout)
-  }, [isAttemptNoted])
-
-  useEffect(() => {
-    return () => clearTimeout(holdRef.current ?? undefined)
-  }, [])
-
-  function startHold(): void {
-    holdRef.current = setTimeout(() => {
-      holdRef.current = null
-
-      recorder.start()
-    }, HOLD_TO_RECORD_MS)
-  }
-
-  /** Let go before the hold turned into a recording: that was a tap, and a tap credits the attempt. */
-  function endHold(): void {
-    if (holdRef.current !== null) {
-      clearTimeout(holdRef.current)
-
-      holdRef.current = null
-
-      onAttempt()
-
-      setIsAttemptNoted(true)
-
-      return
-    }
-
-    recorder.stop()
-  }
-
   return (
     <>
       {isModeling && <View style={styles.modelingBar} />}
-      <CornerButton
+      <AttemptCorner
         hint={strings.requests.attemptHold}
-        icon="bubble.left"
-        isOn={isAttemptNoted || recorder.isRecording}
         label={strings.requests.attempt}
-        onPressIn={startHold}
-        onPressOut={endHold}
-        side="left"
+        onCredit={onAttempt}
+        onRecorded={onAttemptRecorded}
       />
       <CornerButton
         icon="hand.tap"

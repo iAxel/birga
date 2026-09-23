@@ -66,7 +66,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
      - Nothing → `pause_timeout`: the hint turns ink without glow or sparks while the app simply says the item itself, neutral tone, continues. No negative feedback of any kind.
   4. Sequence finishes → short end animation → next round or stop.
 - **Max 5 rounds per game**, then the game tab becomes inert until the next session (anti-loop).
-- Parent "attempt" button works here too (`pause_parent_credit`), for when detection missed a quiet attempt.
+- Parent "attempt" button works here too (`pause_parent_credit`), for when detection missed a quiet attempt. Holding it records the sound itself, exactly as on the request board, logged as `attempt_recorded` against the item the round pauses on (`sequence_id` + `item_position`).
 
 ### Vocalization detector
 
@@ -81,6 +81,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 ## 4. Session
 
 - The parent starts a session from parent mode; the app itself opens on the calm Goodbye screen, so the child never starts one alone. Length: **10 min** default (setting: 5/10/15).
+- Starting a session asks for the microphone, so the system dialog comes up in parent mode and never in front of the child. A refusal only means the session runs without listening: the pause game then ends its pauses on the timer and on the parent's button.
 - Parent mode pauses the running session. The parent returns to it, or ends it there (`parent_exit`).
 - Last minute: subtle visual countdown, a 3 pt bar at the top edge shrinking right to left, no sound.
 - At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional, recorded in Settings), then a static calm screen. Nothing on it is tappable except the parent gate. Until the character exists, a waving hand symbol stands in for it.
@@ -120,7 +121,7 @@ The daily tip on parent home is one of these seven steps, a different one each d
 ### Log
 
 - Simple daily summary list: session count, request taps per card, pause filled / timeout ratio, parent-credited attempts.
-- **Urinishlar**: the attempt recordings of the day, each with the card it belongs to, the time and its length, playable by the parent.
+- **Urinishlar**: the attempt recordings of the day, each with the word it belongs to — a card, or an item of the sequence in the pause game — the time and its length, playable by the parent.
 - **Export** as CSV/JSON via share sheet, together with the attempt recordings. This is the only way data leaves the device.
 
 ---

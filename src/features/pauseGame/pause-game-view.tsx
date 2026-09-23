@@ -15,6 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
 import { mediaUri, type SequenceItem } from '@/db'
+import { AttemptCorner } from '@/features/attempts/attempt-corner'
+import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import {
   afterItem,
   afterPause,
@@ -30,7 +32,6 @@ import { usePauseSequence } from '@/features/pauseGame/use-pause-sequence'
 import { useEventLog } from '@/features/session/use-event-log'
 import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { CornerButton } from '@/ui/corner-button'
 import { fontForText } from '@/ui/fonts'
 import { type FormFactor, useFormFactor } from '@/ui/form-factor'
 import { color, font, space, touch, typography } from '@/ui/theme'
@@ -80,6 +81,7 @@ export function PauseGameView(): ReactElement {
   const insets = useSafeAreaInsets()
   const settings = useSettings()
   const logEvent = useEventLog()
+  const saveAttempt = useSaveAttempt()
   const player = useVoicePlayer()
   const items = usePauseSequence()
   const look = LOOK[useFormFactor()]
@@ -275,6 +277,20 @@ export function PauseGameView(): ReactElement {
     }, [player]),
   )
 
+  /** A sound of the child as the parent heard it, kept against the item the round is pausing on (SPEC §3). */
+  function recordAttempt(uri: string, durationMs: number): void {
+    const item = items?.[state?.pauseAt ?? -1]
+
+    if (!item) {
+      return
+    }
+
+    saveAttempt(uri, durationMs, {
+      sequenceId: item.sequenceId,
+      itemPosition: item.position,
+    })
+  }
+
   function credit(): void {
     const item = state && items && state.phase === 'waiting' ? items[state.pauseAt] : undefined
 
@@ -369,13 +385,12 @@ export function PauseGameView(): ReactElement {
         )}
         <WaitingMark isAnswered={isAnswered} isWaiting={state?.phase === 'waiting'} />
       </View>
-      <CornerButton
+      <AttemptCorner
         hint={strings.pauseGame.creditHint}
-        icon="bubble.left"
         isOn={filledAt !== null && state?.phase !== 'waiting'}
         label={strings.pauseGame.credit}
-        onPress={credit}
-        side="left"
+        onCredit={credit}
+        onRecorded={recordAttempt}
       />
     </View>
   )

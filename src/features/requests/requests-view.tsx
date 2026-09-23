@@ -1,7 +1,7 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { storeMedia } from '@/db'
+import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import { cardsOnScreen } from '@/features/requests/board-layout'
 import { ParentControls } from '@/features/requests/parent-controls'
 import { MODELING_MS } from '@/features/requests/request-gate'
@@ -21,6 +21,7 @@ export function RequestsView(): ReactElement {
   const metrics = useChildMetrics()
   const settings = useSettings()
   const logEvent = useEventLog()
+  const saveAttempt = useSaveAttempt()
   const cards = useActiveBoardCards()
   const [modelingUntil, setModelingUntil] = useState<number | null>(null)
   const lastPlayedCardIdRef = useRef<number | null>(null)
@@ -44,20 +45,6 @@ export function RequestsView(): ReactElement {
     logEvent({
       type: 'request_verbal_attempt',
       cardId: lastPlayedCardIdRef.current,
-    })
-  }
-
-  /** Keeps the recording the parent made of an attempt and logs where it went (SPEC §2). */
-  async function saveAttempt(uri: string, durationMs: number): Promise<void> {
-    const audioPath = await storeMedia(uri, 'attempts')
-
-    logEvent({
-      type: 'attempt_recorded',
-      cardId: lastPlayedCardIdRef.current,
-      payload: {
-        audioPath,
-        durationMs,
-      },
     })
   }
 
@@ -92,7 +79,11 @@ export function RequestsView(): ReactElement {
       <ParentControls
         isModeling={modelingUntil !== null}
         onAttempt={logAttempt}
-        onAttemptRecorded={saveAttempt}
+        onAttemptRecorded={(uri, durationMs) =>
+          saveAttempt(uri, durationMs, {
+            cardId: lastPlayedCardIdRef.current,
+          })
+        }
         onToggleModeling={toggleModeling}
       />
     </View>
