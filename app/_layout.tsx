@@ -14,22 +14,23 @@ SplashScreen.preventAutoHideAsync()
 
 configureAudioSession()
 
-interface RootStackProps {
-  areFontsReady: boolean
-}
-
 /**
- * No screen renders until the database is migrated, settings and sessions are ready and the fonts are loaded; the splash
- * screen covers that. The fonts load while the database opens.
+ * No screen renders until the fonts are loaded and the database, settings and sessions are ready; the splash screen
+ * covers that. The fonts are awaited here, above the providers: SQLiteProvider is memoised on its own props and drops
+ * a children element that changes after it has mounted, so nothing below it may depend on a value from above.
  */
-export default function RootLayout(): ReactElement {
+export default function RootLayout(): ReactElement | null {
   const areFontsReady = useAppFonts()
+
+  if (!areFontsReady) {
+    return null
+  }
 
   return (
     <DatabaseProvider>
       <SettingsProvider>
         <SessionProvider>
-          <RootStack areFontsReady={areFontsReady} />
+          <RootStack />
         </SessionProvider>
       </SettingsProvider>
     </DatabaseProvider>
@@ -53,16 +54,10 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps): ReactElement {
 }
 
 /** Child and parent modes. No swipe-back between them: leaving parent mode goes through its own button. */
-function RootStack({ areFontsReady }: RootStackProps): ReactElement | null {
+function RootStack(): ReactElement {
   useEffect(() => {
-    if (areFontsReady) {
-      SplashScreen.hide()
-    }
-  }, [areFontsReady])
-
-  if (!areFontsReady) {
-    return null
-  }
+    SplashScreen.hide()
+  }, [])
 
   return (
     <Stack
