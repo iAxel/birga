@@ -35,6 +35,8 @@ export interface SequenceItemRow {
   sequence_id: number
   position: number
   text: string
+  /** One character shown above the word, e.g. the digit of a counting sequence; optional. */
+  symbol: string | null
   audio_path: string | null
   image_path: string | null
 }

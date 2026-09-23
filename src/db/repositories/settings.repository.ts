@@ -9,6 +9,10 @@ export const DEBOUNCE_SECONDS_OPTIONS = [4, 8, 12, 16] as const
 
 export type DebounceSeconds = (typeof DEBOUNCE_SECONDS_OPTIONS)[number]
 
+export const PAUSE_WINDOW_SECONDS_OPTIONS = [3, 5, 8] as const
+
+export type PauseWindowSeconds = (typeof PAUSE_WINDOW_SECONDS_OPTIONS)[number]
+
 export const SESSION_MINUTES_OPTIONS = [5, 10, 15] as const
 
 export type SessionMinutes = (typeof SESSION_MINUTES_OPTIONS)[number]
@@ -23,6 +27,12 @@ export interface Settings {
   pauseGameEnabled: boolean
   cardsPerScreen: CardsPerScreen
   debounceSeconds: DebounceSeconds
+  /** How long the pause game waits for the child before it says the item itself (SPEC §3). */
+  pauseWindowSeconds: PauseWindowSeconds
+  /** The soft glow behind a filled pause. */
+  rewardGlow: boolean
+  /** The sparks that rise once over a filled pause. */
+  rewardSparks: boolean
   sessionMinutes: SessionMinutes
   minBreakMinutes: MinBreakMinutes
   /** The parent's recorded "Xayr!" for the end of a session, relative to the document directory; optional. */
@@ -37,6 +47,9 @@ export const DEFAULT_SETTINGS: Settings = {
   pauseGameEnabled: false,
   cardsPerScreen: 4,
   debounceSeconds: 8,
+  pauseWindowSeconds: 5,
+  rewardGlow: true,
+  rewardSparks: true,
   sessionMinutes: 10,
   minBreakMinutes: 30,
   goodbyeAudioPath: null,
@@ -65,6 +78,13 @@ export class SettingsRepository {
         DEBOUNCE_SECONDS_OPTIONS,
         DEFAULT_SETTINGS.debounceSeconds,
       ),
+      pauseWindowSeconds: this.#_readOneOf(
+        stored.get('pauseWindowSeconds'),
+        PAUSE_WINDOW_SECONDS_OPTIONS,
+        DEFAULT_SETTINGS.pauseWindowSeconds,
+      ),
+      rewardGlow: this.#_readBoolean(stored.get('rewardGlow'), DEFAULT_SETTINGS.rewardGlow),
+      rewardSparks: this.#_readBoolean(stored.get('rewardSparks'), DEFAULT_SETTINGS.rewardSparks),
       sessionMinutes: this.#_readOneOf(stored.get('sessionMinutes'), SESSION_MINUTES_OPTIONS, DEFAULT_SETTINGS.sessionMinutes),
       minBreakMinutes: this.#_readOneOf(
         stored.get('minBreakMinutes'),
