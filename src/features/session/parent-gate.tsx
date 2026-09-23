@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
-import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated'
+import Animated, { cancelAnimation, Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle } from 'react-native-svg'
+import { scheduleOnRN } from 'react-native-worklets'
 import { useSession } from '@/features/session/session-provider'
 import { useEventLog } from '@/features/session/use-event-log'
 import { strings } from '@/i18n'
@@ -11,6 +12,9 @@ import { GATE_INSET } from '@/ui/child-metrics'
 import { color, touch } from '@/ui/theme'
 
 const HOLD_MS = 3000
+
+/** A finger resting for three seconds drifts; this much drift still counts as holding. */
+const HOLD_SLACK = 24
 
 const DOT_SIZE = 12
 
@@ -43,16 +47,33 @@ export function ParentGate(): ReactElement {
     strokeDashoffset: RING_LENGTH * (1 - held.get()),
   }))
 
+  /**
+   * The ring itself opens parent mode. It runs on the UI thread, so it measures the three seconds whatever the JS
+   * thread is doing: a busy moment can only make the screen come a little later, never swallow a hold that looked
+   * complete. Letting go stops the ring, and a stopped ring opens nothing.
+   */
   function startHold(): void {
     held.set(
-      withTiming(1, {
-        duration: HOLD_MS,
-        easing: Easing.linear,
-      }),
+      withTiming(
+        1,
+        {
+          duration: HOLD_MS,
+          easing: Easing.linear,
+        },
+        (finished) => {
+          'worklet'
+
+          if (finished) {
+            scheduleOnRN(openParentMode, Date.now())
+          }
+        },
+      ),
     )
   }
 
   function releaseHold(): void {
+    cancelAnimation(held)
+
     held.set(0)
   }
 
@@ -69,10 +90,9 @@ export function ParentGate(): ReactElement {
   return (
     <Pressable
       accessibilityLabel={strings.parentGate.label}
-      delayLongPress={HOLD_MS}
-      onLongPress={() => openParentMode(Date.now())}
       onPressIn={startHold}
       onPressOut={releaseHold}
+      pressRetentionOffset={HOLD_SLACK}
       style={[
         styles.gate,
         {
