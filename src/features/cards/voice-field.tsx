@@ -34,6 +34,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
   const recorder = useVoiceRecorder(onRecorded)
   const audioUri = audio ? mediaDraftUri(audio) : null
   const shownLevels = recorder.isRecording ? recorder.levels : (levels ?? flatLevels(audio ? playerStatus.duration : 0))
+  const playedSlots = playerStatus.playing ? Math.round((playerStatus.currentTime * 1000) / LEVEL_INTERVAL_MS) : undefined
 
   useEffect(() => {
     if (audioUri) {
@@ -82,7 +83,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
         note={<VoiceStatus audio={audio} durationSeconds={playerStatus.duration} isRecording={recorder.isRecording} />}
         title={strings.cardEditor.voice}
       />
-      <Waveform levels={shownLevels} slots={WAVEFORM_SLOTS} />
+      <Waveform levels={shownLevels} playedSlots={playedSlots} slots={WAVEFORM_SLOTS} />
       <View style={styles.actions}>
         {audio && <ParentButton icon="play.fill" onPress={play} style={styles.action} title={strings.cardEditor.play} />}
         <Pressable
