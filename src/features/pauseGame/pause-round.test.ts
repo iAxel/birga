@@ -1,5 +1,13 @@
 import { describe, expect, test } from '@jest/globals'
-import { afterItem, afterPause, isGameOver, nextPausePosition, startRound } from '@/features/pauseGame/pause-round'
+import {
+  afterItem,
+  afterPause,
+  isGameOver,
+  nextPausePosition,
+  type RoundState,
+  type SaidItem,
+  startRound,
+} from '@/features/pauseGame/pause-round'
 
 describe('nextPausePosition', () => {
   test('never pauses before the second item', () => {
@@ -19,6 +27,14 @@ describe('nextPausePosition', () => {
   })
 })
 
+/** The report that the item the round is on has been said. */
+function said(state: RoundState): SaidItem {
+  return {
+    round: state.round,
+    index: state.index,
+  }
+}
+
 describe('a round', () => {
   test('says the items up to the pause, waits, then says the rest', () => {
     const items = 4
@@ -26,11 +42,11 @@ describe('a round', () => {
 
     expect(state).toMatchObject({ index: 0, phase: 'saying' })
 
-    state = afterItem(state, items)
+    state = afterItem(state, said(state), items)
 
     expect(state).toMatchObject({ index: 1, phase: 'saying' })
 
-    state = afterItem(state, items)
+    state = afterItem(state, said(state), items)
 
     expect(state).toMatchObject({ index: 2, phase: 'waiting' })
 
@@ -38,13 +54,32 @@ describe('a round', () => {
 
     expect(state).toMatchObject({ index: 2, phase: 'saying', wasFilled: true })
 
-    state = afterItem(state, items)
+    state = afterItem(state, said(state), items)
 
     expect(state).toMatchObject({ index: 3, phase: 'saying' })
 
-    state = afterItem(state, items)
+    state = afterItem(state, said(state), items)
 
     expect(state).toMatchObject({ index: 4, phase: 'finished' })
+  })
+
+  test('ignores a late report about an item the round has already left', () => {
+    const items = 4
+    const first = startRound(1, 2)
+    const second = afterItem(first, said(first), items)
+    const waiting = afterItem(second, said(second), items)
+
+    expect(afterItem(second, said(first), items)).toBe(second)
+    expect(afterItem(waiting, said(second), items)).toBe(waiting)
+    expect(afterItem(waiting, { round: 2, index: 2 }, items)).toBe(waiting)
+  })
+
+  test('ends a pause only while it is waiting', () => {
+    const waiting = afterItem(startRound(1, 1), { round: 1, index: 0 }, 3)
+    const ended = afterPause(waiting, false)
+
+    expect(afterPause(ended, true)).toBe(ended)
+    expect(ended.wasFilled).toBe(false)
   })
 
   test('is over after the fifth round and not before', () => {

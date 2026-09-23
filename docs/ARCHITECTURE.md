@@ -96,9 +96,12 @@ saying → (the item before the pause is said) → waiting → the child, the pa
        → saying (the item itself, then the rest of the sequence) → finished → next round or the play button
 ```
 
-Three details that look like bugs but are not: a round interrupted by leaving the tab still counts, or five rounds
-could be stretched forever; the app waits a second after the item the pause was about, since that is when the child is
-most likely to echo it; and a playback that never reports its end is cut short by a watchdog rather than hanging.
+Three details that look like bugs but are not: a round interrupted by leaving the tab, or the app, still counts, or
+five rounds could be stretched forever; the app waits a second after the item the pause was about, since that is when
+the child is most likely to echo it; and a playback that never reports its end is silenced and cut short by a watchdog
+rather than hanging. Each item said carries its round and index, and a report that an item ended moves the round on
+only while the round is still on that item, so a late one can neither skip the pause nor open the microphone under the
+app's own voice.
 
 ## The event log
 

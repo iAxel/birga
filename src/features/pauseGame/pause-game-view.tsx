@@ -1,8 +1,8 @@
 import { Image } from 'expo-image'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useIsFocused } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { type ReactElement, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -27,6 +27,7 @@ import {
   MIN_SEQUENCE_ITEMS,
   nextPausePosition,
   type RoundState,
+  type SaidItem,
   startRound,
 } from '@/features/pauseGame/pause-round'
 import { Reward } from '@/features/pauseGame/reward'
@@ -108,12 +109,19 @@ export function PauseGameView(): ReactElement {
   const listener = useVocalizationListener(settings.detectionMarginDb, settings.roomBaselineDb, keepRoom)
   const items = usePauseSequence()
   const look = LOOK[useFormFactor()]
+  const isFocused = useIsFocused()
   const [state, setState] = useState<RoundState | null>(null)
   const [roundsPlayed, setRoundsPlayed] = useState(0)
   const [saidCount, setSaidCount] = useState(0)
   const [filledAt, setFilledAt] = useState<number | null>(null)
+  const [areaHeight, setAreaHeight] = useState(0)
+  const [contentHeight, setContentHeight] = useState(0)
   const previousPauseRef = useRef<number | null>(null)
   const stateRef = useRef<RoundState | null>(null)
+  /** The item whose recording the player was last given; its end, and only its end, moves the round on. */
+  const saidRef = useRef<SaidItem | null>(null)
+  /** The item the open pause waits on; a pause ends once, whichever of the child, the parent or the timer is first. */
+  const openPauseRef = useRef<SequenceItem | null>(null)
   const isOver = roundsPlayed >= settings.roundsPerGame
 
   useEffect(() => {
@@ -140,7 +148,7 @@ export function PauseGameView(): ReactElement {
   }
 
   /** The word appears at the moment it is said, not a moment before or after it. */
-  const sayItem = useEffectEvent((item: SequenceItem, index: number) => {
+  const sayItem = useEffectEvent((item: SequenceItem, said: SaidItem) => {
     if (!item.audioPath) {
       return
     }
@@ -150,14 +158,22 @@ export function PauseGameView(): ReactElement {
     })
     player.play()
 
-    setSaidCount(index + 1)
+    saidRef.current = said
+
+    setSaidCount(said.index + 1)
   })
 
-  const goOn = useEffectEvent(() => {
-    setState((current) => (current && items ? afterItem(current, items.length) : current))
+  const goOn = useEffectEvent((said: SaidItem | null) => {
+    if (!said) {
+      return
+    }
+
+    setState((current) => (current && items ? afterItem(current, said, items.length) : current))
   })
 
   const openPause = useEffectEvent((item: SequenceItem) => {
+    openPauseRef.current = item
+
     logEvent(pauseEvent('pause_open', item))
   })
 
@@ -178,6 +194,10 @@ export function PauseGameView(): ReactElement {
    * microphone heard is the room itself, and the next pause starts from that.
    */
   const timeOutPause = useEffectEvent((item: SequenceItem) => {
+    if (openPauseRef.current !== item) {
+      return
+    }
+
     listener.settle()
 
     endPause('timeout', item)
@@ -187,6 +207,12 @@ export function PauseGameView(): ReactElement {
   const fillPause = useEffectEvent((item: SequenceItem) => endPause('detected', item))
 
   function endPause(reason: 'detected' | 'parent' | 'timeout', item: SequenceItem): void {
+    if (openPauseRef.current !== item) {
+      return
+    }
+
+    openPauseRef.current = null
+
     const wasFilled = reason !== 'timeout'
 
     logEvent(pauseEvent(PAUSE_END_EVENT[reason], item))
@@ -237,21 +263,28 @@ export function PauseGameView(): ReactElement {
       return () => clearTimeout(stop)
     }
 
+    const said = {
+      round: state.round,
+      index: state.index,
+    }
     const gap = state.index === state.pauseAt + 1 ? AFTER_PAUSE_GAP_MS : ITEM_GAP_MS
-    const timeout = setTimeout(() => sayItem(item, state.index), gap)
-    const watchdog = setTimeout(goOn, gap + SAYING_SLACK_MS)
+    const timeout = setTimeout(() => sayItem(item, said), gap)
+    const watchdog = setTimeout(() => {
+      stopVoice(player)
+      goOn(said)
+    }, gap + SAYING_SLACK_MS)
 
     return () => {
       clearTimeout(timeout)
       clearTimeout(watchdog)
     }
-  }, [state, items])
+  }, [state, items, player])
 
   /** The player tells when an item has been said; the round moves on from there, not from a timer of our own. */
   useEffect(() => {
     const subscription = player.addListener('playbackStatusUpdate', (status) => {
       if (status.didJustFinish) {
-        goOn()
+        goOn(saidRef.current)
       }
     })
 
@@ -280,20 +313,26 @@ export function PauseGameView(): ReactElement {
       clearTimeout(opening)
       clearTimeout(timeout)
 
+      openPauseRef.current = null
+
       listener.close()
     }
   }, [state, items, listener, settings.pauseWindowSeconds])
 
-  /** A quiet moment: the game is not running, so the room can be measured before the first pause needs the value. */
+  /**
+   * A quiet moment: the game waits on its play button, so the room can be measured before the first pause needs the
+   * value. Only while the game is on screen and has a sequence to play: a hidden tab never listens, and the board on
+   * the other tab may be playing a card.
+   */
   useEffect(() => {
-    if (state !== null || isOver || !items) {
+    if (state !== null || isOver || !isFocused || !items || items.length < MIN_SEQUENCE_ITEMS) {
       return
     }
 
     listener.measure(FIRST_MEASURE_MS)
 
     return () => listener.close()
-  }, [state, isOver, items, listener])
+  }, [state, isOver, isFocused, items, listener])
 
   /**
    * The sequence is over and the app falls silent until the next round: the one quiet moment inside a game, so the
@@ -319,11 +358,13 @@ export function PauseGameView(): ReactElement {
 
   /**
    * Leaving the tab stops the game where it is: the voice falls silent and the play button comes back. The round that
-   * was interrupted still counts, otherwise five rounds could be stretched into a session without an end.
+   * was interrupted still counts, otherwise five rounds could be stretched into a session without an end. The app
+   * leaving the foreground does the same: iOS pauses the voice on the way out and resumes it on the way back, into a
+   * round whose timers have run on meanwhile.
    */
   useFocusEffect(
     useCallback(() => {
-      return () => {
+      function stopGame(): void {
         stopVoice(player)
         listener.close()
 
@@ -334,6 +375,24 @@ export function PauseGameView(): ReactElement {
         }
 
         setState(null)
+      }
+
+      const subscription = AppState.addEventListener('change', (next) => {
+        if (next !== 'active') {
+          stopGame()
+
+          return
+        }
+
+        if (stateRef.current === null) {
+          stopVoice(player)
+        }
+      })
+
+      return () => {
+        subscription.remove()
+
+        stopGame()
       }
     }, [player, listener]),
   )
@@ -404,54 +463,71 @@ export function PauseGameView(): ReactElement {
   const said = state ? items.slice(0, Math.min(saidCount, state.pauseAt)) : []
   const hint = state && state.index >= state.pauseAt ? items[state.pauseAt] : null
   const isAnswered = state !== null && state.phase !== 'waiting' && state.index >= state.pauseAt
+  const availableHeight = areaHeight - padding.paddingTop - padding.paddingBottom
+  /** The words are drawn at their size and shrunk as a whole where they would not fit, as on a phone held sideways. */
+  const scale = availableHeight > 0 && contentHeight > availableHeight ? availableHeight / contentHeight : 1
 
   return (
-    <View style={[styles.root, padding]}>
-      <View style={styles.said}>
-        {said.map((item) => (
-          <View key={item.id} style={styles.saidItem}>
-            {item.symbol && (
-              <Text style={[styles.saidSymbol, { fontSize: look.saidSymbol }, fontForText(item.symbol, font.extraBold)]}>
-                {item.symbol}
+    <View onLayout={(event) => setAreaHeight(event.nativeEvent.layout.height)} style={[styles.root, padding]}>
+      <View
+        onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)}
+        style={[
+          styles.content,
+          {
+            transform: [
+              {
+                scale,
+              },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.said}>
+          {said.map((item) => (
+            <View key={item.id} style={styles.saidItem}>
+              {item.symbol && (
+                <Text style={[styles.saidSymbol, { fontSize: look.saidSymbol }, fontForText(item.symbol, font.extraBold)]}>
+                  {item.symbol}
+                </Text>
+              )}
+              <Text style={[styles.saidWord, { fontSize: look.saidWord }, fontForText(item.text, font.semiBold)]}>
+                {item.text}
               </Text>
-            )}
-            <Text style={[styles.saidWord, { fontSize: look.saidWord }, fontForText(item.text, font.semiBold)]}>
-              {item.text}
+            </View>
+          ))}
+        </View>
+        <View style={styles.hint}>
+          <Reward filledAt={filledAt} hasGlow={settings.rewardGlow} hasSparks={settings.rewardSparks} />
+          {hint?.imagePath && (
+            <Image
+              contentFit="contain"
+              source={{
+                uri: mediaUri(hint.imagePath),
+              }}
+              style={styles.image}
+            />
+          )}
+          {hint?.symbol && (
+            <Text
+              style={[
+                styles.symbol,
+                isAnswered && styles.answered,
+                { fontSize: look.symbol },
+                fontForText(hint.symbol, font.extraBold),
+              ]}
+            >
+              {hint.symbol}
             </Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.hint}>
-        <Reward filledAt={filledAt} hasGlow={settings.rewardGlow} hasSparks={settings.rewardSparks} />
-        {hint?.imagePath && (
-          <Image
-            contentFit="contain"
-            source={{
-              uri: mediaUri(hint.imagePath),
-            }}
-            style={styles.image}
-          />
-        )}
-        {hint?.symbol && (
-          <Text
-            style={[
-              styles.symbol,
-              isAnswered && styles.answered,
-              { fontSize: look.symbol },
-              fontForText(hint.symbol, font.extraBold),
-            ]}
-          >
-            {hint.symbol}
-          </Text>
-        )}
-        {hint && (
-          <Text
-            style={[styles.word, isAnswered && styles.answered, { fontSize: look.word }, fontForText(hint.text, font.bold)]}
-          >
-            {hint.text}
-          </Text>
-        )}
-        <WaitingMark isAnswered={isAnswered} isWaiting={state?.phase === 'waiting'} />
+          )}
+          {hint && (
+            <Text
+              style={[styles.word, isAnswered && styles.answered, { fontSize: look.word }, fontForText(hint.text, font.bold)]}
+            >
+              {hint.text}
+            </Text>
+          )}
+          <WaitingMark isAnswered={isAnswered} isWaiting={state?.phase === 'waiting'} />
+        </View>
       </View>
       <AttemptCorner
         hint={strings.pauseGame.creditHint}
@@ -532,8 +608,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: space.xxl,
     backgroundColor: color.ground,
+  },
+  content: {
+    alignItems: 'center',
+    gap: space.xxl,
   },
   said: {
     flexDirection: 'row',

@@ -45,8 +45,22 @@ export function startRound(round: number, pauseAt: number): RoundState {
   }
 }
 
-/** The app finished saying an item: the next one follows, unless the pause or the end of the sequence comes first. */
-export function afterItem(state: RoundState, itemCount: number): RoundState {
+/** Which item of which round the app is saying: a report that an item ended counts only for that item. */
+export interface SaidItem {
+  round: number
+  index: number
+}
+
+/**
+ * The app finished saying an item: the next one follows, unless the pause or the end of the sequence comes first. A
+ * report about any other item changes nothing: one that arrives late, after the watchdog has moved the round on, would
+ * otherwise skip the pause or open the microphone under the app's own voice.
+ */
+export function afterItem(state: RoundState, said: SaidItem, itemCount: number): RoundState {
+  if (state.phase !== 'saying' || state.round !== said.round || state.index !== said.index) {
+    return state
+  }
+
   const index = state.index + 1
 
   if (index >= itemCount) {
@@ -64,8 +78,15 @@ export function afterItem(state: RoundState, itemCount: number): RoundState {
   }
 }
 
-/** The pause ended, filled by the child or run out: either way the app says the item and carries on. */
+/**
+ * The pause ended, filled by the child or run out: either way the app says the item and carries on. Only a pause that
+ * is still waiting can end, so a second ending in the same moment changes nothing.
+ */
 export function afterPause(state: RoundState, wasFilled: boolean): RoundState {
+  if (state.phase !== 'waiting') {
+    return state
+  }
+
   return {
     ...state,
     phase: 'saying',

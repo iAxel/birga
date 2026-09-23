@@ -72,6 +72,8 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Pause game.** Said items in `muted` as digit-over-word pairs. Hint (next item) in `hint`: symbol (if any) above word. Three 12 pt dots below the hint pulse slowly while the mic is open. On `pause_filled`: hint turns `ink`, `reward` ellipse at 45% behind it (460×340 iPad / 300×260 iPhone), 8 `rewardInk` sparks rise 80–150 pt from the word and fade over 600 ms, `rewardInk` checkmark replaces the dots. Whole reward ≤ 1.5 s, then next item plays. On timeout: hint turns `ink` with no glow/sparks as the app says the item. Both glow and sparks are settings, default on.
 
+*Built differently:* where the sizes above do not fit — a phone held sideways, or an item with both an image and a symbol — the said items and the hint shrink together, as one piece, until they fit between the top edge and the tab bar. The word is never pushed under the tabs.
+
 **Session countdown.** Last minute: 3 pt bar at the top edge, `hint` color, shrinking right-to-left. No sound.
 
 **Ornament.** Suzani-style medallion (concentric rings, 8 petals, 16 dots, 8 leaves; stroke only, `#B9B1A2`). Bottom-left large + top-right small on Start and Goodbye; one small top-right on every parent screen. Opacity: Start 60%/48%, Goodbye 45%/36%, parent 40%. Never on Requests, Tap, or Pause screens. One SVG, generated from `src/ui/medallion.ts`, positioned with absolute layout.
