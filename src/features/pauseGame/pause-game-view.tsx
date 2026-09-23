@@ -40,6 +40,12 @@ import { color, font, space, touch, typography } from '@/ui/theme'
 /** A breath between two items, so the sequence does not run together. */
 const ITEM_GAP_MS = 350
 
+/**
+ * The breath after the item the pause was about, filled or not. The app has just said the word the child was given
+ * room for, and this is the moment he is most likely to say it after it: the sequence waits before carrying on.
+ */
+const AFTER_PAUSE_GAP_MS = 1000
+
 /** The microphone opens this long after the app has stopped speaking, so it never hears the app itself (SPEC §3). */
 const MIC_GUARD_MS = 150
 
@@ -47,10 +53,11 @@ const MIC_GUARD_MS = 150
 const ROUND_GAP_MS = 1400
 
 /**
- * How long an item may take before the round moves on without being told that it ended. A recording lasts at most
- * MAX_AUDIO_MS, so anything past that is a file the player never finished: silence would otherwise hold the round.
+ * How much longer than its breath and its recording an item may take before the round moves on without being told that
+ * it ended. A recording lasts at most MAX_AUDIO_MS, so anything past that is a file the player never finished: silence
+ * would otherwise hold the round.
  */
-const SAYING_LIMIT_MS = ITEM_GAP_MS + MAX_AUDIO_MS + 600
+const SAYING_SLACK_MS = MAX_AUDIO_MS + 600
 
 /** SPEC §6: which event a pause ending writes, by what ended it. */
 const PAUSE_END_EVENT = {
@@ -231,8 +238,9 @@ export function PauseGameView(): ReactElement {
       return () => clearTimeout(stop)
     }
 
-    const timeout = setTimeout(() => sayItem(item, state.index), ITEM_GAP_MS)
-    const watchdog = setTimeout(goOn, SAYING_LIMIT_MS)
+    const gap = state.index === state.pauseAt + 1 ? AFTER_PAUSE_GAP_MS : ITEM_GAP_MS
+    const timeout = setTimeout(() => sayItem(item, state.index), gap)
+    const watchdog = setTimeout(goOn, gap + SAYING_SLACK_MS)
 
     return () => {
       clearTimeout(timeout)
