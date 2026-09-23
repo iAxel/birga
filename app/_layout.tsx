@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { type ReactElement, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { configureAudioSession } from '@/audio/audio-session'
+import { discardStrayTakes } from '@/audio/takes'
 import { DatabaseProvider } from '@/db'
 import { SessionProvider } from '@/features/session/session-provider'
 import { SettingsProvider } from '@/features/settings/settings-provider'
@@ -13,6 +14,8 @@ import { color, radius, space, touch, typography } from '@/ui/theme'
 SplashScreen.preventAutoHideAsync()
 
 configureAudioSession().catch(() => undefined)
+
+discardStrayTakes()
 
 /**
  * No screen renders until the fonts are loaded and the database, settings and sessions are ready; the splash screen

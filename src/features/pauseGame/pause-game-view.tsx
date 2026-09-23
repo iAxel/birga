@@ -163,8 +163,15 @@ export function PauseGameView(): ReactElement {
     beginRound(roundsPlayed + 1)
   }
 
-  /** The pause ran out: the same ending as a filled one, only without the reward. */
-  const timeOutPause = useEffectEvent((item: SequenceItem) => endPause('timeout', item))
+  /**
+   * The pause ran out: the same ending as a filled one, only without the reward. Nothing was said into it, so what the
+   * microphone heard is the room itself, and the next pause starts from that.
+   */
+  const timeOutPause = useEffectEvent((item: SequenceItem) => {
+    listener.settle()
+
+    endPause('timeout', item)
+  })
 
   /** The microphone heard the child take his turn. */
   const fillPause = useEffectEvent((item: SequenceItem) => endPause('detected', item))

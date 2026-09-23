@@ -70,11 +70,14 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ### Vocalization detector
 
-- Uses recorder metering only. No audio is saved: expo-audio always writes a file, and that file is deleted the moment the microphone closes.
-- The room is measured before the microphone decides anything, and measured again and again: 2 s while the game waits on its play button, then the 500 ms that open every pause window. Baseline = median dB of that measurement, so it follows a room that gets noisier during a session instead of being taken once.
-- Threshold = baseline + margin (default 12 dB, setting).
+- Uses recorder metering only. No audio is saved: expo-audio always writes a file, that file is deleted the moment the microphone closes, and a take left behind by an app that died mid-pause is deleted at start-up.
+- Mic is opened 150 ms after app playback has fully ended, closed before playback resumes. Listening starts with the first reading, against the last known baseline, so the beginning of a pause is never a deaf spot.
+- Threshold = baseline + margin (default 12 dB, setting). Baseline = median dB of a measurement of the room, measured again and again:
+  - 2 s while the game waits on its play button, which sets it outright;
+  - the first 500 ms of a pause window, which may only **lower** it: the child may be speaking into that half second, and a raised baseline would make the game deaf exactly where it is meant to listen;
+  - the last 500 ms of a pause that ended in `pause_timeout` — nothing was said into it, so that is an honest measurement of the room, and the only way the baseline rises during a game.
 - Trigger: level above threshold for ≥ 250 ms within the pause window.
-- Mic is opened only after app playback has fully ended + 150 ms guard, closed before playback resumes. With the 500 ms measurement this means the child is listened to from ~650 ms into the pause window; the parent's button covers anything earlier.
+- A development build logs every hearing with the baseline, the threshold and the loudest level of the window, which is how the margin is chosen against the room the child is actually in. A release build prints nothing.
 - Pure function over a stream of `(timestampMs, dB)` samples → unit-tested.
 
 ---
