@@ -263,7 +263,7 @@ export const uz = {
     importAudio: 'Fayldan yuklash',
     importTooLong: (seconds: string): string => `Fayl uzun: ${seconds} s. 4 soniyagacha bo'lishi kerak.`,
     importUnreadable: "Faylni o'qib bo'lmadi. Boshqa faylni tanlang.",
-    microphoneDenied: "Mikrofonga ruxsat yo'q.",
+    microphoneDenied: "Mikrofonga ruxsat yo'q: ovozni fayldan yuklash mumkin yoki sozlamalarda ruxsat bering.",
     board: 'Doska',
     boardLabel: (title: string): string => `Doska: ${title}`,
     save: 'Saqlash',

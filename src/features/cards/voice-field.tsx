@@ -28,13 +28,15 @@ interface VoiceFieldProps {
   audio: MediaDraft | null
   /** Shape of the stored recording; null for one made before the app kept it. */
   levels: number[] | null
-  onRecorded: (uri: string, levels: number[], durationMs: number) => void
+  /** A new recording, with its shape; an imported file has none, and is drawn with flat bars as long as it lasts. */
+  onRecorded: (uri: string, levels: number[] | null, durationMs: number) => void
 }
 
 /**
  * The parent's voice (DESIGN §3, OVOZ): hold and speak (4 s at most), release to stop, listen back, hold again to
  * re-record. A tap records nothing. The recording is loaded into the preview player as soon as it exists, which also
- * tells its length.
+ * tells its length. Without the microphone the recording is still there to hear and a file can still be imported: only
+ * the record button makes way for the way to the settings.
  */
 export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): ReactElement {
   const player = useVoicePlayer()
@@ -99,7 +101,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
     }
 
     if (picked.kind === 'picked') {
-      onRecorded(picked.uri, [], picked.durationMs)
+      onRecorded(picked.uri, null, picked.durationMs)
     }
   }
 
@@ -114,15 +116,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
     player.play()
   }
 
-  if (recorder.access === 'denied') {
-    return (
-      <Panel>
-        <SectionLabel title={strings.cardEditor.voice} />
-        <Text style={typography.row}>{strings.cardEditor.microphoneDenied}</Text>
-        <ParentButton onPress={() => Linking.openSettings()} title={strings.common.openSettings} />
-      </Panel>
-    )
-  }
+  const isDenied = recorder.access === 'denied'
 
   return (
     <Panel>
@@ -133,19 +127,23 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
       <Waveform levels={shownLevels} playedSlots={playedSlots} slots={WAVEFORM_SLOTS} />
       <View style={styles.actions}>
         {audio && <ParentButton icon="play.fill" onPress={play} style={styles.action} title={strings.cardEditor.play} />}
-        <Pressable
-          accessibilityLabel={strings.cardEditor.holdToRecord}
-          accessibilityRole="button"
-          disabled={recorder.access !== 'granted'}
-          onPressIn={startHold}
-          onPressOut={endHold}
-          style={[styles.record, styles.action, recorder.isRecording && styles.recording]}
-        >
-          <SymbolView name="mic" size={18} tintColor={recorder.isRecording ? color.card : color.ink} />
-          <Text style={[typography.button, recorder.isRecording && styles.recordingText]}>
-            {recordLabel(recorder.isRecording, audio !== null)}
-          </Text>
-        </Pressable>
+        {isDenied ? (
+          <ParentButton onPress={() => Linking.openSettings()} style={styles.action} title={strings.common.openSettings} />
+        ) : (
+          <Pressable
+            accessibilityLabel={strings.cardEditor.holdToRecord}
+            accessibilityRole="button"
+            disabled={recorder.access !== 'granted'}
+            onPressIn={startHold}
+            onPressOut={endHold}
+            style={[styles.record, styles.action, recorder.isRecording && styles.recording]}
+          >
+            <SymbolView name="mic" size={18} tintColor={recorder.isRecording ? color.card : color.ink} />
+            <Text style={[typography.button, recorder.isRecording && styles.recordingText]}>
+              {recordLabel(recorder.isRecording, audio !== null)}
+            </Text>
+          </Pressable>
+        )}
         <ParentButton
           accessibilityLabel={strings.cardEditor.importAudio}
           icon="square.and.arrow.down"
@@ -153,7 +151,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
           title=""
         />
       </View>
-      <Text style={typography.hint}>{strings.cardEditor.voiceHint}</Text>
+      <Text style={typography.hint}>{isDenied ? strings.cardEditor.microphoneDenied : strings.cardEditor.voiceHint}</Text>
     </Panel>
   )
 }
