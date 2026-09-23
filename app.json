@@ -45,7 +45,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak.",
+          "microphonePermission": "Mikrofon ota-onaning ovozini kartalar uchun yozib olishga, o'yinda bola tovush chiqarganini sezishga va ota-ona burchakdagi tugmani bosib turganda bolaning urinishini yozib olishga kerak. O'yinda eshitilgan tovush saqlanmaydi.",
           "enableBackgroundPlayback": false
         }
       ],
@@ -54,7 +54,7 @@
         {
           "photosPermission": "Kartalar uchun galereyadan surat tanlash uchun kerak.",
           "cameraPermission": "Kartalar uchun narsalarni suratga olish uchun kerak.",
-          "microphonePermission": "Kartalar uchun ota-onaning ovozini yozib olish uchun kerak."
+          "microphonePermission": "Mikrofon ota-onaning ovozini kartalar uchun yozib olishga, o'yinda bola tovush chiqarganini sezishga va ota-ona burchakdagi tugmani bosib turganda bolaning urinishini yozib olishga kerak. O'yinda eshitilgan tovush saqlanmaydi."
         }
       ],
       "expo-sharing",
