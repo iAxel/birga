@@ -1,7 +1,8 @@
 import { Image } from 'expo-image'
+import { useFocusEffect } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { type ReactElement, useEffect, useEffectEvent, useRef, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { type ReactElement, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -16,6 +17,7 @@ import {
   afterItem,
   afterPause,
   isGameOver,
+  MAX_ROUNDS,
   MIN_SEQUENCE_ITEMS,
   nextPausePosition,
   type RoundState,
@@ -29,7 +31,7 @@ import { strings } from '@/i18n'
 import { CornerButton } from '@/ui/corner-button'
 import { fontForText } from '@/ui/fonts'
 import { type FormFactor, useFormFactor } from '@/ui/form-factor'
-import { color, font, space, typography } from '@/ui/theme'
+import { color, font, space, touch, typography } from '@/ui/theme'
 
 /** A breath between two items, so the sequence does not run together. */
 const ITEM_GAP_MS = 350
@@ -71,11 +73,13 @@ export function PauseGameView(): ReactElement {
   const items = usePauseSequence()
   const look = LOOK[useFormFactor()]
   const [state, setState] = useState<RoundState | null>(null)
+  const [roundsPlayed, setRoundsPlayed] = useState(0)
+  const [saidCount, setSaidCount] = useState(0)
   const [filledAt, setFilledAt] = useState<number | null>(null)
   const previousPauseRef = useRef<number | null>(null)
-  const isPlayable = items !== undefined && items.length >= MIN_SEQUENCE_ITEMS
+  const isOver = roundsPlayed >= MAX_ROUNDS
 
-  const beginRound = useEffectEvent((round: number) => {
+  function beginRound(round: number): void {
     if (!items) {
       return
     }
@@ -85,10 +89,12 @@ export function PauseGameView(): ReactElement {
     previousPauseRef.current = pauseAt
 
     setFilledAt(null)
+    setSaidCount(0)
     setState(startRound(round, pauseAt))
-  })
+  }
 
-  const sayItem = useEffectEvent((item: SequenceItem) => {
+  /** The word appears at the moment it is said, not a moment before or after it. */
+  const sayItem = useEffectEvent((item: SequenceItem, index: number) => {
     if (!item.audioPath) {
       return
     }
@@ -97,6 +103,8 @@ export function PauseGameView(): ReactElement {
       uri: mediaUri(item.audioPath),
     })
     player.play()
+
+    setSaidCount(index + 1)
   })
 
   const goOn = useEffectEvent(() => {
@@ -128,7 +136,7 @@ export function PauseGameView(): ReactElement {
     setState((current) => (current ? afterPause(current, wasFilled) : current))
   }
 
-  const endRound = useEffectEvent((current: RoundState) => {
+  const logRoundEnd = useEffectEvent((current: RoundState) => {
     logEvent({
       type: 'game_round_end',
       payload: {
@@ -138,16 +146,14 @@ export function PauseGameView(): ReactElement {
     })
   })
 
-  /** The game starts a moment after the child arrives on the tab, not the instant the items are read. */
-  useEffect(() => {
-    if (!isPlayable || state !== null) {
-      return
+  /** A round is counted once it is over; the next one follows unless this was the fifth. */
+  const concludeRound = useEffectEvent((current: RoundState) => {
+    setRoundsPlayed(current.round)
+
+    if (!isGameOver(current)) {
+      beginRound(current.round + 1)
     }
-
-    const timeout = setTimeout(() => beginRound(1), ROUND_GAP_MS)
-
-    return () => clearTimeout(timeout)
-  }, [isPlayable, state])
+  })
 
   useEffect(() => {
     if (!state || !items || state.phase !== 'saying') {
@@ -160,7 +166,7 @@ export function PauseGameView(): ReactElement {
       return
     }
 
-    const timeout = setTimeout(() => sayItem(item), ITEM_GAP_MS)
+    const timeout = setTimeout(() => sayItem(item, state.index), ITEM_GAP_MS)
 
     return () => clearTimeout(timeout)
   }, [state, items])
@@ -199,16 +205,25 @@ export function PauseGameView(): ReactElement {
       return
     }
 
-    endRound(state)
+    logRoundEnd(state)
 
-    if (isGameOver(state)) {
-      return
-    }
-
-    const timeout = setTimeout(() => beginRound(state.round + 1), ROUND_GAP_MS)
+    const timeout = setTimeout(() => concludeRound(state), ROUND_GAP_MS)
 
     return () => clearTimeout(timeout)
   }, [state])
+
+  /** Leaving the tab stops the game where it is: the voice falls silent and the play button comes back. */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (player.playing) {
+          player.pause()
+        }
+
+        setState(null)
+      }
+    }, [player]),
+  )
 
   function credit(): void {
     if (!state || !items || state.phase !== 'waiting') {
@@ -226,7 +241,24 @@ export function PauseGameView(): ReactElement {
     )
   }
 
-  const said = state ? items.slice(0, Math.min(state.index, state.pauseAt)) : []
+  if (state === null) {
+    return (
+      <View style={styles.root}>
+        {!isOver && (
+          <Pressable
+            accessibilityLabel={strings.pauseGame.start}
+            accessibilityRole="button"
+            onPress={() => beginRound(roundsPlayed + 1)}
+            style={styles.start}
+          >
+            <SymbolView name="play.fill" size={56} tintColor={color.accent} />
+          </Pressable>
+        )}
+      </View>
+    )
+  }
+
+  const said = state ? items.slice(0, Math.min(saidCount, state.pauseAt)) : []
   const hint = state && state.index >= state.pauseAt ? items[state.pauseAt] : null
   const isAnswered = state !== null && state.phase !== 'waiting' && state.index >= state.pauseAt
 
@@ -390,6 +422,14 @@ const styles = StyleSheet.create({
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
     backgroundColor: color.hint,
+  },
+  start: {
+    width: touch.child,
+    height: touch.child,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: touch.child / 2,
+    backgroundColor: color.accentBg,
   },
   empty: {
     ...typography.row,

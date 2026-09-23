@@ -18,6 +18,7 @@ export const uz = {
   },
   pauseGame: {
     empty: "O'yin uchun ketma-ketlik kerak. Ota-ona rejimida qo'shing.",
+    start: "O'yinni boshlash",
     credit: 'Bola tovush chiqardi',
     creditHint: 'Bola biror tovush chiqarsa bosing: ilova javobni sanaydi',
   },
