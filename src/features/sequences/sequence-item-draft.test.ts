@@ -26,6 +26,7 @@ function draft(sequenceId: number, overrides: Partial<SequenceItemDraft> = {}): 
     text: 'bir',
     symbol: '1',
     image: null,
+    audioLevels: null,
     audio: {
       kind: 'captured',
       uri: 'file:///cache/bir.m4a',

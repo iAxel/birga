@@ -163,9 +163,10 @@ export function SequenceItemEditor({ itemId, sequenceId }: SequenceItemEditorPro
       </View>
       <VoiceField
         audio={draft.audio}
-        levels={null}
-        onRecorded={(uri) =>
+        levels={draft.audioLevels}
+        onRecorded={(uri, levels) =>
           update({
+            audioLevels: levels,
             audio: {
               kind: 'captured',
               uri,

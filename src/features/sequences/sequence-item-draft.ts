@@ -8,6 +8,11 @@ export interface SequenceItemDraft {
   symbol: string
   image: MediaDraft | null
   audio: MediaDraft | null
+  /**
+   * Shape of the take that was just recorded, so the editor keeps drawing it instead of falling back to flat bars the
+   * moment the recording ends. Unlike a card's, it is not stored: sequence_items has no column for it.
+   */
+  audioLevels: number[] | null
 }
 
 export function emptyItemDraft(sequenceId: number): SequenceItemDraft {
@@ -17,6 +22,7 @@ export function emptyItemDraft(sequenceId: number): SequenceItemDraft {
     symbol: '',
     image: null,
     audio: null,
+    audioLevels: null,
   }
 }
 
@@ -37,6 +43,7 @@ export function draftFromItem(item: SequenceItem): SequenceItemDraft {
           path: item.audioPath,
         }
       : null,
+    audioLevels: null,
   }
 }
 
