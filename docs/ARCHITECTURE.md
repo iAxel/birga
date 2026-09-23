@@ -64,13 +64,19 @@ Three different things use the microphone and the speaker, and they must not ste
   the audio session when playback ends or pauses, and iOS then stops whatever is recording at that moment. The hook
   keeps the session active. `stopVoice()` silences a player that may already have been released.
 - **Recording the parent** is `useVoiceRecorder()`: hold to record, 4 s at most, metering sampled ten times a second so
-  the editor can draw the shape of the take. The microphone is prepared for one take and left unprepared in between,
-  because expo-audio restarts *every prepared recorder* when an audio interruption ends — a recorder left ready on a
-  child screen would record the child with nobody asking.
+  the editor can draw the shape of the take. Its takes go through `TakeRecorder`, below.
 - **Listening for the child** is `useVocalizationListener()` over the pure detector in `vocalization.ts`. It opens
   150 ms after the app falls silent, judges each reading against the room, and closes before the app speaks again.
   expo-audio writes a file whether we want one or not, so the take is deleted the moment the microphone closes, and
   `discardStrayTakes()` at start-up removes anything an app that died mid-pause left behind.
+
+`TakeRecorder` (`take-recorder.ts`, pure and tested against a model of expo-audio's native recorder) exists because
+expo-audio starts **every prepared or paused recorder by itself** when the app returns to the foreground or an audio
+interruption ends, and its `stop()` does nothing to a recorder that is prepared but not recording. A take given up while
+it was being prepared — a quick tap on a hold-to-record button — would leave the recorder ready, and the next unlock of
+the device would record the child with nobody asking. `TakeRecorder` runs prepare, record and stop strictly one after
+another, records and stops such a take at once and deletes its file, knows every take's file by its path, and checks
+the recorder again whenever the app becomes active.
 
 The audio session itself is configured once at start-up (`audio-session.ts`): recording allowed, sound in silent mode.
 
