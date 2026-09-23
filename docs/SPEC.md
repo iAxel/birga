@@ -142,14 +142,14 @@ The daily tip on parent home is one of these seven steps, a different one each d
 boards(id, title, position, is_active, created_at)
 cards(id, board_id, text, image_path, audio_path, audio_levels, position, is_archived, created_at)
 sequences(id, title, is_active, created_at)
-sequence_items(id, sequence_id, position, text, symbol, audio_path, image_path)
+sequence_items(id, sequence_id, position, text, symbol, audio_path, audio_levels, image_path)
 sessions(id, started_at, ended_at, end_reason)            -- timer | parent_exit | app_killed
 events(id, session_id, ts, type, card_id, sequence_id, item_position, payload_json)
 settings(key, value)
 ```
 
 - Paths are relative to the app document directory. `cards.audio_path` is required, `cards.image_path` is optional.
-- `cards.audio_levels` is the loudness of the parent's recording as a JSON array of numbers from 0 to 1, one per tenth of a second; null for cards recorded before it was kept.
+- `cards.audio_levels` and `sequence_items.audio_levels` are the loudness of the parent's recording as a JSON array of numbers from 0 to 1, one per tenth of a second, so the editor draws the shape of a take whenever it is opened again; null for recordings made before it was kept.
 - Cards are archived, never hard-deleted, so old events keep their references.
 
 ### Event types

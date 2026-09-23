@@ -71,6 +71,7 @@ describe('saveSequenceItem', () => {
       text: 'bir',
       symbol: null,
       audioPath: 'media/sequences/old.m4a',
+      audioLevels: null,
       imagePath: 'media/sequences/one.jpg',
     })
     const original = await sequences.getItem(id)

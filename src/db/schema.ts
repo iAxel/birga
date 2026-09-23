@@ -38,6 +38,8 @@ export interface SequenceItemRow {
   /** One character shown above the word, e.g. the digit of a counting sequence; optional. */
   symbol: string | null
   audio_path: string | null
+  /** Loudness of the recording as a JSON array of numbers from 0 to 1; null for items recorded before it was stored. */
+  audio_levels: string | null
   image_path: string | null
 }
 

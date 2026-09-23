@@ -23,6 +23,7 @@ function item(sequenceId: number, text: string, overrides: Partial<SequenceItemI
     text,
     symbol: null,
     audioPath: `${text}.m4a`,
+    audioLevels: null,
     imagePath: null,
     ...overrides,
   }
@@ -35,6 +36,17 @@ async function wordsOf(sequences: SequencesRepository, sequenceId: number): Prom
 }
 
 describe('SequencesRepository', () => {
+  test('keeps the shape of the recording with the item', async () => {
+    const { sequences, sequenceId } = await sequenceWithItems([])
+    const id = await sequences.createItem(item(sequenceId, 'bir', { audioLevels: [0.1, 0.72, 0.5] }))
+
+    expect((await sequences.getItem(id))?.audioLevels).toEqual([0.1, 0.72, 0.5])
+
+    await sequences.updateItem(id, item(sequenceId, 'bir', { audioLevels: null }))
+
+    expect((await sequences.getItem(id))?.audioLevels).toBeNull()
+  })
+
   test('makes the first sequence the active one and switches on request', async () => {
     const db = await migratedDatabase()
     const sequences = new SequencesRepository(db)

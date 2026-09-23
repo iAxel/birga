@@ -1,4 +1,5 @@
 import type { Database } from '@/db/database'
+import { decodeLevels, encodeLevels } from '@/db/levels'
 import type { CardRow } from '@/db/schema'
 
 /** A request card. Media paths are relative to the document directory; the photo is optional, the voice is not. */
@@ -145,31 +146,4 @@ export class CardsRepository {
       isArchived: row.is_archived === 1,
     }
   }
-}
-
-function encodeLevels(levels: number[] | null): string | null {
-  if (!levels || levels.length === 0) {
-    return null
-  }
-
-  return JSON.stringify(levels.map((level) => Math.round(level * 100) / 100))
-}
-
-/** A malformed value is treated as no recording shape at all: the editor then draws the bars flat. */
-function decodeLevels(raw: string | null): number[] | null {
-  if (raw === null) {
-    return null
-  }
-
-  try {
-    const levels: unknown = JSON.parse(raw)
-
-    if (Array.isArray(levels) && levels.every((level) => typeof level === 'number')) {
-      return levels
-    }
-  } catch {
-    return null
-  }
-
-  return null
 }

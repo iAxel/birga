@@ -1,4 +1,5 @@
 import type { Database } from '@/db/database'
+import { decodeLevels, encodeLevels } from '@/db/levels'
 import type { SequenceItemRow, SequenceRow } from '@/db/schema'
 
 /** A sequence the child knows by heart (SPEC §3). The pause game plays the active one. */
@@ -18,6 +19,8 @@ export interface SequenceItem {
   symbol: string | null
   /** The parent's voice for this item; an item without it cannot be played, so the game skips such a sequence. */
   audioPath: string | null
+  /** Shape of that recording, for the editor to draw; null for an item recorded before it was kept. */
+  audioLevels: number[] | null
   imagePath: string | null
 }
 
@@ -27,6 +30,7 @@ export interface SequenceItemInput {
   text: string
   symbol: string | null
   audioPath: string | null
+  audioLevels: number[] | null
   imagePath: string | null
 }
 
@@ -113,13 +117,14 @@ export class SequencesRepository {
   /** Adds the item at the end of its sequence. */
   async createItem(input: SequenceItemInput): Promise<number> {
     const result = await this.#_db.runAsync(
-      `INSERT INTO sequence_items (sequence_id, position, text, symbol, audio_path, image_path)
-       VALUES (?, (SELECT COALESCE(MAX(position) + 1, 0) FROM sequence_items WHERE sequence_id = ?), ?, ?, ?, ?)`,
+      `INSERT INTO sequence_items (sequence_id, position, text, symbol, audio_path, audio_levels, image_path)
+       VALUES (?, (SELECT COALESCE(MAX(position) + 1, 0) FROM sequence_items WHERE sequence_id = ?), ?, ?, ?, ?, ?)`,
       input.sequenceId,
       input.sequenceId,
       input.text,
       input.symbol,
       input.audioPath,
+      encodeLevels(input.audioLevels),
       input.imagePath,
     )
 
@@ -133,6 +138,7 @@ export class SequencesRepository {
        SET text = ?,
          symbol = ?,
          audio_path = ?,
+         audio_levels = ?,
          image_path = ?,
          position = CASE
            WHEN sequence_id = ? THEN position
@@ -143,6 +149,7 @@ export class SequencesRepository {
       input.text,
       input.symbol,
       input.audioPath,
+      encodeLevels(input.audioLevels),
       input.imagePath,
       input.sequenceId,
       input.sequenceId,
@@ -202,6 +209,7 @@ export class SequencesRepository {
       text: row.text,
       symbol: row.symbol,
       audioPath: row.audio_path,
+      audioLevels: decodeLevels(row.audio_levels),
       imagePath: row.image_path,
     }
   }
