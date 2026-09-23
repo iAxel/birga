@@ -1,14 +1,11 @@
 /** A round needs this many items with the parent's voice: one to say, one to pause before, one to carry on with. */
 export const MIN_SEQUENCE_ITEMS = 3
 
-/** SPEC §3: five rounds at most, then the game is over until the next session. */
-export const MAX_ROUNDS = 5
-
 /** What the round is doing: saying the items, waiting for the child, or done. */
 export type RoundPhase = 'saying' | 'waiting' | 'finished'
 
 export interface RoundState {
-  /** 1 to MAX_ROUNDS. */
+  /** 1 to the rounds the game gives. */
   round: number
   /** The item the child is meant to fill in. */
   pauseAt: number
@@ -77,6 +74,6 @@ export function afterPause(state: RoundState, wasFilled: boolean): RoundState {
 }
 
 /** After the last round the game is over, and the tab does nothing until the next session (SPEC §3). */
-export function isGameOver(state: RoundState): boolean {
-  return state.phase === 'finished' && state.round >= MAX_ROUNDS
+export function isGameOver(state: RoundState, roundsPerGame: number): boolean {
+  return state.phase === 'finished' && state.round >= roundsPerGame
 }

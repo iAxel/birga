@@ -3,6 +3,7 @@ import { type ReactElement, useCallback } from 'react'
 import { Alert, Text } from 'react-native'
 import { useRepositories } from '@/db'
 import { useFocusQuery } from '@/db/use-focus-query'
+import { useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ListRow, Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
@@ -13,6 +14,7 @@ import { typography } from '@/ui/theme'
 export default function SequencesScreen(): ReactElement | null {
   const router = useRouter()
   const { sequences: sequencesRepository } = useRepositories()
+  const settings = useSettings()
   const sequences = useFocusQuery(useCallback(() => sequencesRepository.list(), [sequencesRepository]))
 
   function askForTitle(): void {
@@ -62,6 +64,7 @@ export default function SequencesScreen(): ReactElement | null {
           ))}
         </Panel>
       )}
+      <Text style={typography.body}>{strings.sequences.roundsNote(settings.roundsPerGame)}</Text>
     </ParentScreen>
   )
 }

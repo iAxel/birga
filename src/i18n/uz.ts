@@ -110,6 +110,8 @@ export const uz = {
     gameEnabledHint: "Yoqilsa, bola ekranining pastida ikkinchi tugma paydo bo'ladi.",
     pauseWindow: 'Pauza uzunligi',
     pauseWindowHint: "Ilova shuncha kutadi, keyin elementni o'zi aytadi.",
+    rounds: 'Bir sessiyadagi raundlar',
+    roundsHint: "Shuncha raunddan keyin o'yin keyingi sessiyagacha to'xtaydi.",
     detectionMargin: 'Ovozni sezish chegarasi',
     detectionMarginHint:
       'Xona shovqinidan qancha baland ovoz hisobga olinadi. Kichik son — ilova tezroq sezadi, lekin begona tovushlarni ham sanashi mumkin.',
@@ -198,6 +200,8 @@ export const uz = {
     active: 'Faol',
     activate: "O'yinda shu ketma-ketlik aytilsin",
     itemsHint: "Ilova elementlarni ketma-ket aytadi va bittasidan oldin to'xtaydi.",
+    roundsNote: (rounds: number): string =>
+      `O'yin bir sessiyada ${rounds} ta raund beradi, keyin keyingi sessiyagacha to'xtaydi. Sozlamalarda o'zgartirsa bo'ladi.`,
     addItem: "Element qo'shish",
     needAudio: 'ovoz kerak',
     tooShort: "O'yin uchun kamida uchta ovozli element kerak.",

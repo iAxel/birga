@@ -65,7 +65,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
      - Vocalization detected → `pause_filled`: reward animation (~1.5 s: the hint turns ink over a soft glow, a few sparks rise and fade), app plays the item in parent's voice as confirmation, continues. Glow and sparks are settings, both on by default.
      - Nothing → `pause_timeout`: the hint turns ink without glow or sparks while the app simply says the item itself, neutral tone, continues. No negative feedback of any kind.
   4. Sequence finishes → short end animation → next round or stop.
-- **Max 5 rounds per game**, then the game tab becomes inert until the next session (anti-loop).
+- **5 rounds per game by default** (setting: 3/5/8), then the game tab becomes inert until the next session (anti-loop). The tab shows its play button greyed out and does nothing; the parent is told the number on the Ketma-ketliklar screen.
 - Parent "attempt" button works here too (`pause_parent_credit`), for when detection missed a quiet attempt. Holding it records the sound itself, exactly as on the request board, logged as `attempt_recorded` against the item the round pauses on (`sequence_id` + `item_position`).
 
 ### Vocalization detector
@@ -111,7 +111,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ### Settings
 
-Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break, Pause game tab on/off, child's name (the subtitle on the start screen: "<name> bilan birga o'ynaymiz"), reward glow on/off, reward sparks on/off.
+Cards per screen, debounce seconds, pause window seconds, rounds per game, detection margin dB, session length, min break, Pause game tab on/off, child's name (the subtitle on the start screen: "<name> bilan birga o'ynaymiz"), reward glow on/off, reward sparks on/off.
 
 ### How a session goes
 

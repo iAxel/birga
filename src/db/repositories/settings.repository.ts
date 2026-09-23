@@ -13,6 +13,11 @@ export const PAUSE_WINDOW_SECONDS_OPTIONS = [3, 5, 8] as const
 
 export type PauseWindowSeconds = (typeof PAUSE_WINDOW_SECONDS_OPTIONS)[number]
 
+/** SPEC §3: the rounds a game gives before it goes quiet until the next session. Fewer is a shorter turn at the tab. */
+export const ROUNDS_PER_GAME_OPTIONS = [3, 5, 8] as const
+
+export type RoundsPerGame = (typeof ROUNDS_PER_GAME_OPTIONS)[number]
+
 /** How far above the room a sound has to be to count as the child's; a smaller number listens more readily. */
 export const DETECTION_MARGIN_DB_OPTIONS = [6, 9, 12, 15] as const
 
@@ -34,6 +39,8 @@ export interface Settings {
   debounceSeconds: DebounceSeconds
   /** How long the pause game waits for the child before it says the item itself (SPEC §3). */
   pauseWindowSeconds: PauseWindowSeconds
+  /** How many rounds a game gives before the tab goes quiet until the next session (SPEC §3). */
+  roundsPerGame: RoundsPerGame
   /** How far above the room the child has to sound for the pause game to count it (SPEC §3). */
   detectionMarginDb: DetectionMarginDb
   /** The soft glow behind a filled pause. */
@@ -55,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cardsPerScreen: 4,
   debounceSeconds: 8,
   pauseWindowSeconds: 5,
+  roundsPerGame: 5,
   detectionMarginDb: 12,
   rewardGlow: true,
   rewardSparks: true,
@@ -91,6 +99,7 @@ export class SettingsRepository {
         PAUSE_WINDOW_SECONDS_OPTIONS,
         DEFAULT_SETTINGS.pauseWindowSeconds,
       ),
+      roundsPerGame: this.#_readOneOf(stored.get('roundsPerGame'), ROUNDS_PER_GAME_OPTIONS, DEFAULT_SETTINGS.roundsPerGame),
       detectionMarginDb: this.#_readOneOf(
         stored.get('detectionMarginDb'),
         DETECTION_MARGIN_DB_OPTIONS,

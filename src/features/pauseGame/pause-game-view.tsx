@@ -23,7 +23,6 @@ import {
   afterItem,
   afterPause,
   isGameOver,
-  MAX_ROUNDS,
   MIN_SEQUENCE_ITEMS,
   nextPausePosition,
   type RoundState,
@@ -85,7 +84,8 @@ const LOOK: Record<FormFactor, { symbol: number; word: number; saidSymbol: numbe
 /**
  * The pause game (SPEC §3): the app says a sequence the child knows in the parent's voice and stops before one item.
  * The item waits as a grey hint; the parent can credit a sound the child made, and either way the app says the item
- * itself and carries on. Five rounds at most, then the screen holds still until the next session.
+ * itself and carries on. A game gives as many rounds as the setting says, then the screen holds still until the next
+ * session.
  *
  * During the pause the microphone listens for a sound of the child (SPEC §3): it opens once the app has fallen silent,
  * measures the room, and closes again before the app speaks. Nothing it hears is kept.
@@ -105,7 +105,7 @@ export function PauseGameView(): ReactElement {
   const [filledAt, setFilledAt] = useState<number | null>(null)
   const previousPauseRef = useRef<number | null>(null)
   const stateRef = useRef<RoundState | null>(null)
-  const isOver = roundsPlayed >= MAX_ROUNDS
+  const isOver = roundsPlayed >= settings.roundsPerGame
 
   useEffect(() => {
     stateRef.current = state
@@ -209,7 +209,7 @@ export function PauseGameView(): ReactElement {
   const concludeRound = useEffectEvent((current: RoundState) => {
     setRoundsPlayed(current.round)
 
-    if (isGameOver(current)) {
+    if (isGameOver(current, settings.roundsPerGame)) {
       setState(null)
 
       return

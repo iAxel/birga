@@ -7,6 +7,7 @@ import {
   DETECTION_MARGIN_DB_OPTIONS,
   MIN_BREAK_MINUTES_OPTIONS,
   PAUSE_WINDOW_SECONDS_OPTIONS,
+  ROUNDS_PER_GAME_OPTIONS,
   SESSION_MINUTES_OPTIONS,
 } from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
@@ -88,6 +89,16 @@ export default function SettingsScreen(): ReactElement {
             value={settings.pauseWindowSeconds}
           />
           <Text style={typography.body}>{strings.settings.pauseWindowHint}</Text>
+        </View>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.rounds}</Text>
+          <ChipGroup
+            label={String}
+            onChange={(option) => saveSetting('roundsPerGame', option)}
+            options={ROUNDS_PER_GAME_OPTIONS}
+            value={settings.roundsPerGame}
+          />
+          <Text style={typography.body}>{strings.settings.roundsHint}</Text>
         </View>
         <View style={styles.setting}>
           <Text style={typography.row}>{strings.settings.detectionMargin}</Text>

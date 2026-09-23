@@ -21,6 +21,7 @@ describe('SettingsRepository', () => {
       cardsPerScreen: 4,
       debounceSeconds: 8,
       pauseWindowSeconds: 5,
+      roundsPerGame: 5,
       detectionMarginDb: 12,
       rewardGlow: true,
       rewardSparks: true,

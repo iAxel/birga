@@ -48,8 +48,10 @@ describe('a round', () => {
   })
 
   test('is over after the fifth round and not before', () => {
-    expect(isGameOver({ ...startRound(5, 1), phase: 'finished' })).toBe(true)
-    expect(isGameOver({ ...startRound(4, 1), phase: 'finished' })).toBe(false)
-    expect(isGameOver(startRound(5, 1))).toBe(false)
+    expect(isGameOver({ ...startRound(5, 1), phase: 'finished' }, 5)).toBe(true)
+    expect(isGameOver({ ...startRound(4, 1), phase: 'finished' }, 5)).toBe(false)
+    expect(isGameOver(startRound(5, 1), 5)).toBe(false)
+    expect(isGameOver({ ...startRound(3, 1), phase: 'finished' }, 3)).toBe(true)
+    expect(isGameOver({ ...startRound(5, 1), phase: 'finished' }, 8)).toBe(false)
   })
 })

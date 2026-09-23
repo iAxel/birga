@@ -23,6 +23,8 @@ export {
   type MinBreakMinutes,
   PAUSE_WINDOW_SECONDS_OPTIONS,
   type PauseWindowSeconds,
+  ROUNDS_PER_GAME_OPTIONS,
+  type RoundsPerGame,
   SESSION_MINUTES_OPTIONS,
   type SessionMinutes,
   type Settings,
