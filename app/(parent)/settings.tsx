@@ -4,6 +4,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native'
 import {
   CARDS_PER_SCREEN_OPTIONS,
   DEBOUNCE_SECONDS_OPTIONS,
+  DETECTION_MARGIN_DB_OPTIONS,
   MIN_BREAK_MINUTES_OPTIONS,
   PAUSE_WINDOW_SECONDS_OPTIONS,
   SESSION_MINUTES_OPTIONS,
@@ -87,6 +88,16 @@ export default function SettingsScreen(): ReactElement {
             value={settings.pauseWindowSeconds}
           />
           <Text style={typography.body}>{strings.settings.pauseWindowHint}</Text>
+        </View>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.detectionMargin}</Text>
+          <ChipGroup
+            label={strings.settings.decibels}
+            onChange={(option) => saveSetting('detectionMarginDb', option)}
+            options={DETECTION_MARGIN_DB_OPTIONS}
+            value={settings.detectionMarginDb}
+          />
+          <Text style={typography.body}>{strings.settings.detectionMarginHint}</Text>
         </View>
         <SwitchRow
           onChange={(value) => saveSetting('rewardGlow', value)}

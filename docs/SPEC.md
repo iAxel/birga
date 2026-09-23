@@ -70,10 +70,11 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 ### Vocalization detector
 
-- Uses recorder metering only. No audio is saved.
-- At session start: 2 s ambient baseline (median dB). Threshold = baseline + margin (default 12 dB, setting).
+- Uses recorder metering only. No audio is saved: expo-audio always writes a file, and that file is deleted the moment the microphone closes.
+- The room is measured before the microphone decides anything, and measured again and again: 2 s while the game waits on its play button, then the 500 ms that open every pause window. Baseline = median dB of that measurement, so it follows a room that gets noisier during a session instead of being taken once.
+- Threshold = baseline + margin (default 12 dB, setting).
 - Trigger: level above threshold for ≥ 250 ms within the pause window.
-- Mic is opened only after app playback has fully ended + 150 ms guard, closed before playback resumes.
+- Mic is opened only after app playback has fully ended + 150 ms guard, closed before playback resumes. With the 500 ms measurement this means the child is listened to from ~650 ms into the pause window; the parent's button covers anything earlier.
 - Pure function over a stream of `(timestampMs, dB)` samples → unit-tested.
 
 ---

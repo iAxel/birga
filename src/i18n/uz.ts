@@ -110,6 +110,10 @@ export const uz = {
     gameEnabledHint: "Yoqilsa, bola ekranining pastida ikkinchi tugma paydo bo'ladi.",
     pauseWindow: 'Pauza uzunligi',
     pauseWindowHint: "Ilova shuncha kutadi, keyin elementni o'zi aytadi.",
+    detectionMargin: 'Ovozni sezish chegarasi',
+    detectionMarginHint:
+      'Xona shovqinidan qancha baland ovoz hisobga olinadi. Kichik son — ilova tezroq sezadi, lekin begona tovushlarni ham sanashi mumkin.',
+    decibels: (value: number): string => `${value} dB`,
     rewardGlow: 'Mukofot: yorqinlik',
     rewardSparks: 'Mukofot: uchqunlar',
     sessionSection: 'Sessiya',

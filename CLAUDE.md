@@ -68,9 +68,9 @@ docs/SPEC.md
 
 ## Audio rules (easy to get wrong)
 
-- The mic listens **only during the pause window**, never while the app itself is playing sound, otherwise the app's own voice triggers detection.
+- The mic listens **only during the pause window** and during the short measurement of the room that opens it, never while the app itself is playing sound, otherwise the app's own voice triggers detection.
 - Audio session must allow recording and play in silent mode. Configure once at app start.
-- Vocalization threshold is relative to an ambient noise baseline measured at session start, not an absolute dB value.
+- Vocalization threshold is relative to an ambient noise baseline, not an absolute dB value. The baseline is re-measured from what the mic hears right before every pause window, not once per session.
 - Never persist microphone audio automatically; the detector stores metering only. The only child audio kept is parent-initiated attempt recordings (hold on the attempt corner), stored locally, included in export, never played back to the child.
 - Play audio through `useVoicePlayer` (`src/audio`). A plain `useAudioPlayer` deactivates the audio session on pause and at the end of playback, and iOS then stops any recording running at that moment.
 

@@ -13,7 +13,9 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
+import { useVocalizationListener } from '@/audio/use-vocalization-listener'
 import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
+import { FIRST_MEASURE_MS, MEASURE_MS } from '@/audio/vocalization'
 import { mediaUri, type SequenceItem } from '@/db'
 import { AttemptCorner } from '@/features/attempts/attempt-corner'
 import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
@@ -39,6 +41,9 @@ import { color, font, space, touch, typography } from '@/ui/theme'
 /** A breath between two items, so the sequence does not run together. */
 const ITEM_GAP_MS = 350
 
+/** The microphone opens this long after the app has stopped speaking, so it never hears the app itself (SPEC §3). */
+const MIC_GUARD_MS = 150
+
 /** How long the finished sequence stays on screen before the next round starts. */
 const ROUND_GAP_MS = 1400
 
@@ -47,6 +52,13 @@ const ROUND_GAP_MS = 1400
  * MAX_AUDIO_MS, so anything past that is a file the player never finished: silence would otherwise hold the round.
  */
 const SAYING_LIMIT_MS = ITEM_GAP_MS + MAX_AUDIO_MS + 600
+
+/** SPEC §6: which event a pause ending writes, by what ended it. */
+const PAUSE_END_EVENT = {
+  detected: 'pause_filled',
+  parent: 'pause_parent_credit',
+  timeout: 'pause_timeout',
+} as const
 
 const DOT_SIZE = 12
 
@@ -75,7 +87,8 @@ const LOOK: Record<FormFactor, { symbol: number; word: number; saidSymbol: numbe
  * The item waits as a grey hint; the parent can credit a sound the child made, and either way the app says the item
  * itself and carries on. Five rounds at most, then the screen holds still until the next session.
  *
- * There is no microphone here yet: the pause ends on the parent's button or when its time is up (build step 7).
+ * During the pause the microphone listens for a sound of the child (SPEC §3): it opens once the app has fallen silent,
+ * measures the room, and closes again before the app speaks. Nothing it hears is kept.
  */
 export function PauseGameView(): ReactElement {
   const insets = useSafeAreaInsets()
@@ -83,6 +96,7 @@ export function PauseGameView(): ReactElement {
   const logEvent = useEventLog()
   const saveAttempt = useSaveAttempt()
   const player = useVoicePlayer()
+  const listener = useVocalizationListener(settings.detectionMarginDb)
   const items = usePauseSequence()
   const look = LOOK[useFormFactor()]
   const [state, setState] = useState<RoundState | null>(null)
@@ -150,11 +164,16 @@ export function PauseGameView(): ReactElement {
   }
 
   /** The pause ran out: the same ending as a filled one, only without the reward. */
-  const timeOutPause = useEffectEvent((item: SequenceItem) => endPause(false, item))
+  const timeOutPause = useEffectEvent((item: SequenceItem) => endPause('timeout', item))
 
-  function endPause(wasFilled: boolean, item: SequenceItem): void {
+  /** The microphone heard the child take his turn. */
+  const fillPause = useEffectEvent((item: SequenceItem) => endPause('detected', item))
+
+  function endPause(reason: 'detected' | 'parent' | 'timeout', item: SequenceItem): void {
+    const wasFilled = reason !== 'timeout'
+
     logEvent({
-      type: wasFilled ? 'pause_parent_credit' : 'pause_timeout',
+      type: PAUSE_END_EVENT[reason],
       sequenceId: item.sequenceId,
       itemPosition: item.position,
     })
@@ -240,10 +259,27 @@ export function PauseGameView(): ReactElement {
 
     openPause(item)
 
+    const opening = setTimeout(() => listener.listen(MEASURE_MS, () => fillPause(item)), MIC_GUARD_MS)
     const timeout = setTimeout(() => timeOutPause(item), settings.pauseWindowSeconds * 1000)
 
-    return () => clearTimeout(timeout)
-  }, [state, items, settings.pauseWindowSeconds])
+    return () => {
+      clearTimeout(opening)
+      clearTimeout(timeout)
+
+      listener.close()
+    }
+  }, [state, items, listener, settings.pauseWindowSeconds])
+
+  /** A quiet moment: the game is not running, so the room can be measured before the first pause needs the value. */
+  useEffect(() => {
+    if (state !== null || isOver || !items) {
+      return
+    }
+
+    listener.measure(FIRST_MEASURE_MS)
+
+    return () => listener.close()
+  }, [state, isOver, items, listener])
 
   useEffect(() => {
     if (!state || state.phase !== 'finished') {
@@ -265,6 +301,7 @@ export function PauseGameView(): ReactElement {
     useCallback(() => {
       return () => {
         stopVoice(player)
+        listener.close()
 
         const current = stateRef.current
 
@@ -274,7 +311,7 @@ export function PauseGameView(): ReactElement {
 
         setState(null)
       }
-    }, [player]),
+    }, [player, listener]),
   )
 
   /** A sound of the child as the parent heard it, kept against the item the round is pausing on (SPEC §3). */
@@ -298,7 +335,7 @@ export function PauseGameView(): ReactElement {
       return
     }
 
-    endPause(true, item)
+    endPause('parent', item)
   }
 
   /** The tab bar floats over the screen, and the game leaves it, the notch and the corners their room. */
