@@ -82,7 +82,8 @@ the device would record the child with nobody asking. `TakeRecorder` runs prepar
 another, records and stops such a take at once and deletes its file, knows every take's file by its path, and checks
 the recorder again whenever the app becomes active.
 
-The audio session itself is configured once at start-up (`audio-session.ts`): recording allowed, sound in silent mode.
+The audio session itself is configured at start-up and again on every return to the foreground (`audio-session.ts`):
+recording allowed, sound in silent mode, other apps silenced while the app plays.
 While a session runs in child mode the screen is kept on (`KeepScreenAwake`); Expo does that by itself only in a
 development build.
 

@@ -2,7 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { type ReactElement, useEffect } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { configureAudioSession } from '@/audio/audio-session'
+import { keepAudioSessionConfigured } from '@/audio/audio-session'
 import { discardStrayTakes } from '@/audio/takes'
 import { DatabaseProvider } from '@/db'
 import { SessionProvider } from '@/features/session/session-provider'
@@ -13,7 +13,7 @@ import { color, radius, space, touch, typography } from '@/ui/theme'
 
 SplashScreen.preventAutoHideAsync()
 
-configureAudioSession().catch(() => undefined)
+keepAudioSessionConfigured()
 
 discardStrayTakes()
 

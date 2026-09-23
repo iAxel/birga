@@ -69,7 +69,7 @@ docs/SPEC.md
 ## Audio rules (easy to get wrong)
 
 - The mic listens **only during the pause window** and during the quiet measurements of the room (before a game starts and between two rounds), never while the app itself is playing sound, otherwise the app's own voice triggers detection.
-- Audio session must allow recording and play in silent mode. Configure once at app start.
+- Audio session must allow recording and play in silent mode, and silence other apps (`doNotMix`). Configure at app start, and again whenever the app returns to the foreground.
 - Vocalization threshold is relative to an ambient noise baseline, not an absolute dB value. The baseline is measured only in the app's quiet moments (before a game, between rounds, the tail of a pause nobody filled), never below −70 dB, and kept in the settings between sessions. A pause triggers only on a rise from below the threshold.
 - Never leave a recorder prepared. expo-audio starts every prepared or paused recorder by itself when the app returns to the foreground or an audio interruption ends, so every take goes through `TakeRecorder` (`src/audio`), which stops and deletes a take given up while it was being prepared.
 - Never persist microphone audio automatically; the detector stores metering only. The only child audio kept is parent-initiated attempt recordings (hold on the attempt corner), stored locally, included in export, never played back to the child.
