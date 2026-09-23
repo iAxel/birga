@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
 import type { Database } from '@/db/database'
-import { serializeTransactions } from '@/db/serialized-database'
+import { serializedConnection, serializeTransactions } from '@/db/serialized-database'
 import { migratedDatabase } from '@/db/testing/migrated-database'
 
 function delay(ms: number): Promise<void> {
@@ -47,6 +47,42 @@ describe('serializeTransactions', () => {
     await Promise.all([first, second])
 
     expect(steps).toEqual(['begin', 'first step', 'first step', 'commit', 'begin', 'second step', 'commit'])
+  })
+
+  test('queues the transactions of every screen that asks for the same connection', async () => {
+    const steps: string[] = []
+    const connection: Database = {
+      execAsync: async () => undefined,
+      runAsync: async () => ({
+        lastInsertRowId: 0,
+        changes: 0,
+      }),
+      getFirstAsync: async () => null,
+      getAllAsync: async () => [],
+      withTransactionAsync: async (task) => {
+        steps.push('begin')
+
+        await task()
+
+        steps.push('commit')
+      },
+    }
+    const board = serializedConnection(connection)
+    const session = serializedConnection(connection)
+
+    await Promise.all([
+      board.withTransactionAsync(async () => {
+        steps.push('board')
+
+        await delay(20)
+      }),
+      session.withTransactionAsync(async () => {
+        steps.push('session')
+      }),
+    ])
+
+    expect(board).toBe(session)
+    expect(steps).toEqual(['begin', 'board', 'commit', 'begin', 'session', 'commit'])
   })
 
   test('a transaction that throws does not block the ones behind it', async () => {

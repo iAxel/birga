@@ -7,7 +7,7 @@ import { MaintenanceRepository } from '@/db/repositories/maintenance.repository'
 import { SequencesRepository } from '@/db/repositories/sequences.repository'
 import { SessionsRepository } from '@/db/repositories/sessions.repository'
 import { SettingsRepository } from '@/db/repositories/settings.repository'
-import { serializeTransactions } from '@/db/serialized-database'
+import { serializedConnection } from '@/db/serialized-database'
 
 export interface Repositories {
   boards: BoardsRepository
@@ -19,12 +19,15 @@ export interface Repositories {
   settings: SettingsRepository
 }
 
-/** Repositories over the app database; the same instances as long as the connection lives. */
+/**
+ * Repositories over the app database, the same instances as long as the connection lives. Every screen gets its own
+ * repositories, but they all write through the connection's one queue of transactions.
+ */
 export function useRepositories(): Repositories {
   const db = useSQLiteContext()
 
   return useMemo(() => {
-    const database = serializeTransactions(db)
+    const database = serializedConnection(db)
     const events = new EventsRepository(database)
 
     return {

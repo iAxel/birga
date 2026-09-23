@@ -34,9 +34,10 @@ Repositories (`src/db/repositories/`) are the only place that writes SQL. They t
 interface in `src/db/database.ts` — `expo-sqlite` satisfies it on the device, and `node:sqlite` satisfies it in the
 tests (`src/db/testing/`), which is why repository tests run against real SQLite without a simulator.
 
-`useRepositories()` builds them once per connection and wraps the connection in `serializeTransactions()`: expo-sqlite
-runs `BEGIN` on a shared connection and has no queue of its own, so two transactions started at the same time break
-each other. Every transaction in the app waits its turn there.
+`useRepositories()` builds them over `serializedConnection()`, the one wrapper of the connection that queues its
+transactions: expo-sqlite runs `BEGIN` on a shared connection and has no queue of its own, so two transactions started
+at the same time break each other, and the second one's rollback takes the first one's work with it. Every screen gets
+its own repositories, but every transaction in the app waits its turn in the same queue.
 
 Media (photos, recordings) lives in the document directory under `media/<folder>/`; the database stores relative paths
 only, because the absolute one changes between installs. `src/db/media.ts` is the only module that touches files.
