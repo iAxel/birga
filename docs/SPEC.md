@@ -176,6 +176,7 @@ An event about a card or a sequence item keeps the word as it read at that momen
 3. Requests screen with debounce + event logging.
 4. Session timer + Goodbye screen + parent gate.
 5. First EAS Build → TestFlight (needs Apple Developer Program membership). Expo Go is fine for development but not for daily use by the child.
+   - The build excludes the database (`Documents/SQLite`) and `media/` from iCloud and Finder backups (`NSURLIsExcludedFromBackupKey`, set by native code that Expo Go does not run), so the photos, the parent's recordings, the child's attempts and the diary never leave the device in a backup. Until then they do, with the device's own backup.
    **→ Put it in the child's hands here.** Observe for several days before building more.
 6. Sequence editor + Pause game without mic (timeout-only, parent credit button).
 7. Vocalization detector + mic integration.

@@ -135,6 +135,5 @@ Both are rendered from `src/ui/medallion.ts` by `npm run brand-assets`, so the o
 
 Named here so the mockups are not read as a promise:
 
-- **The vocalization detector**: the pause ends on the parent's button or when its time runs out; the microphone comes with build step 7.
 - **The "waiting" character**: the pause game shows the hint and three dots, no character; v0.1 has none anywhere.
 - **Values that need data the app does not keep:** the voice length and the recorder's name in the board rows.

@@ -73,7 +73,7 @@ animation — turn them off.
 
 **Kundalik** in parent mode:
 
-- the week strip: how many taps on each of the last seven days, so a good week and a lost one are visible at a glance;
+- the week strip: how many taps on each day of this week, Monday to Sunday, so a good week and a lost one are visible at a glance;
 - today: sessions, taps, and sounds credited or recorded;
 - the pause game: how many pauses the microphone heard filled, out of the ones that ran their course; a sound you credited with the bubble counts among the attempts instead, so this share is how well the detector hears him in your room;
 - taps per card, most played first — this is the vocabulary he is actually using;

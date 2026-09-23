@@ -45,7 +45,8 @@ its test, and the schema block in SPEC §6. Migration 5 (`sequence-item-audio-le
 
 **A setting.** The options list, the type, the field, the default and the read in `settings.repository.ts`; the export
 in `src/db/index.ts`; a row in `app/(parent)/settings.tsx`; the label and the hint in `src/i18n/uz.ts`; the line in
-SPEC §5. Settings are a key/value table, so a new one needs no migration.
+SPEC §5. Settings are a key/value table, so a new one needs no migration. A value the app keeps for itself rather
+than one the parent sets, such as the room the detector last measured, has no row and no strings.
 
 **An event type.** The union in `schema.ts`, the place that logs it, the list in SPEC §6 with a sentence on what it
 means. Anything the child can do writes one.

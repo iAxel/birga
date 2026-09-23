@@ -58,7 +58,7 @@ docs/SPEC.md
 
 ## Conventions
 
-- Code, identifiers, comments, commit messages: English. UI strings: Uzbek, kept in one `src/i18n/uz.ts` file. Parent mode may also have Russian later, so no hardcoded strings in components.
+- Code, identifiers, comments, commit messages: English. One exception: `src/i18n/uz.ts` keeps Russian comments that translate its Uzbek texts for the developer. UI strings: Uzbek, kept in one `src/i18n/uz.ts` file. Parent mode may also have Russian later, so no hardcoded strings in components.
 - Card text is whatever the parent typed (Latin or Cyrillic Uzbek). Never transliterate or "fix" it.
 - Migrations are append-only, numbered files. Never edit an applied migration.
 - Change the database schema (a table, a column, a migration) only when I ask for it. A feature that seems to need one: stop and ask.

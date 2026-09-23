@@ -27,8 +27,9 @@ interface OrnamentsProps {
 }
 
 /**
- * The suzani medallion in the screen corners (DESIGN §2, Ornament): only on the start, goodbye, parent home and
- * onboarding screens, never where the child plays. Draws behind the content and takes no touches.
+ * The suzani medallion in the screen corners (DESIGN §2, Ornament): on the start and goodbye screens, and on every
+ * parent screen whose top-right corner is free; never where the child plays. Draws behind the content and takes no
+ * touches.
  */
 export function Ornaments({ largeOpacity, smallOpacity }: OrnamentsProps): ReactElement {
   const diameters = DIAMETERS[useFormFactor()]

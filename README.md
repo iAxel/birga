@@ -63,6 +63,10 @@ account that often hits its session limit (`ERR_NGROK_108`).
 Needs an Apple Developer Program membership. Builds run in the cloud on EAS, so no Mac is needed. `eas.json` has one
 `production` profile for store distribution, and EAS counts the build numbers.
 
+Part of the first build (SPEC §7, step 5): exclude the database (`Documents/SQLite`) and `media/` from iCloud and Finder
+backups with `NSURLIsExcludedFromBackupKey`. It needs native code, so Expo Go cannot do it, and until the build does it
+the child's attempts and the diary go wherever the device backs up to.
+
 1. `npx eas-cli@latest build -p ios --profile production`. The first run asks for the bundle identifier (permanent: it is
    written into `app.json` and ties the app to the Apple team) and for the Apple ID, then creates the signing certificate and
    the provisioning profile.
