@@ -26,7 +26,7 @@ Entered by holding a small dim element in the top-left corner for 3 seconds. Whi
 
 Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the child cannot leave the app.
 
-**Onboarding** is shown on first launch only: a short why, then four steps. Step 1, add 2 cards, is active with a counter and a button; steps 2 (turn on Guided Access), 3 (what the two corner controls of the board are for, with their icons) and 4 (how to run the first session) are text. "Boshlash" stays disabled until 2 cards exist. Once completed it is never shown again.
+**Onboarding** is shown on first launch: a short why, then three steps. Step 1, add 2 cards, is active with a counter and a button; step 2 turns on Guided Access; step 3 is the whole session script of "Sessiya qanday o'tadi" (§5), not a summary of it. "Boshlash" stays disabled until 2 cards exist. Once completed it is not shown again, and Settings can open it any time.
 
 The parent home screen shows one parent tip at a time from a static list ("Bugungi maslahat").
 
@@ -43,7 +43,7 @@ The parent home screen shows one parent tip at a time from a static list ("Bugun
   3. card stays enlarged ~3 s, longer if the recording is longer (time for the parent to react and hand the item over), then returns. Until it has returned, every card is inert.
 - **Debounce:** after a tap, the same card is inert for 8 s (setting). This prevents tap-loop stimming on the sound. Every ignored tap of the child is logged as `request_tap_debounced` with payload `{reason}`: `repeat` (same card within the debounce) or `busy` (a request is still on screen).
 - A small "attempt" button is visible only to the parent's side of the screen (bottom corner, low contrast): parent taps it when the child tried to say the word. Logs `request_verbal_attempt` with the last tapped card.
-  - _Proposed by the design handoff, not adopted:_ holding the attempt button records the attempt (up to 4 s) to `media/attempts/`, logged as `attempt_recorded {card_id | sequence_id + item_position, audio_path, duration_ms}`, parent-initiated only and never played back to the child. It persists microphone audio of the child, which CLAUDE.md forbids ("Never persist microphone audio from the child. Metering values only."). It stays out until that rule is changed explicitly; the same applies to the Log's attempt recordings and to attempt files in the export.
+  - Holding the same button records the attempt itself, up to 4 s, into `media/attempts/`, logged as `attempt_recorded {card_id | sequence_id + item_position, audio_path, duration_ms}`. Only the parent starts such a recording, it is never played back to the child, and it stays on the device until the parent exports the log.
 - **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean. Parent taps do not start the per-card debounce (the child may repeat the modelled card right away), and parent taps the board ignores are not logged. While modeling is on, the hand icon turns accent and a thin accent bar spans the bottom edge.
 - Card order is fixed (parent-defined). Do not shuffle: position consistency is how AAC motor planning works.
 
@@ -108,10 +108,20 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 
 Cards per screen, debounce seconds, pause window seconds, detection margin dB, session length, min break, Pause game tab on/off, child's name (the subtitle on the start screen: "<name> bilan birga o'ynaymiz"), reward glow on/off, reward sparks on/off.
 
+### How a session goes
+
+A screen of its own, "Sessiya qanday o'tadi", between Kartalar and Ketma-ketliklar on parent home. It is the script the parent follows, and the same text is step 3 of the onboarding:
+
+- A short model first: the app is not a toy for the child but a button between the child and the parent; the reward is not the sound but what the parent hands over, and the screen only makes the request visible.
+- Then seven steps, each a heading and one or two sentences: **the moment** (start from a real want, two cards on the board: the thing and `yana`), **the place** (iPad on the table between you, Guided Access on, session started from parent mode, the thing in sight and not given yet), **you first** (modelling on, tap the card, say the word, hand over a small portion so the want comes back, 3–5 times), **the pause** (hold the thing, look at it, stay quiet 5–10 s; when the child pulls your hand, guide it gently to the card, and hand the thing over as soon as the card played), **less help** (day by day: hand → elbow → pointing → nothing; the first tap of the child's own may come on the third day or on the tenth), **sounds** (mark any sound near a card with the attempt corner, and never ask the child to say anything), **the end** (when the timer is up it is over; do not extend it, least of all when it went well).
+
+The daily tip on parent home is one of these seven steps, a different one each day.
+
 ### Log
 
 - Simple daily summary list: session count, request taps per card, pause filled / timeout ratio, parent-credited attempts.
-- **Export** as CSV/JSON via share sheet. This is the only way data leaves the device.
+- **Urinishlar**: the attempt recordings of the day, each with the card it belongs to, the time and its length, playable by the parent.
+- **Export** as CSV/JSON via share sheet, together with the attempt recordings. This is the only way data leaves the device.
 
 ---
 
@@ -133,7 +143,7 @@ settings(key, value)
 
 ### Event types
 
-`session_start`, `session_end`, `request_tap`, `request_tap_model`, `request_tap_debounced`, `request_verbal_attempt`, `pause_open`, `pause_filled`, `pause_timeout`, `pause_parent_credit`, `game_round_end`, `parent_gate_open`, `tab_switch`.
+`session_start`, `session_end`, `request_tap`, `request_tap_model`, `request_tap_debounced`, `request_verbal_attempt`, `attempt_recorded`, `pause_open`, `pause_filled`, `pause_timeout`, `pause_parent_credit`, `game_round_end`, `parent_gate_open`, `tab_switch`.
 
 `request_tap_debounced` matters: a high count on one card means he is looping on it, which is a signal to change the card or the debounce.
 

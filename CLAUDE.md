@@ -25,7 +25,7 @@ These override "good UX" instincts from typical kids' apps. If a feature conflic
 4. **Parent's recorded voice only.** No TTS, no stock voices.
 5. **Real photos over illustrations** for request cards: the child's actual cup, actual swing.
 6. **Written word always visible** on cards. Text is a strength to lean on, not decoration.
-7. **Calm visuals.** No particle storms, no flashing, no background music. One short reward animation, max ~1.5 s.
+7. **Calm visuals.** No flashing, no background music. One reward animation ≤ 1.5 s; at most 8 sparks rising once; glow and sparks are settings.
 8. **No speech recognition.** We detect that the child vocalized, not what was said. A parent button can also credit an attempt.
 9. **Offline, local, private.** No backend, no analytics SDKs, no accounts. Photos, voice and logs of a child never leave the device unless the parent explicitly exports.
 
@@ -61,6 +61,7 @@ docs/SPEC.md
 - Code, identifiers, comments, commit messages: English. UI strings: Uzbek, kept in one `src/i18n/uz.ts` file. Parent mode may also have Russian later, so no hardcoded strings in components.
 - Card text is whatever the parent typed (Latin or Cyrillic Uzbek). Never transliterate or "fix" it.
 - Migrations are append-only, numbered files. Never edit an applied migration.
+- Change the database schema (a table, a column, a migration) only when I ask for it. A feature that seems to need one: stop and ask.
 - Every child-facing interaction writes an event to the log (see SPEC, Event log). If you add an interaction, add its event type.
 - Touch targets in child mode: minimum 120×120 pt. Parent-mode entry is a 3-second hold on a small corner element, never a plain tap.
 - Pure logic (vocalization detector, debounce, session timer) gets unit tests with Jest. UI does not need tests in v0.1.
@@ -70,7 +71,7 @@ docs/SPEC.md
 - The mic listens **only during the pause window**, never while the app itself is playing sound, otherwise the app's own voice triggers detection.
 - Audio session must allow recording and play in silent mode. Configure once at app start.
 - Vocalization threshold is relative to an ambient noise baseline measured at session start, not an absolute dB value.
-- Never persist microphone audio from the child. Metering values only.
+- Never persist microphone audio automatically; the detector stores metering only. The only child audio kept is parent-initiated attempt recordings (hold on the attempt corner), stored locally, included in export, never played back to the child.
 - Play audio through `useVoicePlayer` (`src/audio`). A plain `useAudioPlayer` deactivates the audio session on pause and at the end of playback, and iOS then stops any recording running at that moment.
 
 ## Out of scope for v0.1
