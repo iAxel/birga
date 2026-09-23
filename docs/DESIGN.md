@@ -31,6 +31,8 @@ export const space  = { childPad: 48, childGap: 24, tabBar: 132, childTarget: 12
 
 Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via `expo-font`; fallback `System`). Latin and Cyrillic, incl. Ğ Ö Ş Ç.
 
+*Built differently:* Manrope has no Ғ Қ Ҳ and no ʻ ʼ (U+02BB, U+02BC). A word the parent typed that contains one of them is drawn in the system font as a whole, rather than mixing two fonts inside one word.
+
 | Role                                  | Size                     | Weight    | Tracking               |
 | ------------------------------------- | ------------------------ | --------- | ---------------------- |
 | Card word, no photo (iPad)            | 104                      | 800       | -2                     |
@@ -54,11 +56,17 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Enlarged card (tap).** Scales/moves to center over 300 ms ease-out, others fade to 28% opacity. 4 pt `accent` border, radius 36, shadow `0 24 60 rgba(32,28,23,0.18)`. Small speaker icon (`accent`) next to the word while audio plays. Returns after 3 s or audio end, whichever is later.
 
+*Built differently:* the enlarged card keeps the proportions of its slot instead of the squarer shape of the mockup. It moves and scales as one piece, and changing its shape on the way would squeeze the photo. On an iPhone, where two stacked cards already fill the width, it therefore mostly moves to the middle rather than growing.
+
 **Tab bar (child).** Height 132, two 120×120 circular targets, gap 48 (iPad) / 24 (iPhone). Active: `cardLine` fill, `ink` icon. Inactive: no fill, `muted` icon. Hidden entirely while `pauseGameEnabled` is off.
 
-**Parent corners (child screens).** 56×56 (iPad) / 52×52 (iPhone) hit areas, 26 pt icons in `faint`, no background. Left-bottom: check = attempt (tap credits, hold records up to 4 s). Right-bottom: hand = modeling toggle. Top-right: parent gate.
+**Parent corners (child screens).** 56×56 (iPad) / 52×52 (iPhone) hit areas, 26 pt icons in `faint`, no background. Left-bottom: speech bubble = attempt, a tap credits it. Right-bottom: tapping hand = modeling toggle. Top-left: parent gate.
 
-**Parent gate.** 12 pt dot in `hint`, 44×44 hit area, 3-second hold. While holding: a 2 pt `accent` ring around the dot fills clockwise over the 3 s; release resets it. No other feedback.
+*Built differently:* the check became a speech bubble (a check reads as "correct", and the app never judges) and the raised hand became a tapping hand. Hold-to-record on the attempt control is not built: it would keep microphone audio of the child, which CLAUDE.md forbids.
+
+**Parent gate.** 12 pt dot in `hint`, 44×44 hit area, 3-second hold, in the **top-left** corner. While holding: a 2 pt `accent` ring around the dot fills clockwise over the 3 s; release resets it. No other feedback.
+
+*Built differently:* the gate moved from the top-right corner to the top-left one, where no screen draws anything; against the medallion the dot was hard to make out.
 
 **Modeling indicator.** When modeling is on: hand icon switches to `accent` and a 3 pt `accent` bar spans the bottom edge. Auto-off after 60 s.
 
@@ -66,7 +74,9 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Session countdown.** Last minute: 3 pt bar at the top edge, `hint` color, shrinking right-to-left. No sound.
 
-**Ornament.** Suzani-style medallion (concentric rings, 8 petals, 16 dots, 8 leaves; stroke only, `#B9B1A2`). Bottom-left large + top-right small on Start and Goodbye; one small top-right on parent home and onboarding. Opacity: Start 60%/48%, Goodbye 45%/36%, parent 40%. Never on Requests, Tap, or Pause screens. Ship as one SVG asset, position with absolute layout.
+**Ornament.** Suzani-style medallion (concentric rings, 8 petals, 16 dots, 8 leaves; stroke only, `#B9B1A2`). Bottom-left large + top-right small on Start and Goodbye; one small top-right on every parent screen. Opacity: Start 60%/48%, Goodbye 45%/36%, parent 40%. Never on Requests, Tap, or Pause screens. One SVG, generated from `src/ui/medallion.ts`, positioned with absolute layout.
+
+*Built differently:* the medallion is on all of parent mode, not only home and onboarding: the plain screens looked unfinished beside them.
 
 **Parent mode.** iOS-grouped-list feel: `card` panels radius 20 with 1 pt `cardLine`, rows 56–72 pt, chevrons in `hint`. Primary button `accent` 56 pt radius 16; secondary `panelAlt`; outline buttons 1.5 pt `hint` border.
 
@@ -79,17 +89,23 @@ Start (idle): wordmark, subtitle "Suleyman bilan birga o'ynaymiz" (subtitle text
 
 Goodbye: waving-hand line icon in `accent` (SF Symbol `hand.wave` is fine), "Xayr!", "Ertaga yana o'ynaymiz". Nothing tappable except the gate.
 
-Parent mode, iPhone: Onboarding (first launch only) → Home → Boards / Board → Card editor; Sequences (step 6); Log; Settings (native).
+Parent mode, iPhone: Onboarding (first launch only) → Home → Boards / Board → Card editor; Sequences (step 6); Log; Settings.
+
+*Built differently:* Settings and the goodbye-voice screen are not native forms. They brought their own grey background, blue controls and navigation bar, so they use the same header, panels and ground colour as the rest, and their values are chips instead of native pickers.
 
 Home: session panel (idle: "Sessiya yo'q", last session time, primary "Yangi sessiya · 10 daqiqa", board summary; running: time left, progress bar, "Davom etish" / "Tugatish"), list (Kartalar, Ketma-ketliklar, Kundalik, Sozlamalar), "Bugungi maslahat" panel (one rotating parent tip from a static list in `uz.ts`), bottom outline "Yopish".
 
 Board: title + FAOL badge, hint "Bola birinchi N ta kartani ko'radi", rows with thumbnail (or word tile for photo-less cards), word, voice duration, up/down arrows; divider "bola ko'rmaydi" before the (N+1)th card, those rows at 60% opacity; primary "Karta qo'shish".
 
-Card editor, top to bottom: RASM panel (square preview 168 pt centered; Kamera / Galereya / remove), SO'Z field (56 pt, 26/700), OVOZ panel (status, static waveform of the recording, Eshitish / Qayta yozish / import-file icon button, hint), primary Saqlash, danger text "Arxivga yuborish". Board picker stays as a row only when more than one board exists.
+Card editor, top to bottom: RASM panel (square preview 168 pt centered; Kamera / Galereya / remove), SO'Z field (56 pt, 26/700), OVOZ panel (status, waveform of the recording, Eshitish / Qayta yozish / import-file icon button, hint), primary Saqlash, danger text "Arxivga yuborish". Board picker stays as a row only when more than one board exists.
+
+*Built differently:* the waveform is the real shape of the take. The microphone level is sampled ten times a second while the parent speaks and kept with the card, so the bars are there when the card is opened again; a card recorded before that has flat bars. While the recording plays, the bars it has passed stay `accent` and the rest turn `hint`, so the row is also the playback position. The import button is not built yet (spec only), so the OVOZ row holds Eshitish and Qayta yozish.
 
 Log: week strip (7 tiles, accent tint by activity), "BUGUN" stats (sessiya / bosish / aytishga urindi), URINISHLAR·YOZUVLAR list (play button, card, time · duration), KARTALAR BO'YICHA bars, loop warning panel when `request_tap_debounced` for one card ≥ 5 in a day. Export icon top-right.
 
-Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, primary button), steps 2–3 (Guided Access path; how to run the first session) inactive; disabled "Boshlash" until 2 cards exist. Never shown again once completed.
+Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, primary button), steps 2–4 (Guided Access path; what the two corner controls of the board are for, with their icons; how to run the first session) inactive; disabled "Boshlash" until 2 cards exist. Shown on first launch, and again from Settings when the parent asks for it.
+
+*Built differently:* a fourth step explains the corner controls, because neither icon says what it does; and Settings has a row that opens the onboarding again.
 
 ## 4. Motion
 
@@ -97,7 +113,9 @@ Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, pr
 
 ## 5. Assets
 
-App icon: `accent` background, medallion in `ground`, no text, 1024×1024 opaque PNG. Splash: `ground` with the medallion at 40% centered.
+App icon: `accent` background, medallion in `ground`, no text, 1024×1024 opaque PNG. Splash: `ground` with the medallion at 40% centered, 240 pt wide.
+
+Both are rendered from `src/ui/medallion.ts` by `npm run brand-assets`, so the ornament has one source.
 
 ## 6. Spec additions carried by this handoff (update SPEC.md)
 
@@ -108,3 +126,13 @@ App icon: `accent` background, medallion in `ground`, no text, 1024×1024 opaque
 5. §5 Settings: child's name (subtitle), glow, sparks.
 6. Parent gate hold ring; modeling indicator; last-minute bar (spec already had the bar, keep 3 pt at top).
 7. iPhone Requests layout = 2 stacked cards.
+
+## 7. Not built yet
+
+Named here so the mockups are not read as a promise:
+
+- **Pause game** (mockups 6, 7, 12, 13) and the sequence editor: build step 6.
+- **Log** (mockup 19): the screen has the header and a "coming soon" panel; the week strip, the counters, the per-card bars and the export come with build step 8, which is where the queries over the event log belong.
+- **Values that need data the app does not keep yet:** "oxirgisi 2 soat oldin" and "Bugun 2" on home, the voice length and the recorder's name in the board rows, the sequence name beside Ketma-ketliklar.
+- **Attempt recordings** (§6.1) and the Urinishlar list in the log: not adopted, see the parent corners above.
+- **Audio import** in the card editor and the **symbol** of a sequence item: spec only.
