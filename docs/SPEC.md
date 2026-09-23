@@ -22,7 +22,7 @@ The Pause game tab is behind a setting, off by default until the game exists. Wh
 
 ### Parent mode
 
-Entered by holding a small dim element in the top-left corner for 3 seconds. While it is held, a thin ring around it fills clockwise over the 3 s; letting go resets it. No other feedback. Contains: cards management, pause-game sequences, session settings, log view/export.
+Entered by holding a small dim element in the top-left corner for 3 seconds. While it is held, a thin ring around it fills clockwise over the 3 s; letting go resets it. No other feedback. It is the only way in: a link from outside the app opens no screen of its own (`app/+native-intent.tsx`). Contains: cards management, pause-game sequences, session settings, log view/export.
 
 Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the child cannot leave the app.
 
