@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
+import { type SFSymbol, SymbolView } from 'expo-symbols'
 import type { PropsWithChildren, ReactElement, ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { useRepositories } from '@/db'
@@ -9,7 +9,7 @@ import { strings } from '@/i18n'
 import { Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
-import { color, font, space, typography } from '@/ui/theme'
+import { color, font, radius, space, typography } from '@/ui/theme'
 
 /** Cards the board needs before the first session makes sense. */
 const CARD_GOAL = 2
@@ -87,10 +87,31 @@ export default function OnboardingScreen(): ReactElement {
       <Step isActive={hasCards} number={2} title={strings.onboarding.guidedAccessStep}>
         <Text style={styles.text}>{strings.onboarding.guidedAccessText}</Text>
       </Step>
-      <Step number={3} title={strings.onboarding.sessionStep}>
+      <Step number={3} title={strings.onboarding.cornersStep}>
+        <CornerHint icon="bubble.left" text={strings.onboarding.cornersAttempt} />
+        <CornerHint icon="hand.tap" text={strings.onboarding.cornersModeling} />
+      </Step>
+      <Step number={4} title={strings.onboarding.sessionStep}>
         <Text style={styles.text}>{strings.onboarding.sessionText(settings.sessionMinutes)}</Text>
       </Step>
     </ParentScreen>
+  )
+}
+
+interface CornerHintProps {
+  icon: SFSymbol
+  text: string
+}
+
+/** One of the two parent controls of the board, shown with the icon the parent will look for in the corner. */
+function CornerHint({ icon, text }: CornerHintProps): ReactElement {
+  return (
+    <View style={styles.cornerHint}>
+      <View style={styles.cornerIcon}>
+        <SymbolView name={icon} size={20} tintColor={color.muted} />
+      </View>
+      <Text style={[styles.text, styles.cornerText]}>{text}</Text>
+    </View>
   )
 }
 
@@ -159,6 +180,23 @@ const styles = StyleSheet.create({
   counter: {
     ...typography.button,
     color: color.muted,
+  },
+  cornerHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space.md,
+  },
+  cornerIcon: {
+    width: STEP_MARK_SIZE,
+    height: STEP_MARK_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: color.cardLine,
+    borderRadius: radius.buttonSm,
+  },
+  cornerText: {
+    flex: 1,
   },
   text: {
     ...typography.row,

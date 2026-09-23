@@ -28,9 +28,9 @@ interface CornerButtonProps {
 }
 
 /**
- * Two faint controls in the bottom corners, meant for the parent (SPEC §2): the check credits a spoken attempt of the
- * child, the hand switches on modelling, which marks the next taps as the parent's own. While modelling is on, the hand
- * is accent and a thin accent bar runs along the bottom edge.
+ * Two faint controls in the bottom corners, meant for the parent (SPEC §2): the speech bubble credits an attempt of the
+ * child to say the word, the tapping hand switches on modelling, which marks the next taps as the parent's own. While
+ * modelling is on, the hand is accent and a thin accent bar runs along the bottom edge.
  */
 export function ParentControls({ isModeling, onAttempt, onToggleModeling }: ParentControlsProps): ReactElement {
   const [isAttemptNoted, setIsAttemptNoted] = useState(false)
@@ -54,9 +54,15 @@ export function ParentControls({ isModeling, onAttempt, onToggleModeling }: Pare
   return (
     <>
       {isModeling && <View style={styles.modelingBar} />}
-      <CornerButton icon="checkmark" isOn={isAttemptNoted} label={strings.requests.attempt} onPress={noteAttempt} side="left" />
       <CornerButton
-        icon="hand.raised"
+        icon="bubble.left"
+        isOn={isAttemptNoted}
+        label={strings.requests.attempt}
+        onPress={noteAttempt}
+        side="left"
+      />
+      <CornerButton
+        icon="hand.tap"
         isOn={isModeling}
         label={strings.requests.modeling}
         onPress={onToggleModeling}

@@ -40,6 +40,10 @@ export const uz = {
     guidedAccessStep: 'Guided Access yoqing',
     guidedAccessText:
       'Settings → Accessibility → Guided Access. Sessiya oldidan yon tugmani 3 marta bosing: bola ilovadan chiqib keta olmaydi.',
+    cornersStep: 'Ekrandagi ikki tugma',
+    cornersAttempt: "Pastki chapda: bola so'zni aytishga urinsa, shu tugmani bosing. Urinish kundalikka tushadi.",
+    cornersModeling:
+      "Pastki o'ngda: kartani o'zingiz bosib ko'rsatmoqchi bo'lsangiz yoqing. Bunday bosishlar bolaning bosishlari qatoriga kirmaydi va 60 soniyadan keyin o'chadi.",
     sessionStep: 'Birinchi sessiya',
     sessionText: (minutes: number): string =>
       `${minutes} daqiqa, yonida o'tiring. Kartani bosdi — darhol so'ragan narsasini bering. Hech narsa talab qilmang, kuting.`,

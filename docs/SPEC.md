@@ -26,7 +26,7 @@ Entered by holding a small dim element in the top-right corner for 3 seconds. Wh
 
 Recommend to the parent (in onboarding text) to use iOS **Guided Access** so the child cannot leave the app.
 
-**Onboarding** is shown on first launch only: a short why, then three steps. Step 1, add 2 cards, is active with a counter and a button; steps 2 (turn on Guided Access) and 3 (how to run the first session) are text. "Boshlash" stays disabled until 2 cards exist. Once completed it is never shown again.
+**Onboarding** is shown on first launch only: a short why, then four steps. Step 1, add 2 cards, is active with a counter and a button; steps 2 (turn on Guided Access), 3 (what the two corner controls of the board are for, with their icons) and 4 (how to run the first session) are text. "Boshlash" stays disabled until 2 cards exist. Once completed it is never shown again.
 
 The parent home screen shows one parent tip at a time from a static list ("Bugungi maslahat").
 
