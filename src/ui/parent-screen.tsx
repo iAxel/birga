@@ -4,7 +4,11 @@ import type { PropsWithChildren, ReactElement, ReactNode } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { strings } from '@/i18n'
+import { Ornaments } from '@/ui/ornaments'
 import { color, space, touch, typography } from '@/ui/theme'
+
+/** DESIGN §2: the medallion sits in the top-right corner of parent mode at 40%. */
+const ORNAMENT_OPACITY = 0.4
 
 interface ParentScreenProps extends PropsWithChildren {
   title: string
@@ -12,30 +16,21 @@ interface ParentScreenProps extends PropsWithChildren {
   hasBack?: boolean
   /** Right end of the header: a badge, a label or an icon button. */
   accessory?: ReactNode
-  /** Drawn behind everything, for the ornament. */
-  background?: ReactNode
   /** Pinned under the scrolling content, for the screen's main action. */
   footer?: ReactNode
 }
 
 /**
  * A parent-mode screen after the mockups (DESIGN §3): a back chevron and a large title instead of the navigation bar,
- * then panels on the ground colour.
+ * then panels on the ground colour, with the medallion in the corner behind them.
  */
-export function ParentScreen({
-  title,
-  hasBack = true,
-  accessory,
-  background,
-  footer,
-  children,
-}: ParentScreenProps): ReactElement {
+export function ParentScreen({ title, hasBack = true, accessory, footer, children }: ParentScreenProps): ReactElement {
   const router = useRouter()
   const insets = useSafeAreaInsets()
 
   return (
     <View style={styles.root}>
-      {background}
+      <Ornaments smallOpacity={ORNAMENT_OPACITY} />
       <ScrollView
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[

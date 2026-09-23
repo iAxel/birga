@@ -6,7 +6,6 @@ import { useRepositories } from '@/db'
 import { useActiveBoard } from '@/features/cards/use-active-board'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
-import { Ornaments } from '@/ui/ornaments'
 import { Panel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -63,7 +62,6 @@ export default function OnboardingScreen(): ReactElement {
 
   return (
     <ParentScreen
-      background={<Ornaments smallOpacity={0.4} />}
       footer={
         <View style={styles.footer}>
           <ParentButton disabled={!hasCards} onPress={finish} title={strings.onboarding.start} variant="primary" />

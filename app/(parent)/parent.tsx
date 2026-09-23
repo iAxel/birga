@@ -6,7 +6,6 @@ import { tipOfDay } from '@/features/parent/tip-of-day'
 import { SessionControls, useBackToChildMode } from '@/features/session/session-controls'
 import { useNow } from '@/features/session/use-now'
 import { strings } from '@/i18n'
-import { Ornaments } from '@/ui/ornaments'
 import { ListRow, Panel, SectionLabel } from '@/ui/panel'
 import { ParentButton } from '@/ui/parent-button'
 import { ParentScreen } from '@/ui/parent-screen'
@@ -29,7 +28,6 @@ export default function ParentHomeScreen(): ReactElement {
   return (
     <ParentScreen
       accessory={<Text style={styles.label}>{strings.parent.label}</Text>}
-      background={<Ornaments smallOpacity={0.4} />}
       footer={<ParentButton onPress={() => backToChildMode(Date.now())} title={strings.parent.close} />}
       hasBack={false}
       title={strings.child.wordmark}
