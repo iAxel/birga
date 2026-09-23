@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { useRepositories } from '@/db'
+import { useFocusQuery } from '@/db/use-focus-query'
 import { startOfDay } from '@/features/parent/relative-time'
 
 export interface SessionStats {
@@ -13,23 +13,16 @@ export interface SessionStats {
 /** What parent home says about the sessions themselves, reloaded whenever the screen comes back into view. */
 export function useSessionStats(): SessionStats | undefined {
   const repositories = useRepositories()
-  const [stats, setStats] = useState<SessionStats | undefined>(undefined)
 
-  useFocusEffect(
-    useCallback(() => {
-      async function load(): Promise<void> {
-        const lastEndedAt = await repositories.sessions.lastEndedAt()
-        const todayCount = await repositories.sessions.countStartedSince(startOfDay(Date.now()))
+  return useFocusQuery(
+    useCallback(async () => {
+      const lastEndedAt = await repositories.sessions.lastEndedAt()
+      const todayCount = await repositories.sessions.countStartedSince(startOfDay(Date.now()))
 
-        setStats({
-          lastEndedAt,
-          todayCount,
-        })
+      return {
+        lastEndedAt,
+        todayCount,
       }
-
-      load()
     }, [repositories]),
   )
-
-  return stats
 }

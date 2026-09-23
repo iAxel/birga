@@ -1,7 +1,8 @@
 import { useAudioPlayerStatus } from 'expo-audio'
 import { SymbolView } from 'expo-symbols'
 import { type ReactElement, useEffect } from 'react'
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { pickAudio } from '@/audio/audio-file'
 import { flatLevels, LEVEL_INTERVAL_MS } from '@/audio/metering'
 import { useVoicePlayer } from '@/audio/use-voice-player'
 import { MAX_RECORDING_MS, useVoiceRecorder } from '@/audio/use-voice-recorder'
@@ -21,7 +22,7 @@ interface VoiceFieldProps {
   audio: MediaDraft | null
   /** Shape of the stored recording; null for one made before the app kept it. */
   levels: number[] | null
-  onRecorded: (uri: string, levels: number[]) => void
+  onRecorded: (uri: string, levels: number[], durationMs: number) => void
 }
 
 /**
@@ -54,6 +55,27 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
 
   async function stopRecording(): Promise<void> {
     await recorder.stop()
+  }
+
+  /** A recording made elsewhere, e.g. one the family sent in a message; a file that is too long is refused (SPEC §5). */
+  async function importAudio(): Promise<void> {
+    const picked = await pickAudio()
+
+    if (picked.kind === 'tooLong') {
+      Alert.alert(strings.cardEditor.importTooLong((picked.durationMs / 1000).toFixed(1)))
+
+      return
+    }
+
+    if (picked.kind === 'unreadable') {
+      Alert.alert(strings.cardEditor.importUnreadable)
+
+      return
+    }
+
+    if (picked.kind === 'picked') {
+      onRecorded(picked.uri, [], picked.durationMs)
+    }
   }
 
   function play(): void {
@@ -99,6 +121,12 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
             {recordLabel(recorder.isRecording, audio !== null)}
           </Text>
         </Pressable>
+        <ParentButton
+          accessibilityLabel={strings.cardEditor.importAudio}
+          icon="square.and.arrow.down"
+          onPress={importAudio}
+          title=""
+        />
       </View>
       <Text style={typography.hint}>{strings.cardEditor.voiceHint}</Text>
     </Panel>

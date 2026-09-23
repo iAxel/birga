@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { type CardCount, useRepositories } from '@/db'
+import { useFocusQuery } from '@/db/use-focus-query'
 import { startOfWeek, type WeekDay, weekDays } from '@/features/parent/log-week'
 import { startOfDay } from '@/features/parent/relative-time'
 
@@ -15,6 +15,9 @@ export interface DayLog {
   sessions: number
   taps: number
   attempts: number
+  /** Pauses the game opened today, and the ones that were filled: SPEC §5 asks for the ratio of the two. */
+  pauses: number
+  pausesFilled: number
   /** Taps per card today, most played first. */
   cards: CardCount[]
   /** Cards the board had to ignore at least LOOP_TAPS times today. */
@@ -24,36 +27,31 @@ export interface DayLog {
 /** What the log screen says about today and this week, reloaded whenever the screen comes back into view. */
 export function useDayLog(): DayLog | undefined {
   const repositories = useRepositories()
-  const [log, setLog] = useState<DayLog | undefined>(undefined)
 
-  useFocusEffect(
-    useCallback(() => {
-      async function load(): Promise<void> {
-        const now = Date.now()
-        const dayStart = startOfDay(now)
-        const dayEnd = dayStart + DAY_MS
-        const { events } = repositories
+  return useFocusQuery(
+    useCallback(async () => {
+      const now = Date.now()
+      const dayStart = startOfDay(now)
+      const dayEnd = dayStart + DAY_MS
+      const { events } = repositories
 
-        const [counts, cards, debounced, weekTaps] = await Promise.all([
-          events.countsByType(dayStart, dayEnd),
-          events.countsByCard('request_tap', dayStart, dayEnd),
-          events.countsByCard('request_tap_debounced', dayStart, dayEnd),
-          events.timesOf('request_tap', startOfWeek(now), dayEnd),
-        ])
+      const [counts, cards, debounced, weekTaps] = await Promise.all([
+        events.countsByType(dayStart, dayEnd),
+        events.countsByCard('request_tap', dayStart, dayEnd),
+        events.countsByCard('request_tap_debounced', dayStart, dayEnd),
+        events.timesOf('request_tap', startOfWeek(now), dayEnd),
+      ])
 
-        setLog({
-          week: weekDays(now, weekTaps),
-          sessions: counts.session_start ?? 0,
-          taps: counts.request_tap ?? 0,
-          attempts: (counts.request_verbal_attempt ?? 0) + (counts.attempt_recorded ?? 0),
-          cards,
-          loops: debounced.filter((card) => card.count >= LOOP_TAPS),
-        })
+      return {
+        week: weekDays(now, weekTaps),
+        sessions: counts.session_start ?? 0,
+        taps: counts.request_tap ?? 0,
+        attempts: (counts.request_verbal_attempt ?? 0) + (counts.attempt_recorded ?? 0),
+        pauses: counts.pause_open ?? 0,
+        pausesFilled: (counts.pause_filled ?? 0) + (counts.pause_parent_credit ?? 0),
+        cards,
+        loops: debounced.filter((card) => card.count >= LOOP_TAPS),
       }
-
-      load()
     }, [repositories]),
   )
-
-  return log
 }

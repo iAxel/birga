@@ -5,11 +5,14 @@ import {
   useContext,
   useEffect,
   useEffectEvent,
+  useRef,
   useState,
 } from 'react'
+import { AppState } from 'react-native'
 import { useRepositories } from '@/db'
 import {
   breakLeftMs,
+  endsAt,
   pauseClock,
   remainingMs,
   resumeClock,
@@ -51,6 +54,7 @@ export function SessionProvider({ children }: PropsWithChildren): ReactElement |
   const [active, setActive] = useState<ActiveSession | null>(null)
   const [lastTimerEndedAt, setLastTimerEndedAt] = useState<number | null>(null)
   const [lastEndedSessionId, setLastEndedSessionId] = useState<number | null>(null)
+  const isStartingRef = useRef(false)
 
   useEffect(() => {
     async function prepare(): Promise<void> {
@@ -67,6 +71,14 @@ export function SessionProvider({ children }: PropsWithChildren): ReactElement |
     end('timer', Date.now())
   })
 
+  const closeIfTimeIsUp = useEffectEvent(() => {
+    if (!active || active.clock.pausedAt !== null || remainingMs(active.clock, Date.now()) > 0) {
+      return
+    }
+
+    end('timer', endsAt(active.clock))
+  })
+
   useEffect(() => {
     if (!active || active.clock.pausedAt !== null) {
       return
@@ -77,17 +89,38 @@ export function SessionProvider({ children }: PropsWithChildren): ReactElement |
     return () => clearTimeout(timeout)
   }, [active])
 
+  /**
+   * iOS freezes the timer while the app is away, so a session that ran out in the meantime has to be closed the moment
+   * the app comes back, at the time it should have ended rather than now.
+   */
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') {
+        closeIfTimeIsUp()
+      }
+    })
+
+    return () => subscription.remove()
+  }, [])
+
+  /** The insert is awaited, so a second tap on the start button must be turned away before it, not by `active`. */
   async function start(now: number): Promise<void> {
-    if (active || breakLeft(now) > 0) {
+    if (active || isStartingRef.current || breakLeft(now) > 0) {
       return
     }
 
-    const id = await repositories.sessions.start(now)
+    isStartingRef.current = true
 
-    setActive({
-      id,
-      clock: startClock(now, settings.sessionMinutes * MINUTE_MS),
-    })
+    try {
+      const id = await repositories.sessions.start(now)
+
+      setActive({
+        id,
+        clock: startClock(now, settings.sessionMinutes * MINUTE_MS),
+      })
+    } finally {
+      isStartingRef.current = false
+    }
   }
 
   async function end(reason: 'timer' | 'parent_exit', now: number): Promise<void> {

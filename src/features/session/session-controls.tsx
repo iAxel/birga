@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router'
 import type { ReactElement } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
+import { askForMicrophone } from '@/audio/microphone'
 import type { ActiveBoard } from '@/features/cards/use-active-board'
 import { ageLabel } from '@/features/parent/age-label'
 import { ageOf } from '@/features/parent/relative-time'
@@ -63,7 +64,13 @@ export function SessionControls({ activeBoard, lastEndedAt }: SessionControlsPro
   const leaveParentMode = useLeaveParentMode()
   const now = useNow(REFRESH_MS)
 
+  /**
+   * The microphone is asked for here, in parent mode, and not on a screen the child is looking at: the pause game
+   * listens for his voice and the attempt corner records it. A refusal only means the session runs without listening.
+   */
   async function startSession(startedAt: number): Promise<void> {
+    await askForMicrophone()
+
     await session.start(startedAt)
 
     leaveParentMode()

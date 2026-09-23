@@ -1,9 +1,9 @@
-import { useAudioPlayerStatus } from 'expo-audio'
-import { type ReactElement, useEffect, useRef, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Easing, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
-import { useVoicePlayer } from '@/audio/use-voice-player'
+import { stopVoice, useIsVoicePlaying, useVoicePlayer } from '@/audio/use-voice-player'
 import { type Card, type CardsPerScreen, mediaUri } from '@/db'
 import { gridShape, layoutGrid, type Rect, type Size } from '@/features/requests/board-layout'
 import { EnlargedCard } from '@/features/requests/enlarged-card'
@@ -45,7 +45,7 @@ export function RequestsBoard({
 }: RequestsBoardProps): ReactElement {
   const logEvent = useEventLog()
   const player = useVoicePlayer()
-  const playerStatus = useAudioPlayerStatus(player)
+  const isPlaying = useIsVoicePlaying(player)
   const reduceMotion = useReducedMotion()
   const progress = useSharedValue(0)
   const [area, setArea] = useState<Size | null>(null)
@@ -71,8 +71,20 @@ export function RequestsBoard({
     return () => clearTimeout(timeout)
   }, [active])
 
+  /** The board keeps its screen: leaving the tab silences it, so it never plays under the pause game. */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        stopVoice(player)
+
+        progress.set(0)
+        release()
+      }
+    }, [player, progress]),
+  )
+
   useEffect(() => {
-    if (!active || !isHoldOver || playerStatus.playing || isReturningRef.current) {
+    if (!active || !isHoldOver || isPlaying || isReturningRef.current) {
       return
     }
 
@@ -94,7 +106,7 @@ export function RequestsBoard({
         },
       ),
     )
-  }, [active, isHoldOver, playerStatus.playing, progress])
+  }, [active, isHoldOver, isPlaying, progress])
 
   function tap(card: Card, slot: Rect, now: number): void {
     const decision = decideTap({
@@ -139,6 +151,8 @@ export function RequestsBoard({
   }
 
   const slots = area ? layoutGrid(area, gridShape(cardsPerScreen, area), gap) : []
+  /** Where the played card belongs now: the board is laid out again when the iPad is turned, and its slot moves with it. */
+  const activeSlot = (active ? slots[cards.findIndex((card) => card.id === active.card.id)] : undefined) ?? active?.slot
 
   return (
     <View
@@ -176,15 +190,15 @@ export function RequestsBoard({
           </Pressable>
         )
       })}
-      {active && area && (
+      {active && area && activeSlot && (
         <EnlargedCard
           area={area}
           card={active.card}
-          isPlaying={playerStatus.playing}
-          onPress={() => tap(active.card, active.slot, Date.now())}
+          isPlaying={isPlaying}
+          onPress={() => tap(active.card, activeSlot, Date.now())}
           progress={progress}
           reduceMotion={reduceMotion}
-          slot={active.slot}
+          slot={activeSlot}
         />
       )}
     </View>

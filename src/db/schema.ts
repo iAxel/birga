@@ -35,6 +35,8 @@ export interface SequenceItemRow {
   sequence_id: number
   position: number
   text: string
+  /** One character shown above the word, e.g. the digit of a counting sequence; optional. */
+  symbol: string | null
   audio_path: string | null
   image_path: string | null
 }
@@ -61,6 +63,7 @@ export type EventType =
   | 'pause_filled'
   | 'pause_timeout'
   | 'pause_parent_credit'
+  | 'game_start'
   | 'game_round_end'
   | 'parent_gate_open'
   | 'tab_switch'

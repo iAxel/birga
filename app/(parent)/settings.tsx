@@ -1,7 +1,13 @@
 import { useRouter } from 'expo-router'
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { CARDS_PER_SCREEN_OPTIONS, DEBOUNCE_SECONDS_OPTIONS, MIN_BREAK_MINUTES_OPTIONS, SESSION_MINUTES_OPTIONS } from '@/db'
+import {
+  CARDS_PER_SCREEN_OPTIONS,
+  DEBOUNCE_SECONDS_OPTIONS,
+  MIN_BREAK_MINUTES_OPTIONS,
+  PAUSE_WINDOW_SECONDS_OPTIONS,
+  SESSION_MINUTES_OPTIONS,
+} from '@/db'
 import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { ChipGroup } from '@/ui/chips'
@@ -9,6 +15,7 @@ import { fontForText } from '@/ui/fonts'
 import { useFormFactor } from '@/ui/form-factor'
 import { ListRow, Panel, SectionLabel } from '@/ui/panel'
 import { ParentScreen } from '@/ui/parent-screen'
+import { SwitchRow } from '@/ui/switch-row'
 import { color, font, radius, space, typography } from '@/ui/theme'
 
 const NAME_HEIGHT = 48
@@ -24,10 +31,11 @@ export default function SettingsScreen(): ReactElement {
   const saveSetting = useSaveSetting()
   const isPhone = useFormFactor() === 'phone'
 
-  /** Opens the onboarding again; finishing it marks it done and comes back here. */
-  async function showOnboarding(): Promise<void> {
-    await saveSetting('onboardingDone', false)
-
+  /**
+   * Opens the onboarding again. The done flag stays as it is: clearing it would leave the app asking for the onboarding
+   * at the next launch if the parent simply swiped this screen away.
+   */
+  function showOnboarding(): void {
     router.push('/onboarding')
   }
 
@@ -35,16 +43,8 @@ export default function SettingsScreen(): ReactElement {
     <ParentScreen title={strings.parent.settings}>
       <Panel>
         <SectionLabel title={strings.settings.childSection} />
-        <TextInput
-          autoCapitalize="words"
-          autoCorrect={false}
-          onChangeText={(text) => saveSetting('childName', text)}
-          placeholder={strings.settings.childNamePlaceholder}
-          placeholderTextColor={color.hint}
-          returnKeyType="done"
-          style={[styles.name, fontForText(settings.childName, font.semiBold)]}
-          value={settings.childName}
-        />
+        <Text style={typography.row}>{strings.settings.childName}</Text>
+        <ChildNameField />
         <Text style={typography.body}>{strings.settings.childNameHint}</Text>
       </Panel>
       <Panel>
@@ -69,6 +69,35 @@ export default function SettingsScreen(): ReactElement {
           />
           <Text style={typography.body}>{strings.settings.debounceHint}</Text>
         </View>
+      </Panel>
+      <Panel>
+        <SectionLabel title={strings.settings.gameSection} />
+        <SwitchRow
+          onChange={(value) => saveSetting('pauseGameEnabled', value)}
+          title={strings.settings.gameEnabled}
+          value={settings.pauseGameEnabled}
+        />
+        <Text style={typography.body}>{strings.settings.gameEnabledHint}</Text>
+        <View style={styles.setting}>
+          <Text style={typography.row}>{strings.settings.pauseWindow}</Text>
+          <ChipGroup
+            label={strings.settings.seconds}
+            onChange={(option) => saveSetting('pauseWindowSeconds', option)}
+            options={PAUSE_WINDOW_SECONDS_OPTIONS}
+            value={settings.pauseWindowSeconds}
+          />
+          <Text style={typography.body}>{strings.settings.pauseWindowHint}</Text>
+        </View>
+        <SwitchRow
+          onChange={(value) => saveSetting('rewardGlow', value)}
+          title={strings.settings.rewardGlow}
+          value={settings.rewardGlow}
+        />
+        <SwitchRow
+          onChange={(value) => saveSetting('rewardSparks', value)}
+          title={strings.settings.rewardSparks}
+          value={settings.rewardSparks}
+        />
       </Panel>
       <Panel>
         <SectionLabel title={strings.settings.sessionSection} />
@@ -101,6 +130,35 @@ export default function SettingsScreen(): ReactElement {
         <ListRow onPress={showOnboarding} title={strings.settings.showOnboarding} />
       </Panel>
     </ParentScreen>
+  )
+}
+
+/**
+ * The child's name, as typed. The field keeps what was typed and writes it through: reading it back from the database
+ * between keystrokes is a round trip per letter, and a letter typed during one of them is lost.
+ */
+function ChildNameField(): ReactElement {
+  const settings = useSettings()
+  const saveSetting = useSaveSetting()
+  const [name, setName] = useState(settings.childName)
+
+  function type(text: string): void {
+    setName(text)
+
+    saveSetting('childName', text)
+  }
+
+  return (
+    <TextInput
+      autoCapitalize="words"
+      autoCorrect={false}
+      onChangeText={type}
+      placeholder={strings.settings.childNamePlaceholder}
+      placeholderTextColor={color.hint}
+      returnKeyType="done"
+      style={[styles.name, fontForText(name, font.semiBold)]}
+      value={name}
+    />
   )
 }
 

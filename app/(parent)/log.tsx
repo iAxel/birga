@@ -103,6 +103,13 @@ export default function LogScreen(): ReactElement {
           </View>
         </Panel>
       ))}
+      {log && log.pauses > 0 && (
+        <Panel>
+          <SectionLabel title={strings.log.pauses} />
+          <Text style={typography.row}>{strings.log.pauseRatio(log.pausesFilled, log.pauses)}</Text>
+          <Text style={typography.body}>{strings.log.pauseHint}</Text>
+        </Panel>
+      )}
       {log && log.cards.length > 0 && (
         <Panel>
           <SectionLabel title={strings.log.byCards} />
@@ -175,7 +182,7 @@ function AttemptRow({ attempt, hasSeparator, onPlay }: AttemptRowProps): ReactEl
       hasSeparator={hasSeparator}
       icon="play.fill"
       onPress={onPlay}
-      title={attempt.cardText ?? strings.log.attemptWithoutCard}
+      title={attempt.word ?? strings.log.attemptWithoutCard}
       value={strings.log.attemptMeta(timeOfDay(attempt.ts), (attempt.durationMs / 1000).toFixed(1))}
     />
   )

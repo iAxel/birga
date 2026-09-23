@@ -29,3 +29,10 @@ export function flatLevels(durationSeconds: number): number[] {
 
   return new Array(Math.max(0, count)).fill(0)
 }
+
+/** One level per interval of a take: the readings taken, cut or padded to the length the take actually lasted. */
+export function trimLevels(levels: number[], durationMs: number): number[] {
+  const wanted = Math.max(1, Math.round(durationMs / LEVEL_INTERVAL_MS))
+
+  return Array.from({ length: wanted }, (_, index) => levels[index] ?? 0)
+}

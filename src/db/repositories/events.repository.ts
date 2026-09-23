@@ -4,7 +4,7 @@ import type { EventRow, EventType } from '@/db/schema'
 interface AttemptRow {
   id: number
   ts: number
-  card_text: string | null
+  word: string | null
   payload_json: string | null
 }
 
@@ -32,8 +32,8 @@ export interface Attempt {
   id: number
   /** When it was recorded. */
   ts: number
-  /** The word of the card it belongs to; null when the card is gone or it came from the pause game. */
-  cardText: string | null
+  /** The word it belongs to, from a card or from an item of a sequence; null when neither is there any more. */
+  word: string | null
   audioPath: string
   durationMs: number
 }
@@ -107,9 +107,11 @@ export class EventsRepository {
   /** The recorded attempts, newest first. Rows whose payload is damaged are left out rather than shown empty. */
   async listAttempts(limit: number): Promise<Attempt[]> {
     const rows = await this.#_db.getAllAsync<AttemptRow>(
-      `SELECT events.id, events.ts, events.payload_json, cards.text AS card_text
+      `SELECT events.id, events.ts, events.payload_json, COALESCE(cards.text, sequence_items.text) AS word
        FROM events
        LEFT JOIN cards ON cards.id = events.card_id
+       LEFT JOIN sequence_items
+         ON sequence_items.sequence_id = events.sequence_id AND sequence_items.position = events.item_position
        WHERE events.type = 'attempt_recorded'
        ORDER BY events.ts DESC
        LIMIT ?`,
@@ -159,7 +161,7 @@ function toAttempt(row: AttemptRow): Attempt | null {
     return {
       id: row.id,
       ts: row.ts,
-      cardText: row.card_text,
+      word: row.word,
       audioPath,
       durationMs,
     }

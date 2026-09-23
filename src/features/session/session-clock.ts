@@ -48,6 +48,11 @@ export function remainingMs(clock: SessionClock, now: number): number {
   return Math.max(0, clock.limitMs - playedMs)
 }
 
+/** The moment the session was due to end, counting the time it spent paused; for a session the app slept through. */
+export function endsAt(clock: SessionClock): number {
+  return clock.startedAt + clock.pausedTotalMs + clock.limitMs
+}
+
 /** Length of the countdown bar in the last minute, from 1 down to 0; null before the last minute. */
 export function countdownShare(remaining: number): number | null {
   if (remaining > COUNTDOWN_MS) {

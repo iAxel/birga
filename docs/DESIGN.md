@@ -62,7 +62,7 @@ Typography: Manrope (bundle `Manrope-Regular/Medium/SemiBold/Bold/ExtraBold` via
 
 **Parent corners (child screens).** 56×56 (iPad) / 52×52 (iPhone) hit areas, 26 pt icons in `faint`, no background. Left-bottom: speech bubble = attempt, a tap credits it. Right-bottom: tapping hand = modeling toggle. Top-left: parent gate.
 
-*Built differently:* the check became a speech bubble (a check reads as "correct", and the app never judges) and the raised hand became a tapping hand. Hold-to-record on the attempt control is not built: it would keep microphone audio of the child, which CLAUDE.md forbids.
+*Built differently:* the check became a speech bubble (a check reads as "correct", and the app never judges) and the raised hand became a tapping hand. Holding the bubble records the attempt, which CLAUDE.md now allows as the one child audio the app keeps: parent-initiated, never played back, and only leaving the device with the export.
 
 **Parent gate.** 12 pt dot in `hint`, 44×44 hit area, 3-second hold, in the **top-left** corner. While holding: a 2 pt `accent` ring around the dot fills clockwise over the 3 s; release resets it. No other feedback.
 
@@ -99,13 +99,13 @@ Board: title + FAOL badge, hint "Bola birinchi N ta kartani ko'radi", rows with 
 
 Card editor, top to bottom: RASM panel (square preview 168 pt centered; Kamera / Galereya / remove), SO'Z field (56 pt, 26/700), OVOZ panel (status, waveform of the recording, Eshitish / Qayta yozish / import-file icon button, hint), primary Saqlash, danger text "Arxivga yuborish". Board picker stays as a row only when more than one board exists.
 
-*Built differently:* the waveform is the real shape of the take. The microphone level is sampled ten times a second while the parent speaks and kept with the card, so the bars are there when the card is opened again; a card recorded before that has flat bars. While the recording plays, the bars it has passed stay `accent` and the rest turn `hint`, so the row is also the playback position. The import button is not built yet (spec only), so the OVOZ row holds Eshitish and Qayta yozish.
+*Built differently:* the waveform is the real shape of the take. The microphone level is sampled ten times a second while the parent speaks and kept with the card, so the bars are there when the card is opened again; a card recorded before that has flat bars. While the recording plays, the bars it has passed stay `accent` and the rest turn `hint`, so the row is also the playback position. A ready recording can be imported instead of recorded: the third button of the OVOZ row opens the file picker and refuses a file longer than four seconds.
 
 Log: week strip (7 tiles, accent tint by activity), "BUGUN" stats (sessiya / bosish / aytishga urindi), URINISHLAR·YOZUVLAR list (play button, card, time · duration), KARTALAR BO'YICHA bars, loop warning panel when `request_tap_debounced` for one card ≥ 5 in a day. Export icon top-right.
 
-Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, primary button), steps 2–4 (Guided Access path; what the two corner controls of the board are for, with their icons; how to run the first session) inactive; disabled "Boshlash" until 2 cards exist. Shown on first launch, and again from Settings when the parent asks for it.
+Onboarding: "Boshlaymiz" + one-line why; step 1 active (add 2 cards, counter, primary button), steps 2–3 (Guided Access path; the session script) inactive; disabled "Boshlash" until 2 cards exist. Shown on first launch, and again from Settings when the parent asks for it.
 
-*Built differently:* a fourth step explains the corner controls, because neither icon says what it does; and Settings has a row that opens the onboarding again.
+*Built differently:* step 3 is the whole session script of SPEC §5, which is also where the two corner controls are explained; and Settings has a row that opens the onboarding again.
 
 ## 4. Motion
 
@@ -131,8 +131,6 @@ Both are rendered from `src/ui/medallion.ts` by `npm run brand-assets`, so the o
 
 Named here so the mockups are not read as a promise:
 
-- **Pause game** (mockups 6, 7, 12, 13) and the sequence editor: build step 6.
-- **Log** (mockup 19): the screen has the header and a "coming soon" panel; the week strip, the counters, the per-card bars and the export come with build step 8, which is where the queries over the event log belong.
-- **Values that need data the app does not keep yet:** "oxirgisi 2 soat oldin" and "Bugun 2" on home, the voice length and the recorder's name in the board rows, the sequence name beside Ketma-ketliklar.
-- **Attempt recordings** (§6.1) and the Urinishlar list in the log: not adopted, see the parent corners above.
-- **Audio import** in the card editor and the **symbol** of a sequence item: spec only.
+- **The vocalization detector**: the pause ends on the parent's button or when its time runs out; the microphone comes with build step 7.
+- **The "waiting" character**: the pause game shows the hint and three dots, no character; v0.1 has none anywhere.
+- **Values that need data the app does not keep:** the voice length and the recorder's name in the board rows.

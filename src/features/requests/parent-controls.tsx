@@ -1,19 +1,9 @@
-import { type SFSymbol, SymbolView } from 'expo-symbols'
-import { type ReactElement, useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useVoiceRecorder } from '@/audio/use-voice-recorder'
+import type { ReactElement } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { AttemptCorner } from '@/features/attempts/attempt-corner'
 import { strings } from '@/i18n'
-import { useChildMetrics } from '@/ui/child-metrics'
+import { CornerButton } from '@/ui/corner-button'
 import { color } from '@/ui/theme'
-
-/** How long the attempt icon stays lit, so the parent sees the tap counted. */
-const ATTEMPT_NOTED_MS = 800
-
-/** Held longer than this, the attempt control records instead of crediting a tap. */
-const HOLD_TO_RECORD_MS = 400
-
-const ICON_SIZE = 26
 
 const MODELING_BAR_HEIGHT = 3
 
@@ -23,17 +13,6 @@ interface ParentControlsProps {
   /** A recorded attempt, as the temporary file the recorder wrote and how long it lasted. */
   onAttemptRecorded: (uri: string, durationMs: number) => void
   onToggleModeling: () => void
-}
-
-interface CornerButtonProps {
-  icon: SFSymbol
-  label: string
-  hint?: string
-  isOn: boolean
-  side: 'left' | 'right'
-  onPressIn?: () => void
-  onPressOut?: () => void
-  onPress?: () => void
 }
 
 /**
@@ -48,62 +27,14 @@ export function ParentControls({
   onAttemptRecorded,
   onToggleModeling,
 }: ParentControlsProps): ReactElement {
-  const [isAttemptNoted, setIsAttemptNoted] = useState(false)
-  const recorder = useVoiceRecorder((uri, _levels, durationMs) => onAttemptRecorded(uri, durationMs), {
-    askOnMount: false,
-  })
-  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    if (!isAttemptNoted) {
-      return
-    }
-
-    const timeout = setTimeout(() => setIsAttemptNoted(false), ATTEMPT_NOTED_MS)
-
-    return () => clearTimeout(timeout)
-  }, [isAttemptNoted])
-
-  useEffect(() => {
-    return () => clearTimeout(holdRef.current ?? undefined)
-  }, [])
-
-  function startHold(): void {
-    holdRef.current = setTimeout(() => {
-      holdRef.current = null
-
-      recorder.start()
-    }, HOLD_TO_RECORD_MS)
-  }
-
-  /** Let go before the hold turned into a recording: that was a tap, and a tap credits the attempt. */
-  function endHold(): void {
-    if (holdRef.current !== null) {
-      clearTimeout(holdRef.current)
-
-      holdRef.current = null
-
-      onAttempt()
-
-      setIsAttemptNoted(true)
-
-      return
-    }
-
-    recorder.stop()
-  }
-
   return (
     <>
       {isModeling && <View style={styles.modelingBar} />}
-      <CornerButton
+      <AttemptCorner
         hint={strings.requests.attemptHold}
-        icon="bubble.left"
-        isOn={isAttemptNoted || recorder.isRecording}
         label={strings.requests.attempt}
-        onPressIn={startHold}
-        onPressOut={endHold}
-        side="left"
+        onCredit={onAttempt}
+        onRecorded={onAttemptRecorded}
       />
       <CornerButton
         icon="hand.tap"
@@ -116,42 +47,7 @@ export function ParentControls({
   )
 }
 
-function CornerButton({ icon, label, hint, isOn, side, onPress, onPressIn, onPressOut }: CornerButtonProps): ReactElement {
-  const insets = useSafeAreaInsets()
-  const metrics = useChildMetrics()
-
-  return (
-    <Pressable
-      accessibilityHint={hint}
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      accessibilityState={{
-        selected: isOn,
-      }}
-      onPress={onPress}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      style={[
-        styles.button,
-        {
-          width: metrics.corner,
-          height: metrics.corner,
-          bottom: Math.max(insets.bottom, metrics.cornerMargin),
-          [side]: insets[side] + metrics.cornerMargin,
-        },
-      ]}
-    >
-      <SymbolView name={icon} size={ICON_SIZE} tintColor={isOn ? color.accent : color.faint} />
-    </Pressable>
-  )
-}
-
 const styles = StyleSheet.create({
-  button: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   modelingBar: {
     position: 'absolute',
     left: 0,

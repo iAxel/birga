@@ -85,14 +85,14 @@ describe('EventsRepository', () => {
       {
         id: 2,
         ts: 2000,
-        cardText: null,
+        word: null,
         audioPath: 'media/attempts/second.m4a',
         durationMs: 1800,
       },
       {
         id: 1,
         ts: 1000,
-        cardText: 'suv',
+        word: 'suv',
         audioPath: 'media/attempts/first.m4a',
         durationMs: 900,
       },
