@@ -16,7 +16,7 @@ import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { useVocalizationListener } from '@/audio/use-vocalization-listener'
 import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
 import { FIRST_MEASURE_MS, ROUND_MEASURE_MS } from '@/audio/vocalization'
-import { mediaUri, type SequenceItem } from '@/db'
+import { type EventInput, type EventType, mediaUri, type SequenceItem } from '@/db'
 import { AttemptCorner } from '@/features/attempts/attempt-corner'
 import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import {
@@ -157,11 +157,7 @@ export function PauseGameView(): ReactElement {
   })
 
   const openPause = useEffectEvent((item: SequenceItem) => {
-    logEvent({
-      type: 'pause_open',
-      sequenceId: item.sequenceId,
-      itemPosition: item.position,
-    })
+    logEvent(pauseEvent('pause_open', item))
   })
 
   /** The child (or the parent's hand on his) starts the game; the rounds after the first follow by themselves. */
@@ -192,11 +188,7 @@ export function PauseGameView(): ReactElement {
   function endPause(reason: 'detected' | 'parent' | 'timeout', item: SequenceItem): void {
     const wasFilled = reason !== 'timeout'
 
-    logEvent({
-      type: PAUSE_END_EVENT[reason],
-      sequenceId: item.sequenceId,
-      itemPosition: item.position,
-    })
+    logEvent(pauseEvent(PAUSE_END_EVENT[reason], item))
 
     if (wasFilled) {
       setFilledAt(Date.now())
@@ -356,7 +348,9 @@ export function PauseGameView(): ReactElement {
     saveAttempt(uri, durationMs, {
       sequenceId: item.sequenceId,
       itemPosition: item.position,
-    })
+      word: item.text,
+      itemId: item.id,
+    }).catch(() => undefined)
   }
 
   function credit(): void {
@@ -462,6 +456,19 @@ export function PauseGameView(): ReactElement {
       />
     </View>
   )
+}
+
+/** A pause event names its item by sequence and position, and keeps the item's word and id with it (SPEC §6). */
+function pauseEvent(type: EventType, item: SequenceItem): EventInput {
+  return {
+    type,
+    sequenceId: item.sequenceId,
+    itemPosition: item.position,
+    payload: {
+      word: item.text,
+      itemId: item.id,
+    },
+  }
 }
 
 interface WaitingMarkProps {

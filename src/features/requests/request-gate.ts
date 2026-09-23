@@ -10,6 +10,8 @@ export type IgnoredTapReason = 'busy' | 'repeat'
 
 export interface TapContext {
   cardId: number
+  /** The word on the card, kept with the event: the card may be renamed later, and the log must not change with it. */
+  word: string
   now: number
   /** A card is enlarged or its recording is playing: until it returns, the board belongs to that request. */
   isBoardBusy: boolean
@@ -41,6 +43,9 @@ export function decideTap(context: TapContext): TapDecision {
       event: {
         type: 'request_tap_model',
         cardId: context.cardId,
+        payload: {
+          word: context.word,
+        },
       },
     }
   }
@@ -54,6 +59,9 @@ export function decideTap(context: TapContext): TapDecision {
     event: {
       type: 'request_tap',
       cardId: context.cardId,
+      payload: {
+        word: context.word,
+      },
     },
   }
 }
@@ -73,6 +81,7 @@ function ignoreTap(context: TapContext, reason: IgnoredTapReason): TapDecision {
       cardId: context.cardId,
       payload: {
         reason,
+        word: context.word,
       },
     },
   }

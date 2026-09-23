@@ -38,6 +38,13 @@ export interface Attempt {
   durationMs: number
 }
 
+/**
+ * The word an event was about, as the event itself wrote it down: a card can be renamed and the items of a sequence
+ * reordered, so the row a past event points at may say something else today. Events written before the word was kept
+ * have none, and fall back on that row.
+ */
+const PAYLOAD_WORD = "CASE WHEN json_valid(events.payload_json) THEN json_extract(events.payload_json, '$.word') END"
+
 /** One entry of the event log (SPEC §6). Fields that an event type does not use stay empty. */
 export interface EventInput {
   type: EventType
@@ -66,15 +73,18 @@ export class EventsRepository {
     return Object.fromEntries(rows.map((row) => [row.type, row.count]))
   }
 
-  /** How often each card took part in events of one type in `[from, to)`: taps per card, or taps the board ignored. */
+  /**
+   * How often each card took part in events of one type in `[from, to)`: taps per card, or taps the board ignored. A
+   * card that was renamed in between is counted once for each word it had.
+   */
   async countsByCard(type: EventType, from: number, to: number): Promise<CardCount[]> {
     const rows = await this.#_db.getAllAsync<CardCountRow>(
-      `SELECT events.card_id, cards.text AS card_text, COUNT(*) AS count
+      `SELECT events.card_id, COALESCE(${PAYLOAD_WORD}, cards.text) AS card_text, COUNT(*) AS count
        FROM events
        LEFT JOIN cards ON cards.id = events.card_id
        WHERE events.type = ? AND events.ts >= ? AND events.ts < ? AND events.card_id IS NOT NULL
-       GROUP BY events.card_id
-       ORDER BY count DESC, cards.text`,
+       GROUP BY events.card_id, card_text
+       ORDER BY count DESC, card_text`,
       type,
       from,
       to,
@@ -107,7 +117,7 @@ export class EventsRepository {
   /** The recorded attempts, newest first. Rows whose payload is damaged are left out rather than shown empty. */
   async listAttempts(limit: number): Promise<Attempt[]> {
     const rows = await this.#_db.getAllAsync<AttemptRow>(
-      `SELECT events.id, events.ts, events.payload_json, COALESCE(cards.text, sequence_items.text) AS word
+      `SELECT events.id, events.ts, events.payload_json, COALESCE(${PAYLOAD_WORD}, cards.text, sequence_items.text) AS word
        FROM events
        LEFT JOIN cards ON cards.id = events.card_id
        LEFT JOIN sequence_items

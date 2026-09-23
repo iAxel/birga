@@ -41,9 +41,9 @@ The parent home screen shows one parent tip at a time from a static list ("Bugun
   1. card scales up to center, others dim;
   2. parent's recording plays once;
   3. card stays enlarged ~3 s, longer if the recording is longer (time for the parent to react and hand the item over), then returns. Until it has returned, every card is inert.
-- **Debounce:** after a tap, the same card is inert for 8 s (setting). This prevents tap-loop stimming on the sound. Every ignored tap of the child is logged as `request_tap_debounced` with payload `{reason}`: `repeat` (same card within the debounce) or `busy` (a request is still on screen).
+- **Debounce:** after a tap, the same card is inert for 8 s (setting). This prevents tap-loop stimming on the sound. Every ignored tap of the child is logged as `request_tap_debounced` with payload `{reason, word}`: `repeat` (same card within the debounce) or `busy` (a request is still on screen).
 - A small "attempt" button is visible only to the parent's side of the screen (bottom corner, low contrast): parent taps it when the child tried to say the word. Logs `request_verbal_attempt` with the last tapped card.
-  - Holding the same button records the attempt itself, up to 4 s, into `media/attempts/`, logged as `attempt_recorded {card_id | sequence_id + item_position, payload: audioPath, durationMs}`. Only the parent starts such a recording, it is never played back to the child, and it stays on the device until the parent exports the log.
+  - Holding the same button records the attempt itself, up to 4 s, into `media/attempts/`, logged as `attempt_recorded {card_id | sequence_id + item_position, payload: audioPath, durationMs, word, itemId}`. Only the parent starts such a recording, it is never played back to the child, and it stays on the device until the parent exports the log.
 - **Modeling toggle:** a second low-contrast corner control switches "parent is tapping" on/off (auto-off after 60 s). Parents are expected to use the board themselves while talking to the child (aided language modeling); those taps behave identically but are logged as `request_tap_model`, so child stats stay clean. Parent taps do not start the per-card debounce (the child may repeat the modelled card right away), and parent taps the board ignores are not logged. While modeling is on, the hand icon turns accent and a thin accent bar spans the bottom edge.
 - Card order is fixed (parent-defined). Do not shuffle: position consistency is how AAC motor planning works.
 
@@ -157,6 +157,8 @@ settings(key, value)
 ### Event types
 
 `session_start`, `session_end`, `request_tap`, `request_tap_model`, `request_tap_debounced`, `request_verbal_attempt`, `attempt_recorded`, `pause_open`, `pause_filled`, `pause_timeout`, `pause_parent_credit`, `game_start`, `game_round_end`, `parent_gate_open`, `tab_switch`.
+
+An event about a card or a sequence item keeps the word as it read at that moment in `payload.word`, and a sequence item's id in `payload.itemId`. Cards get renamed and sequences reordered; the diary and the export read the word from the event, so a past tap or pause keeps saying what the child actually saw. Events logged before the word was kept fall back on the card or the item as it is now.
 
 `request_tap_debounced` matters: a high count on one card means he is looping on it, which is a signal to change the card or the debounce.
 

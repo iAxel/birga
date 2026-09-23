@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals'
 import { BoardsRepository } from '@/db/repositories/boards.repository'
 import { CardsRepository } from '@/db/repositories/cards.repository'
 import { EventsRepository } from '@/db/repositories/events.repository'
+import { SequencesRepository } from '@/db/repositories/sequences.repository'
 import type { EventRow } from '@/db/schema'
 import { migratedDatabase } from '@/db/testing/migrated-database'
 
@@ -157,5 +158,62 @@ describe('EventsRepository', () => {
     await events.log(null, { type: 'session_start' }, 2000)
 
     expect(await events.timesOf('request_tap', 0, 5000)).toEqual([1000, 3000])
+  })
+
+  test('counts a renamed card by the word each tap saw, and an older tap by the word the card has now', async () => {
+    const db = await migratedDatabase()
+    const cards = new CardsRepository(db)
+    const boardId = await new BoardsRepository(db).create('Ovqat')
+    const card = { boardId, imagePath: null, audioPath: 'suv.m4a', audioLevels: null }
+    const cardId = await cards.create({ ...card, text: 'suv' })
+    const events = new EventsRepository(db)
+
+    for (const ts of [1000, 2000, 3000]) {
+      await events.log(null, { type: 'request_tap', cardId, payload: { word: 'suv' } }, ts)
+    }
+
+    await cards.update(cardId, { ...card, text: 'choy' })
+
+    await events.log(null, { type: 'request_tap', cardId, payload: { word: 'choy' } }, 4000)
+    await events.log(null, { type: 'request_tap', cardId }, 5000)
+
+    expect(await events.countsByCard('request_tap', 0, 10_000)).toEqual([
+      { cardId, cardText: 'suv', count: 3 },
+      { cardId, cardText: 'choy', count: 2 },
+    ])
+  })
+
+  test('names an attempt by the word its event kept, however the sequence changed since', async () => {
+    const db = await migratedDatabase()
+    const sequences = new SequencesRepository(db)
+    const sequenceId = await sequences.create('Sonlar')
+    const item = { sequenceId, symbol: null, audioLevels: null, imagePath: null }
+
+    for (const text of ['bir', 'ikki', 'uch']) {
+      await sequences.createItem({ ...item, text, audioPath: `${text}.m4a` })
+    }
+
+    const [first, second] = await sequences.listItems(sequenceId)
+    const events = new EventsRepository(db)
+
+    await events.log(
+      null,
+      {
+        type: 'attempt_recorded',
+        sequenceId,
+        itemPosition: second.position,
+        payload: {
+          audioPath: 'media/attempts/ikki.m4a',
+          durationMs: 700,
+          word: 'ikki',
+          itemId: second.id,
+        },
+      },
+      1000,
+    )
+
+    await sequences.moveItem(first.id, 1)
+
+    expect((await events.listAttempts(10)).map((attempt) => attempt.word)).toEqual(['ikki'])
   })
 })

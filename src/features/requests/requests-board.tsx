@@ -23,7 +23,7 @@ interface RequestsBoardProps {
   /** Space between the cards and around them. */
   gap: number
   isModeling: boolean
-  onPlayed: (cardId: number) => void
+  onPlayed: (card: Card) => void
 }
 
 interface ActiveRequest {
@@ -111,6 +111,7 @@ export function RequestsBoard({
   function tap(card: Card, slot: Rect, now: number): void {
     const decision = decideTap({
       cardId: card.id,
+      word: card.text,
       now,
       isBoardBusy: active !== null,
       isModeling,
@@ -130,7 +131,7 @@ export function RequestsBoard({
       lastPlayedAtRef.current.set(card.id, now)
     }
 
-    onPlayed(card.id)
+    onPlayed(card)
 
     player.replace({
       uri: mediaUri(card.audioPath),

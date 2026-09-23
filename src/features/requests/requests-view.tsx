@@ -1,6 +1,7 @@
 import { type ReactElement, useEffect, useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import type { Card } from '@/db'
 import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
 import { cardsOnScreen } from '@/features/requests/board-layout'
 import { ParentControls } from '@/features/requests/parent-controls'
@@ -24,7 +25,7 @@ export function RequestsView(): ReactElement {
   const saveAttempt = useSaveAttempt()
   const cards = useActiveBoardCards()
   const [modelingUntil, setModelingUntil] = useState<number | null>(null)
-  const lastPlayedCardIdRef = useRef<number | null>(null)
+  const lastPlayedRef = useRef<Card | null>(null)
   const cardsPerScreen = cardsOnScreen(settings.cardsPerScreen, metrics.formFactor)
 
   useEffect(() => {
@@ -42,10 +43,26 @@ export function RequestsView(): ReactElement {
   }
 
   function logAttempt(): void {
+    const card = lastPlayedRef.current
+
     logEvent({
       type: 'request_verbal_attempt',
-      cardId: lastPlayedCardIdRef.current,
+      cardId: card?.id ?? null,
+      payload: card
+        ? {
+            word: card.text,
+          }
+        : null,
     })
+  }
+
+  function keepAttempt(uri: string, durationMs: number): void {
+    const card = lastPlayedRef.current
+
+    saveAttempt(uri, durationMs, {
+      cardId: card?.id ?? null,
+      word: card?.text,
+    }).catch(() => undefined)
   }
 
   const bottom = settings.pauseGameEnabled
@@ -71,19 +88,15 @@ export function RequestsView(): ReactElement {
           debounceMs={settings.debounceSeconds * 1000}
           gap={metrics.gap}
           isModeling={modelingUntil !== null}
-          onPlayed={(cardId) => {
-            lastPlayedCardIdRef.current = cardId
+          onPlayed={(card) => {
+            lastPlayedRef.current = card
           }}
         />
       </View>
       <ParentControls
         isModeling={modelingUntil !== null}
         onAttempt={logAttempt}
-        onAttemptRecorded={(uri, durationMs) =>
-          saveAttempt(uri, durationMs, {
-            cardId: lastPlayedCardIdRef.current,
-          })
-        }
+        onAttemptRecorded={keepAttempt}
         onToggleModeling={toggleModeling}
       />
     </View>

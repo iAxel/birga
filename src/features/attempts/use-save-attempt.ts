@@ -3,7 +3,12 @@ import { type EventInput, storeMedia } from '@/db'
 import { useEventLog } from '@/features/session/use-event-log'
 
 /** What the attempt was made for: a card of the board, or an item of the sequence the pause game is playing. */
-export type AttemptTarget = Pick<EventInput, 'cardId' | 'sequenceId' | 'itemPosition'>
+export interface AttemptTarget extends Pick<EventInput, 'cardId' | 'sequenceId' | 'itemPosition'> {
+  /** The word of that card or item as it reads now, kept with the event so a later edit does not change it. */
+  word?: string
+  /** The sequence item, by its id: its position may change when the parent reorders the sequence. */
+  itemId?: number
+}
 
 /**
  * Keeps a recording the parent made of the child's attempt and logs where it went (SPEC §2, §3). This is the only
@@ -18,14 +23,30 @@ export function useSaveAttempt(): (uri: string, durationMs: number, target: Atte
       const audioPath = await storeMedia(uri, 'attempts')
 
       logEvent({
-        ...target,
         type: 'attempt_recorded',
-        payload: {
-          audioPath,
-          durationMs,
-        },
+        cardId: target.cardId,
+        sequenceId: target.sequenceId,
+        itemPosition: target.itemPosition,
+        payload: attemptPayload(audioPath, durationMs, target),
       })
     },
     [logEvent],
   )
+}
+
+function attemptPayload(audioPath: string, durationMs: number, target: AttemptTarget): Record<string, string | number> {
+  const payload: Record<string, string | number> = {
+    audioPath,
+    durationMs,
+  }
+
+  if (target.word !== undefined) {
+    payload.word = target.word
+  }
+
+  if (target.itemId !== undefined) {
+    payload.itemId = target.itemId
+  }
+
+  return payload
 }

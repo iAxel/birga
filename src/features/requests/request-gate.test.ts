@@ -6,6 +6,7 @@ const DEBOUNCE_MS = 8000
 function childTap(overrides: Partial<TapContext>): TapContext {
   return {
     cardId: 1,
+    word: 'suv',
     now: 100_000,
     isBoardBusy: false,
     isModeling: false,
@@ -22,6 +23,9 @@ describe('decideTap', () => {
       event: {
         type: 'request_tap',
         cardId: 1,
+        payload: {
+          word: 'suv',
+        },
       },
     })
   })
@@ -37,6 +41,7 @@ describe('decideTap', () => {
         cardId: 1,
         payload: {
           reason: 'repeat',
+          word: 'suv',
         },
       },
     })
@@ -51,6 +56,7 @@ describe('decideTap', () => {
         cardId: 2,
         payload: {
           reason: 'busy',
+          word: 'suv',
         },
       },
     })
@@ -62,6 +68,9 @@ describe('decideTap', () => {
       event: {
         type: 'request_tap_model',
         cardId: 1,
+        payload: {
+          word: 'suv',
+        },
       },
     })
   })
