@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { useVocalizationListener } from '@/audio/use-vocalization-listener'
 import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
-import { FIRST_MEASURE_MS, MEASURE_MS } from '@/audio/vocalization'
+import { FIRST_MEASURE_MS, ROUND_MEASURE_MS } from '@/audio/vocalization'
 import { mediaUri, type SequenceItem } from '@/db'
 import { AttemptCorner } from '@/features/attempts/attempt-corner'
 import { useSaveAttempt } from '@/features/attempts/use-save-attempt'
@@ -31,7 +31,7 @@ import {
 import { Reward } from '@/features/pauseGame/reward'
 import { usePauseSequence } from '@/features/pauseGame/use-pause-sequence'
 import { useEventLog } from '@/features/session/use-event-log'
-import { useSettings } from '@/features/settings/settings-provider'
+import { useSaveSetting, useSettings } from '@/features/settings/settings-provider'
 import { strings } from '@/i18n'
 import { fontForText } from '@/ui/fonts'
 import { type FormFactor, useFormFactor } from '@/ui/form-factor'
@@ -100,10 +100,11 @@ const LOOK: Record<FormFactor, { symbol: number; word: number; saidSymbol: numbe
 export function PauseGameView(): ReactElement {
   const insets = useSafeAreaInsets()
   const settings = useSettings()
+  const saveSetting = useSaveSetting()
   const logEvent = useEventLog()
   const saveAttempt = useSaveAttempt()
   const player = useVoicePlayer()
-  const listener = useVocalizationListener(settings.detectionMarginDb)
+  const listener = useVocalizationListener(settings.detectionMarginDb, settings.roomBaselineDb, keepRoom)
   const items = usePauseSequence()
   const look = LOOK[useFormFactor()]
   const [state, setState] = useState<RoundState | null>(null)
@@ -117,6 +118,11 @@ export function PauseGameView(): ReactElement {
   useEffect(() => {
     stateRef.current = state
   }, [state])
+
+  /** The room the microphone measured, kept so the next session listens against it from its first pause. */
+  function keepRoom(db: number): void {
+    saveSetting('roomBaselineDb', Math.round(db * 10) / 10).catch(() => undefined)
+  }
 
   function beginRound(round: number): void {
     if (!items) {
@@ -274,7 +280,7 @@ export function PauseGameView(): ReactElement {
 
     openPause(item)
 
-    const opening = setTimeout(() => listener.listen(MEASURE_MS, () => fillPause(item)), MIC_GUARD_MS)
+    const opening = setTimeout(() => listener.listen(() => fillPause(item)), MIC_GUARD_MS)
     const timeout = setTimeout(() => timeOutPause(item), settings.pauseWindowSeconds * 1000)
 
     return () => {
@@ -296,6 +302,10 @@ export function PauseGameView(): ReactElement {
     return () => listener.close()
   }, [state, isOver, items, listener])
 
+  /**
+   * The sequence is over and the app falls silent until the next round: the one quiet moment inside a game, so the
+   * room is measured again in it, and the baseline follows the room as it gets louder or quieter.
+   */
   useEffect(() => {
     if (!state || state.phase !== 'finished') {
       return
@@ -303,10 +313,16 @@ export function PauseGameView(): ReactElement {
 
     logRoundEnd(state)
 
+    const measuring = setTimeout(() => listener.measure(ROUND_MEASURE_MS), MIC_GUARD_MS)
     const timeout = setTimeout(() => concludeRound(state), ROUND_GAP_MS)
 
-    return () => clearTimeout(timeout)
-  }, [state])
+    return () => {
+      clearTimeout(measuring)
+      clearTimeout(timeout)
+
+      listener.close()
+    }
+  }, [state, listener])
 
   /**
    * Leaving the tab stops the game where it is: the voice falls silent and the play button comes back. The round that

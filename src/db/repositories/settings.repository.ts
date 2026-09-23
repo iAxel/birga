@@ -43,6 +43,11 @@ export interface Settings {
   roundsPerGame: RoundsPerGame
   /** How far above the room the child has to sound for the pause game to count it (SPEC §3). */
   detectionMarginDb: DetectionMarginDb
+  /**
+   * How loud the room was when the pause game last measured it, in dBFS; null before the first measurement. Kept so
+   * that a new session listens against the room from its first pause instead of against a guess.
+   */
+  roomBaselineDb: number | null
   /** The soft glow behind a filled pause. */
   rewardGlow: boolean
   /** The sparks that rise once over a filled pause. */
@@ -64,6 +69,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pauseWindowSeconds: 5,
   roundsPerGame: 5,
   detectionMarginDb: 12,
+  roomBaselineDb: null,
   rewardGlow: true,
   rewardSparks: true,
   sessionMinutes: 10,
@@ -105,6 +111,7 @@ export class SettingsRepository {
         DETECTION_MARGIN_DB_OPTIONS,
         DEFAULT_SETTINGS.detectionMarginDb,
       ),
+      roomBaselineDb: this.#_readNumber(stored.get('roomBaselineDb')),
       rewardGlow: this.#_readBoolean(stored.get('rewardGlow'), DEFAULT_SETTINGS.rewardGlow),
       rewardSparks: this.#_readBoolean(stored.get('rewardSparks'), DEFAULT_SETTINGS.rewardSparks),
       sessionMinutes: this.#_readOneOf(stored.get('sessionMinutes'), SESSION_MINUTES_OPTIONS, DEFAULT_SETTINGS.sessionMinutes),
@@ -132,6 +139,16 @@ export class SettingsRepository {
 
     if (typeof value !== 'boolean') {
       return fallback
+    }
+
+    return value
+  }
+
+  #_readNumber(raw: string | undefined): number | null {
+    const value = this.#_parse(raw)
+
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return null
     }
 
     return value

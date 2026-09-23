@@ -64,13 +64,15 @@ Three different things use the microphone and the speaker, and they must not ste
   the audio session when playback ends or pauses, and iOS then stops whatever is recording at that moment. The hook
   keeps the session active. `stopVoice()` silences a player that may already have been released.
 - **Recording the parent** is `useVoiceRecorder()`: hold to record, 4 s at most, metering sampled ten times a second so
-  the editor can draw the shape of the take. Its takes go through `TakeRecorder`, below.
-- **Listening for the child** is `useVocalizationListener()` over the pure detector in `vocalization.ts`. It opens
-  150 ms after the app falls silent, judges each reading against the room, and closes before the app speaks again.
-  expo-audio writes a file whether we want one or not, so the take is deleted the moment the microphone closes, and
-  `discardStrayTakes()` at start-up removes anything an app that died mid-pause left behind.
+  the editor can draw the shape of the take.
+- **Listening for the child** is `useVocalizationListener()`, a `VocalizationListener` over the pure detector in
+  `vocalization.ts`. It opens 150 ms after the app falls silent, judges each reading against the room, and closes before
+  the app speaks again. The room is measured only in the app's quiet moments — before a game, between two rounds, the
+  tail of a pause nobody filled — and kept in the settings for the next session. expo-audio writes a file whether we
+  want one or not, so the take is deleted the moment the microphone closes, and `discardStrayTakes()` at start-up
+  removes anything an app that died mid-pause left behind.
 
-`TakeRecorder` (`take-recorder.ts`, pure and tested against a model of expo-audio's native recorder) exists because
+Both go through `TakeRecorder` (`take-recorder.ts`, pure and tested against a model of expo-audio's native recorder).
 expo-audio starts **every prepared or paused recorder by itself** when the app returns to the foreground or an audio
 interruption ends, and its `stop()` does nothing to a recorder that is prepared but not recording. A take given up while
 it was being prepared — a quick tap on a hold-to-record button — would leave the recorder ready, and the next unlock of
