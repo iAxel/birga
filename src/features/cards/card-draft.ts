@@ -63,8 +63,9 @@ export function isDraftComplete(draft: CardDraft): boolean {
 }
 
 /**
- * Stores newly captured media, then writes the card. Every file this call stored is removed again if anything after it
- * fails, so a half-saved card leaves nothing behind; after a successful edit, the files the card no longer uses go.
+ * Stores newly captured media, then writes the card. Every file this call stored is removed again if storing or
+ * writing fails, so a half-saved card leaves nothing behind. Once the card is written, the files it no longer uses go,
+ * as far as they can: a file that cannot be deleted stays behind rather than take the new ones with it.
  */
 export async function saveCard(cards: CardsRepository, draft: CardDraft, original: Card | null): Promise<void> {
   if (!draft.audio || !isDraftComplete(draft)) {
@@ -72,9 +73,10 @@ export async function saveCard(cards: CardsRepository, draft: CardDraft, origina
   }
 
   const stored: string[] = []
+  let input: CardInput
 
   try {
-    const input: CardInput = {
+    input = {
       boardId: draft.boardId,
       text: draft.text,
       imagePath: draft.image ? await persist(draft.image, stored) : null,
@@ -83,16 +85,16 @@ export async function saveCard(cards: CardsRepository, draft: CardDraft, origina
     }
 
     await writeCard(cards, input, original)
-
-    if (original) {
-      removeReplacedFiles(original, input)
-    }
   } catch (err) {
     for (const path of stored) {
       deleteMedia(path)
     }
 
     throw err
+  }
+
+  if (original) {
+    removeReplacedFiles(original, input)
   }
 }
 
@@ -121,10 +123,18 @@ async function writeCard(cards: CardsRepository, input: CardInput, original: Car
 
 function removeReplacedFiles(original: Card, input: CardInput): void {
   if (original.imagePath && original.imagePath !== input.imagePath) {
-    deleteMedia(original.imagePath)
+    deleteQuietly(original.imagePath)
   }
 
   if (original.audioPath !== input.audioPath) {
-    deleteMedia(original.audioPath)
+    deleteQuietly(original.audioPath)
+  }
+}
+
+function deleteQuietly(path: string): void {
+  try {
+    deleteMedia(path)
+  } catch {
+    return
   }
 }

@@ -89,6 +89,40 @@ describe('saveCard', () => {
     expect((await cards.get(id))?.audioPath).toBe('media/cards/stored-new.m4a')
   })
 
+  test('keeps the files the card now uses when an old one cannot be deleted', async () => {
+    const { cards, boardId } = await setUp()
+    const id = await cards.create({
+      boardId,
+      text: 'suv',
+      imagePath: null,
+      audioPath: 'media/cards/old.m4a',
+      audioLevels: null,
+    })
+    const original = await cards.get(id)
+
+    jest.mocked(deleteMedia).mockImplementationOnce(() => {
+      throw new Error('LOCKED')
+    })
+
+    await saveCard(
+      cards,
+      {
+        boardId,
+        text: 'suv',
+        image: null,
+        audio: {
+          kind: 'captured',
+          uri: 'file:///cache/new.m4a',
+        },
+        audioLevels: null,
+      },
+      original,
+    )
+
+    expect((await cards.get(id))?.audioPath).toBe('media/cards/stored-new.m4a')
+    expect(deleteMedia).not.toHaveBeenCalledWith('media/cards/stored-new.m4a')
+  })
+
   test('removes the files it stored when the card cannot be written', async () => {
     const { cards } = await setUp()
     const draft: CardDraft = {

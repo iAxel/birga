@@ -50,8 +50,9 @@ export function isItemDraftComplete(draft: SequenceItemDraft): boolean {
 }
 
 /**
- * Stores newly captured media, then writes the item. Every file this call stored is removed again if anything after it
- * fails; after a successful edit, the files the item no longer uses go.
+ * Stores newly captured media, then writes the item. Every file this call stored is removed again if storing or
+ * writing fails. Once the item is written, the files it no longer uses go, as far as they can: a file that cannot be
+ * deleted stays behind rather than take the new ones with it.
  */
 export async function saveSequenceItem(
   sequences: SequencesRepository,
@@ -63,9 +64,10 @@ export async function saveSequenceItem(
   }
 
   const stored: string[] = []
+  let input: SequenceItemInput
 
   try {
-    const input: SequenceItemInput = {
+    input = {
       sequenceId: draft.sequenceId,
       text: draft.text,
       symbol: draft.symbol.trim() === '' ? null : draft.symbol.trim(),
@@ -75,16 +77,16 @@ export async function saveSequenceItem(
     }
 
     await write(sequences, input, original)
-
-    if (original) {
-      removeReplacedFiles(original, input)
-    }
   } catch (err) {
     for (const path of stored) {
       deleteMedia(path)
     }
 
     throw err
+  }
+
+  if (original) {
+    removeReplacedFiles(original, input)
   }
 }
 
@@ -113,10 +115,18 @@ async function write(sequences: SequencesRepository, input: SequenceItemInput, o
 
 function removeReplacedFiles(original: SequenceItem, input: SequenceItemInput): void {
   if (original.imagePath && original.imagePath !== input.imagePath) {
-    deleteMedia(original.imagePath)
+    deleteQuietly(original.imagePath)
   }
 
   if (original.audioPath && original.audioPath !== input.audioPath) {
-    deleteMedia(original.audioPath)
+    deleteQuietly(original.audioPath)
+  }
+}
+
+function deleteQuietly(path: string): void {
+  try {
+    deleteMedia(path)
+  } catch {
+    return
   }
 }

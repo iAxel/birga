@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router'
 import { type ReactElement, useState } from 'react'
-import { Text } from 'react-native'
+import { Alert, Text } from 'react-native'
 import { deleteMedia, storeMedia } from '@/db'
 import type { MediaDraft } from '@/features/cards/card-draft'
 import { VoiceField } from '@/features/cards/voice-field'
@@ -23,27 +23,61 @@ export default function GoodbyeVoiceScreen(): ReactElement {
         }
       : null,
   )
+  const [isSaving, setIsSaving] = useState(false)
 
+  /** One save at a time: a second tap would store a second file and leave the screen twice, taking Settings with it. */
   async function save(uri: string): Promise<void> {
     const previousPath = settings.goodbyeAudioPath
-    const path = await storeMedia(uri, 'phrases')
 
-    await saveSetting('goodbyeAudioPath', path)
+    setIsSaving(true)
+
+    try {
+      await keep(uri)
+    } catch {
+      setIsSaving(false)
+
+      Alert.alert(strings.error.message)
+
+      return
+    }
 
     if (previousPath) {
-      deleteMedia(previousPath)
+      deleteQuietly(previousPath)
     }
 
     router.back()
   }
 
+  /** Stores the take and points the setting at it; a take stored for a setting that could not be saved goes again. */
+  async function keep(uri: string): Promise<void> {
+    const path = await storeMedia(uri, 'phrases')
+
+    try {
+      await saveSetting('goodbyeAudioPath', path)
+    } catch (err) {
+      deleteQuietly(path)
+
+      throw err
+    }
+  }
+
   async function remove(): Promise<void> {
     const previousPath = settings.goodbyeAudioPath
 
-    await saveSetting('goodbyeAudioPath', null)
+    setIsSaving(true)
+
+    try {
+      await saveSetting('goodbyeAudioPath', null)
+    } catch {
+      Alert.alert(strings.error.message)
+
+      return
+    } finally {
+      setIsSaving(false)
+    }
 
     if (previousPath) {
-      deleteMedia(previousPath)
+      deleteQuietly(previousPath)
     }
 
     setAudio(null)
@@ -63,7 +97,7 @@ export default function GoodbyeVoiceScreen(): ReactElement {
         }
       />
       <ParentButton
-        disabled={audio?.kind !== 'captured'}
+        disabled={audio?.kind !== 'captured' || isSaving}
         onPress={() => {
           if (audio?.kind === 'captured') {
             save(audio.uri)
@@ -72,7 +106,17 @@ export default function GoodbyeVoiceScreen(): ReactElement {
         title={strings.cardEditor.save}
         variant="primary"
       />
-      {settings.goodbyeAudioPath && <ParentButton onPress={remove} title={strings.goodbyeVoice.remove} variant="danger" />}
+      {settings.goodbyeAudioPath && (
+        <ParentButton disabled={isSaving} onPress={remove} title={strings.goodbyeVoice.remove} variant="danger" />
+      )}
     </ParentScreen>
   )
+}
+
+function deleteQuietly(path: string): void {
+  try {
+    deleteMedia(path)
+  } catch {
+    return
+  }
 }
