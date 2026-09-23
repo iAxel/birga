@@ -4,10 +4,11 @@ import { Directory, File, Paths } from 'expo-file-system'
 const TAKES_DIRECTORY = 'ExpoAudio'
 
 /**
- * Throws away every take left in the cache. Nothing keeps one on purpose: a recording of a card is copied into the
- * app's own media directory as it is saved, and the detector deletes its take the moment the microphone closes. What
- * is still here was left by an app that died mid-recording, and no audio of the child may sit on the device unasked
- * (CLAUDE.md). Called at start-up, when nothing is recording.
+ * Throws away every take left in the cache. The child's takes are deleted as they are used: the detector's the moment
+ * the microphone closes, an attempt's as soon as it is copied into the app's media, one too short to keep at once. A
+ * take of the parent's voice stays here after it is copied into a card, and whatever an app that died mid-recording
+ * left behind stays too, until this runs: at start-up, when nothing is recording, and when the diary is cleared, so no
+ * audio of the child sits on the device unasked (CLAUDE.md).
  */
 export function discardStrayTakes(): void {
   try {

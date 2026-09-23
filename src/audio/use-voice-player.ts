@@ -33,14 +33,14 @@ export function useIsVoicePlaying(player: AudioPlayer): boolean {
 }
 
 /**
- * Stops a recording that is playing, when there still is one. A screen may leave after the player behind it has been
- * released, and reaching into a released native object throws, so the attempt is allowed to fail.
+ * Silences the player whatever it is doing. It is paused even when it does not report itself playing: right after
+ * play() it is still waiting for its file, and would start a moment later on a screen that has moved on. A screen may
+ * leave after the player behind it has been released, and reaching into a released native object throws, so the
+ * attempt is allowed to fail.
  */
 export function stopVoice(player: AudioPlayer): void {
   try {
-    if (player.playing) {
-      player.pause()
-    }
+    player.pause()
   } catch {
     return
   }

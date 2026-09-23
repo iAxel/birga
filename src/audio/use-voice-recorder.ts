@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { LEVEL_INTERVAL_MS, meteringLevel, trimLevels } from '@/audio/metering'
 import { askForMicrophone, hasMicrophone } from '@/audio/microphone'
+import { deleteTake } from '@/audio/takes'
 import { useTakeRecorder } from '@/audio/use-take-recorder'
 
 /** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
@@ -169,9 +170,17 @@ export function useVoiceRecorder(
 
     const durationMs = Date.now() - take.startedAt
 
-    if (uri && durationMs >= MIN_RECORDING_MS) {
-      onRecorded(uri, trimLevels(levelsRef.current, durationMs), durationMs)
+    if (!uri) {
+      return
     }
+
+    if (durationMs < MIN_RECORDING_MS) {
+      deleteTake(uri)
+
+      return
+    }
+
+    onRecorded(uri, trimLevels(levelsRef.current, durationMs), durationMs)
   }
 
   return {

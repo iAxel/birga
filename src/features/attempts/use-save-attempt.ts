@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { deleteTake } from '@/audio/takes'
 import { type EventInput, storeMedia } from '@/db'
 import { useEventLog } from '@/features/session/use-event-log'
 
@@ -13,22 +14,27 @@ export interface AttemptTarget extends Pick<EventInput, 'cardId' | 'sequenceId' 
 /**
  * Keeps a recording the parent made of the child's attempt and logs where it went (SPEC §2, §3). This is the only
  * audio of the child the app stores: the parent starts it by hand, it is never played back to the child, and it leaves
- * the device only with an export.
+ * the device only with an export. The recorder's own take is deleted as soon as it is copied, or when it cannot be,
+ * so no second copy of the child's voice waits in the cache.
  */
 export function useSaveAttempt(): (uri: string, durationMs: number, target: AttemptTarget) => Promise<void> {
   const logEvent = useEventLog()
 
   return useCallback(
     async (uri, durationMs, target) => {
-      const audioPath = await storeMedia(uri, 'attempts')
+      try {
+        const audioPath = await storeMedia(uri, 'attempts')
 
-      logEvent({
-        type: 'attempt_recorded',
-        cardId: target.cardId,
-        sequenceId: target.sequenceId,
-        itemPosition: target.itemPosition,
-        payload: attemptPayload(audioPath, durationMs, target),
-      })
+        logEvent({
+          type: 'attempt_recorded',
+          cardId: target.cardId,
+          sequenceId: target.sequenceId,
+          itemPosition: target.itemPosition,
+          payload: attemptPayload(audioPath, durationMs, target),
+        })
+      } finally {
+        deleteTake(uri)
+      }
     },
     [logEvent],
   )

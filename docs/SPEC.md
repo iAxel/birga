@@ -118,7 +118,7 @@ Cards per screen, debounce seconds, pause window seconds, rounds per game, detec
 
 Under them, throwing data away. Both ask first and are blocked while a session runs:
 
-- **Kundalikni tozalash** deletes every session, every event and the attempt recordings they point at, and keeps cards, sequences and settings. It is also the way to get the child's voice off the device once the log has been exported.
+- **Kundalikni tozalash** deletes every session, every event and the attempt recordings they point at, the archives of earlier exports that carry copies of them, and every recorder take still in the cache; it keeps cards, sequences and settings. It is also the way to get the child's voice off the device once the log has been exported.
 - **Hammasini o'chirish** puts the app back to a fresh install — cards, sequences, settings, photos, recordings, log — and restarts it on the onboarding. Development builds only: it does not exist in a build the family uses.
 
 ### How a session goes

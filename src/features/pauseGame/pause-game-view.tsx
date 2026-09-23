@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
+import { deleteTake } from '@/audio/takes'
 import { useVocalizationListener } from '@/audio/use-vocalization-listener'
 import { stopVoice, useVoicePlayer } from '@/audio/use-voice-player'
 import { FIRST_MEASURE_MS, ROUND_MEASURE_MS } from '@/audio/vocalization'
@@ -337,11 +338,16 @@ export function PauseGameView(): ReactElement {
     }, [player, listener]),
   )
 
-  /** A sound of the child as the parent heard it, kept against the item the round is pausing on (SPEC §3). */
+  /**
+   * A sound of the child as the parent heard it, kept against the item the round is pausing on (SPEC §3). Without a
+   * round there is nothing to keep it against, and the take goes.
+   */
   function recordAttempt(uri: string, durationMs: number): void {
     const item = items?.[state?.pauseAt ?? -1]
 
     if (!item) {
+      deleteTake(uri)
+
       return
     }
 

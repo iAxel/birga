@@ -51,7 +51,7 @@ export async function exportLog(repositories: Repositories, now: number): Promis
     type: 'uint8array',
   })
 
-  removeOldExports()
+  deleteExports()
 
   const target = new File(Paths.cache, exportFileName(now))
 
@@ -71,10 +71,11 @@ function fileNameOf(path: string): string {
 }
 
 /**
- * Archives of earlier exports. The one being shared has to stay until the share sheet is done with it, so the clean-up
- * happens on the way in rather than on the way out.
+ * Deletes the archives of earlier exports, which hold the child's recorded attempts. The one being shared has to stay
+ * until the share sheet is done with it, so an export clears them on the way in rather than on the way out; clearing
+ * the diary clears them too.
  */
-function removeOldExports(): void {
+export function deleteExports(): void {
   try {
     for (const entry of new Directory(Paths.cache).list()) {
       if (entry instanceof File && entry.name.startsWith(EXPORT_PREFIX) && entry.name.endsWith('.zip')) {
