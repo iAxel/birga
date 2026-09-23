@@ -43,6 +43,8 @@ const DOT_SIZE = 12
 
 const IMAGE_SIZE = 160
 
+const START_ICON_SIZE = 56
+
 /** Text sizes of the pause game (DESIGN §1). */
 const LOOK: Record<FormFactor, { symbol: number; word: number; saidSymbol: number; saidWord: number }> = {
   tablet: {
@@ -244,16 +246,15 @@ export function PauseGameView(): ReactElement {
   if (state === null) {
     return (
       <View style={styles.root}>
-        {!isOver && (
-          <Pressable
-            accessibilityLabel={strings.pauseGame.start}
-            accessibilityRole="button"
-            onPress={() => beginRound(roundsPlayed + 1)}
-            style={styles.start}
-          >
-            <SymbolView name="play.fill" size={56} tintColor={color.accent} />
-          </Pressable>
-        )}
+        <Pressable
+          accessibilityLabel={strings.pauseGame.start}
+          accessibilityRole="button"
+          disabled={isOver}
+          onPress={() => beginRound(roundsPlayed + 1)}
+          style={[styles.start, isOver && styles.startOver]}
+        >
+          <SymbolView name="play.fill" size={START_ICON_SIZE} tintColor={isOver ? color.hint : color.accent} />
+        </Pressable>
       </View>
     )
   }
@@ -422,6 +423,9 @@ const styles = StyleSheet.create({
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
     backgroundColor: color.hint,
+  },
+  startOver: {
+    backgroundColor: color.panelAlt,
   },
   start: {
     width: touch.child,
