@@ -1,6 +1,6 @@
 import { useAudioPlayerStatus } from 'expo-audio'
 import { SymbolView } from 'expo-symbols'
-import { type ReactElement, useEffect } from 'react'
+import { type ReactElement, useEffect, useRef } from 'react'
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import { pickAudio } from '@/audio/audio-file'
 import { flatLevels, LEVEL_INTERVAL_MS } from '@/audio/metering'
@@ -15,6 +15,12 @@ import { Waveform } from '@/ui/waveform'
 
 const RECORD_BUTTON_HEIGHT = 48
 
+/**
+ * Held this long, a press on the record button starts a take. A quicker tap never wakes the microphone: a take given up
+ * while it is being prepared is recorded and stopped at once (TakeRecorder), which lights the orange dot of iOS.
+ */
+const HOLD_TO_RECORD_MS = 250
+
 /** Slots of the waveform: the longest recording allowed, one bar per interval. */
 const WAVEFORM_SLOTS = MAX_RECORDING_MS / LEVEL_INTERVAL_MS
 
@@ -27,7 +33,8 @@ interface VoiceFieldProps {
 
 /**
  * The parent's voice (DESIGN §3, OVOZ): hold and speak (4 s at most), release to stop, listen back, hold again to
- * re-record. The recording is loaded into the preview player as soon as it exists, which also tells its length.
+ * re-record. A tap records nothing. The recording is loaded into the preview player as soon as it exists, which also
+ * tells its length.
  */
 export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): ReactElement {
   const player = useVoicePlayer()
@@ -36,6 +43,7 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
   const audioUri = audio ? mediaDraftUri(audio) : null
   const shownLevels = recorder.isRecording ? recorder.levels : (levels ?? flatLevels(audio ? playerStatus.duration : 0))
   const playedSlots = playerStatus.playing ? Math.round((playerStatus.currentTime * 1000) / LEVEL_INTERVAL_MS) : undefined
+  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (audioUri) {
@@ -45,15 +53,32 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
     }
   }, [player, audioUri])
 
-  function startRecording(): void {
+  useEffect(() => {
+    return () => clearTimeout(holdRef.current ?? undefined)
+  }, [])
+
+  function startHold(): void {
     if (player.playing) {
       player.pause()
     }
 
-    recorder.start()
+    holdRef.current = setTimeout(() => {
+      holdRef.current = null
+
+      recorder.start()
+    }, HOLD_TO_RECORD_MS)
   }
 
-  async function stopRecording(): Promise<void> {
+  /** Let go before the hold turned into a take: a tap, and nothing was recorded. */
+  async function endHold(): Promise<void> {
+    if (holdRef.current !== null) {
+      clearTimeout(holdRef.current)
+
+      holdRef.current = null
+
+      return
+    }
+
     await recorder.stop()
   }
 
@@ -112,8 +137,8 @@ export function VoiceField({ audio, levels, onRecorded }: VoiceFieldProps): Reac
           accessibilityLabel={strings.cardEditor.holdToRecord}
           accessibilityRole="button"
           disabled={recorder.access !== 'granted'}
-          onPressIn={startRecording}
-          onPressOut={stopRecording}
+          onPressIn={startHold}
+          onPressOut={endHold}
           style={[styles.record, styles.action, recorder.isRecording && styles.recording]}
         >
           <SymbolView name="mic" size={18} tintColor={recorder.isRecording ? color.card : color.ink} />

@@ -1,8 +1,9 @@
-import { RecordingPresets, useAudioRecorder } from 'expo-audio'
+import { RecordingPresets } from 'expo-audio'
 import { useEffect, useRef, useState } from 'react'
 import { MAX_AUDIO_MS } from '@/audio/audio-file'
 import { LEVEL_INTERVAL_MS, meteringLevel, trimLevels } from '@/audio/metering'
 import { askForMicrophone, hasMicrophone } from '@/audio/microphone'
+import { useTakeRecorder } from '@/audio/use-take-recorder'
 
 /** Metering is on so the editor can draw the shape of the take (DESIGN §3, OVOZ). */
 const RECORDING_OPTIONS = {
@@ -43,26 +44,25 @@ interface Take {
 }
 
 /**
- * Hold-to-record: start on press-in, stop on release or after 4 s, and hand a usable take to onRecorded together with
- * the loudness sampled while it was spoken, and how long it lasted.
+ * Hold-to-record: start once a press has been held long enough to be a take, stop on release or after 4 s, and hand a
+ * usable take to onRecorded together with the loudness sampled while it was spoken, and how long it lasted.
  *
- * The microphone is prepared for one take and left unprepared afterwards, which is what keeps it cold: expo-audio
- * restarts every prepared recorder by itself when an audio interruption ends (a call, Siri), and a recorder left ready
- * on the child's screen would then write the child to disk with nobody asking for it. Preparing each take also gives it
- * its own file: without explicit options expo-audio records over the previous one.
+ * The recorder goes through TakeRecorder, which prepares it for one take and never leaves it prepared: expo-audio
+ * restarts every prepared recorder by itself when the app comes back to the foreground or an audio interruption ends,
+ * and a recorder left ready, by a release that came while it was still being prepared, would then write the child to
+ * disk with nobody asking for it. Preparing each take also gives it its own file.
  */
 export function useVoiceRecorder(
   onRecorded: (uri: string, levels: number[], durationMs: number) => void,
   { askOnMount = true }: VoiceRecorderOptions = {},
 ): VoiceRecorder {
-  const recorder = useAudioRecorder(RECORDING_OPTIONS)
+  const { recorder, takes } = useTakeRecorder(RECORDING_OPTIONS)
   const [access, setAccess] = useState<MicrophoneAccess>('pending')
   const [isRecording, setIsRecording] = useState(false)
   const [levels, setLevels] = useState<number[]>([])
   const [isRequested, setIsRequested] = useState(askOnMount)
   const levelsRef = useRef<number[]>([])
   const takeRef = useRef<Take | null>(null)
-  const isWantedRef = useRef(false)
 
   /** What the app is allowed to do already, without asking anybody. */
   useEffect(() => {
@@ -87,22 +87,19 @@ export function useVoiceRecorder(
     askForMicrophone().then((isAllowed) => setAccess(isAllowed ? 'granted' : 'denied'))
   }, [isRequested])
 
-  /** A screen that goes away mid-take takes the microphone with it, rather than leaving it open. */
+  /** A screen that goes away mid-take stops its clock; the take itself is thrown away with the recorder. */
   useEffect(() => {
     return () => {
       const take = takeRef.current
 
-      isWantedRef.current = false
       takeRef.current = null
 
       if (take) {
         clearTimeout(take.timeout)
         clearInterval(take.meter)
-
-        recorder.stop().catch(() => undefined)
       }
     }
-  }, [recorder])
+  }, [])
 
   /** The readings live in a ref, which stop() reads, and in state, which draws them while the parent speaks. */
   function sampleLevel(): void {
@@ -116,7 +113,7 @@ export function useVoiceRecorder(
    * and the next hold records, or the microphone was refused.
    */
   function start(): boolean {
-    if (takeRef.current || isWantedRef.current) {
+    if (takeRef.current) {
       return false
     }
 
@@ -130,28 +127,16 @@ export function useVoiceRecorder(
       return false
     }
 
-    isWantedRef.current = true
-
-    beginTake()
+    takes.start().then((isStarted) => {
+      if (isStarted) {
+        beginTake()
+      }
+    })
 
     return true
   }
 
-  async function beginTake(): Promise<void> {
-    try {
-      await recorder.prepareToRecordAsync(RECORDING_OPTIONS)
-    } catch {
-      isWantedRef.current = false
-
-      return
-    }
-
-    if (!isWantedRef.current) {
-      return
-    }
-
-    recorder.record()
-
+  function beginTake(): void {
     levelsRef.current = []
     takeRef.current = {
       startedAt: Date.now(),
@@ -163,25 +148,25 @@ export function useVoiceRecorder(
     setIsRecording(true)
   }
 
+  /** Ends the take, or gives up the one still being prepared, which TakeRecorder then stops and deletes itself. */
   async function stop(): Promise<void> {
-    isWantedRef.current = false
-
     const take = takeRef.current
+
+    takeRef.current = null
+
+    if (take) {
+      clearTimeout(take.timeout)
+      clearInterval(take.meter)
+    }
+
+    const uri = await takes.stop()
 
     if (!take) {
       return
     }
 
-    takeRef.current = null
-
-    clearTimeout(take.timeout)
-    clearInterval(take.meter)
-
-    await recorder.stop()
-
     setIsRecording(false)
 
-    const uri = recorder.uri
     const durationMs = Date.now() - take.startedAt
 
     if (uri && durationMs >= MIN_RECORDING_MS) {

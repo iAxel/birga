@@ -1,4 +1,4 @@
-import { Directory, Paths } from 'expo-file-system'
+import { Directory, File, Paths } from 'expo-file-system'
 
 /** Where expo-audio writes what it records, until the app moves it or throws it away. */
 const TAKES_DIRECTORY = 'ExpoAudio'
@@ -19,6 +19,19 @@ export function discardStrayTakes(): void {
 
     for (const entry of directory.list()) {
       entry.delete()
+    }
+  } catch {
+    return
+  }
+}
+
+/** Deletes one take the recorder wrote; a take that is already gone, or cannot be reached, is left as it is. */
+export function deleteTake(uri: string): void {
+  try {
+    const take = new File(uri)
+
+    if (take.exists) {
+      take.delete()
     }
   } catch {
     return

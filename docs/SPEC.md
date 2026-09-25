@@ -72,12 +72,13 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 ### Vocalization detector
 
 - Uses recorder metering only. No audio is saved: expo-audio always writes a file, that file is deleted the moment the microphone closes, and a take left behind by an app that died mid-pause is deleted at start-up.
-- Mic is opened 150 ms after app playback has fully ended, closed before playback resumes. Listening starts with the first reading, against the last known baseline, so the beginning of a pause is never a deaf spot.
-- Threshold = baseline + margin (default 12 dB, setting). Baseline = median dB of a measurement of the room, measured again and again:
-  - 2 s while the game waits on its play button, which sets it outright;
-  - the first 500 ms of a pause window, which may only **lower** it: the child may be speaking into that half second, and a raised baseline would make the game deaf exactly where it is meant to listen;
-  - the last 500 ms of a pause that ended in `pause_timeout` — nothing was said into it, so that is an honest measurement of the room, and the only way the baseline rises during a game.
-- Trigger: level above threshold for ≥ 250 ms within the pause window.
+- Mic is opened 150 ms after app playback has fully ended, closed before playback resumes. Listening starts with the first reading, against the current baseline, so the beginning of a pause is never a deaf spot.
+- Threshold = baseline + margin (default 12 dB, setting). Baseline = median dB of a measurement of the room, taken only in the app's quiet moments, where nothing counts as the child:
+  - 2 s while the game waits on its play button;
+  - about 1 s between two rounds, while the finished sequence stays on screen and the app is silent;
+  - the last 500 ms of a pause that ended in `pause_timeout` — nothing was said into it, so that is an honest measurement of the room.
+- The baseline never goes below −70 dB (the recorder reports −160 dB before its input starts) and is kept in the settings, so a new session listens against the room the last one measured instead of a guess.
+- Trigger: the level rises above the threshold from below it and holds for ≥ 250 ms within the pause window. A level that is already above the threshold when the window opens is the room, or a baseline gone stale, not the child: it counts only once it has fallen below and risen again, and a pause it fills with noise runs out and measures the room instead.
 - A development build logs every hearing with the baseline, the threshold and the loudest level of the window, which is how the margin is chosen against the room the child is actually in. A release build prints nothing.
 - Pure function over a stream of `(timestampMs, dB)` samples → unit-tested.
 
@@ -89,6 +90,7 @@ Built on the child's love of sequences. The app says a familiar sequence in the 
 - Starting a session asks for the microphone, so the system dialog comes up in parent mode and never in front of the child. A refusal only means the session runs without listening: the pause game then ends its pauses on the timer and on the parent's button.
 - Parent mode pauses the running session. The parent returns to it, or ends it there (`parent_exit`).
 - Last minute: subtle visual countdown, a 3 pt bar at the top edge shrinking right to left, no sound.
+- The screen stays on while a session runs in child mode: a round of the pause game passes with nobody touching it, and iOS would otherwise lock it halfway through.
 - At end: **Goodbye screen** — character waves, parent-voice "Xayr!" recording (optional, recorded in Settings), then a static calm screen. Nothing on it is tappable except the parent gate. Until the character exists, a waving hand symbol stands in for it.
 - New session only via parent mode. Optional setting: minimum break between sessions (default 30 min, 0 = off). It blocks starting a new session until it has passed, counted from the last session that ended by the timer.
 - A session the app died in is closed at the next launch as `app_killed`, at its last logged event.

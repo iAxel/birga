@@ -23,6 +23,7 @@ describe('SettingsRepository', () => {
       pauseWindowSeconds: 5,
       roundsPerGame: 5,
       detectionMarginDb: 12,
+      roomBaselineDb: null,
       rewardGlow: true,
       rewardSparks: true,
       sessionMinutes: 10,
@@ -89,6 +90,18 @@ describe('SettingsRepository', () => {
     await settings.save('onboardingDone', true)
 
     expect((await settings.load()).onboardingDone).toBe(true)
+  })
+
+  test('keeps the room the pause game measured, and nothing that is not a number', async () => {
+    const { db, settings } = await createRepository()
+
+    await settings.save('roomBaselineDb', -46.5)
+
+    expect((await settings.load()).roomBaselineDb).toBe(-46.5)
+
+    await db.execAsync("UPDATE settings SET value = '\"loud\"' WHERE key = 'roomBaselineDb'")
+
+    expect((await settings.load()).roomBaselineDb).toBeNull()
   })
 
   test("keeps the child's name exactly as typed", async () => {
